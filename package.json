@@ -1,31 +1,30 @@
 {
-    "name": "simple-vertec-api",
-    "description": "Simple Vertec Api for Node.JS/io.js",
-    "version": "0.0.1",
-    "author": "Dimitri König <dimitri@dimitrikoenig.net>",
-    "contributors": [
-        {
-            "name": "Dimitri König",
-            "email": "dimitri@dimitrikoenig.net"
-        }
-    ],
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/dimitri-koenig/simple-vertec-api.git"
-    },
-    "bugs": {
-        "url": "https://github.com/dimitri-koenig/simple-vertec-api/issues"
-    },
-    "dependencies": {
-    },
-    "devDependencies": {
-    },
-    "keywords": [
-        "vertec",
-        "nodejs"
-    ],
-    "main": "index",
-    "scripts": {
-    },
-    "license": "Apache License 2.0"
+  "name": "simple-vertec-api",
+  "description": "Simple Vertec Api for Node.JS/io.js",
+  "version": "0.0.1",
+  "author": "Dimitri König <dimitri@dimitrikoenig.net>",
+  "contributors": [
+    {
+      "name": "Dimitri König",
+      "email": "dimitri@dimitrikoenig.net"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dimitri-koenig/simple-vertec-api.git"
+  },
+  "bugs": {
+    "url": "https://github.com/dimitri-koenig/simple-vertec-api/issues"
+  },
+  "dependencies": {
+    "xml": "^1.0.0"
+  },
+  "devDependencies": {},
+  "keywords": [
+    "vertec",
+    "nodejs"
+  ],
+  "main": "index",
+  "scripts": {},
+  "license": "Apache License 2.0"
 }
