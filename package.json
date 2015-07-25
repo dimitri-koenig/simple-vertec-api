@@ -22,12 +22,20 @@
     "request-promise": "^0.4.2",
     "xml": "^1.0.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "bluebird": "^2.9.34",
+    "chai": "^3.2.0",
+    "mocha": "^2.2.5",
+    "sinon": "^1.15.4",
+    "sinon-bluebird": "^2.0.0"
+  },
   "keywords": [
     "vertec",
     "nodejs"
   ],
   "main": "index",
-  "scripts": {},
+  "scripts": {
+    "test": "./node_modules/mocha/bin/mocha"
+  },
   "license": "Apache License 2.0"
 }
