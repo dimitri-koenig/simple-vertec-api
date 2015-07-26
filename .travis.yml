@@ -15,8 +15,9 @@ cache:
   directories:
     - node_modules
 
-after_script:
-  - npm run coveralls
+after_success:
+  - npm install codeclimate-test-reporter
+  - codeclimate-test-reporter < coverage/lcov.info
 
 matrix:
   fast_finish: true
