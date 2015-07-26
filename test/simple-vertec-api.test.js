@@ -32,6 +32,19 @@ describe('SimpleVertecApi', function () {
         expect(buildXmlSpy.returnValues[1]).to.equal('<Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><ocl>something else</ocl></Selection></Query></Body></Envelope>');
     });
 
+    it('throws an error when no select given', function () {
+        sinon.stub(api, 'doRequest');
+        var querySpy = sinon.spy(api, 'query');
+
+        try {
+            api.query({});
+
+            expect.fail('No exception thrown', 1437904640);
+        } catch (e) {
+            expect(querySpy.exceptions.length).to.equal(1);
+        }
+    });
+
     it('sets members and expressions', function () {
         sinon.stub(api, 'doRequest');
 
