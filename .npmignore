@@ -1,6 +1,11 @@
-examples
+*.swp
+.idea
+.DS_STORE
+npm-debug.log
+*~
+coverage
 test
-coverage*
+examples
 .editorconfig
 .gitignore
 .jshintrc
