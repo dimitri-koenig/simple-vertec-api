@@ -15,11 +15,8 @@ cache:
   directories:
     - node_modules
 
+after_script:
+  - npm run coveralls
+
 matrix:
   fast_finish: true
-  include:
-    - node_js: "0.10"
-      env: COVERAGE=true
-  allow_failures:
-    - node_js: "0.10"
-      env: COVERAGE=true
