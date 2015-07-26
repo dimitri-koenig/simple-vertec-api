@@ -1,4 +1,8 @@
 examples
 test
-README.md
 coverage*
+.editorconfig
+.gitignore
+.jshintrc
+.npmignore
+.travis.yml
