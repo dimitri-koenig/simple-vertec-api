@@ -26,6 +26,7 @@
   "devDependencies": {
     "bluebird": "^2.9.34",
     "chai": "^3.2.0",
+    "istanbul": "^0.3.17",
     "mocha": "^2.2.5",
     "sinon": "^1.15.4",
     "sinon-bluebird": "^2.0.0"
@@ -36,7 +37,8 @@
   ],
   "main": "index",
   "scripts": {
-    "test": "./node_modules/mocha/bin/mocha"
+    "test": "./node_modules/mocha/bin/mocha ./test/*",
+    "test-travis": "./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- -R spec ./test/*"
   },
   "license": "Apache License 2.0"
 }

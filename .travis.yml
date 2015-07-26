@@ -17,6 +17,7 @@ cache:
 
 after_success:
   - npm install codeclimate-test-reporter
+  - npm run test-travis
   - codeclimate-test-reporter < coverage/lcov.info
 
 matrix:
