@@ -1,7 +1,5 @@
 'use strict';
 
-process.env.NODE_ENV = 'test';
-
 var SimpleVertecApi = require('../lib/simple-vertec-api').SimpleVertecApi,
     expect          = require('chai').expect,
     sinon           = require('sinon-bluebird');
@@ -38,10 +36,10 @@ describe('SimpleVertecApi', function () {
 
         try {
             api.query({});
-
-            expect.fail('No exception thrown', 1437904640);
         } catch (e) {
-            expect(querySpy.exceptions.length).to.equal(1);
+        } finally {
+            expect(querySpy.exceptions).to.have.length(1);
+            expect(querySpy.exceptions[0].message).to.have.string('1437846575');
         }
     });
 
@@ -59,6 +57,23 @@ describe('SimpleVertecApi', function () {
             ]
         });
         expect(buildXmlSpy.returnValues[0]).to.equal('<Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><ocl>something</ocl></Selection><Resultdef><member>normal-field</member><expression><alias>foobar</alias><ocl>object.field</ocl></expression></Resultdef></Query></Body></Envelope>');
+    });
+
+    it('throws an error on an unknown field config type', function () {
+        sinon.stub(api, 'doRequest');
+
+        try {
+            api.query({
+                select: 'something',
+                fields: [
+                    123
+                ]
+            });
+        } catch (e) {
+        } finally {
+            expect(buildXmlSpy.exceptions).to.have.length(1);
+            expect(buildXmlSpy.exceptions[0].message).to.have.string('1437849815');
+        }
     });
 
     it('converts response to json and extracts useful content', function () {
