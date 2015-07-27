@@ -17,6 +17,7 @@
     "url": "https://github.com/dimitri-koenig/simple-vertec-api/issues"
   },
   "dependencies": {
+    "bluebird": "^2.9.34",
     "lodash": "^3.10.0",
     "request": "^2.60.0",
     "request-promise": "^0.4.2",
