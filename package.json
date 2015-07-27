@@ -25,7 +25,6 @@
     "xml-digester": "0.0.5"
   },
   "devDependencies": {
-    "bluebird": "^2.9.34",
     "chai": "^3.2.0",
     "istanbul": "^0.3.17",
     "mocha": "^2.2.5",
