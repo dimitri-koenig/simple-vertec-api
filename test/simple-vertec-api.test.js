@@ -79,12 +79,22 @@ describe('SimpleVertecApi', function () {
     it('converts response to json and extracts useful content', function () {
         sinon.stub(api, 'request').resolves('<Envelope><Body><QueryResponse><Kontakt><objid>12345</objid><sprache>DE</sprache></Kontakt><Kontakt><objid>23456</objid><sprache>EN</sprache></Kontakt></QueryResponse></Body></Envelope>');
 
-        api.query({ select: 'something' }).then(function (content) {
+        return api.query({ select: 'something' }).then(function (content) {
             expect(content.Kontakt.length).to.equal(2);
             expect(content.Kontakt[0].objid).to.equal('12345');
             expect(content.Kontakt[0].sprache).to.equal('DE');
             expect(content.Kontakt[1].objid).to.equal('23456');
             expect(content.Kontakt[1].sprache).to.equal('EN');
+        });
+    });
+
+    it('converts fault messages from server', function () {
+        sinon.stub(api, 'request').resolves('<Envelope><Body><Fault><faultcode>Client</faultcode></Fault></Body></Envelope>');
+
+        return api.query({ select: 'some faulty select' }).then(function (result) {
+            throw new Error('Promise was unexpectedly fulfilled. Result: ' + result);
+        }, function (result) {
+            expect(result).to.include.keys('Fault');
         });
     });
 });
