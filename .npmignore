@@ -8,6 +8,6 @@ test
 examples
 .editorconfig
 .gitignore
-.jshintrc
+.eslintrc
 .npmignore
 .travis.yml

@@ -37,6 +37,7 @@ describe('SimpleVertecApi', function () {
         try {
             api.query({});
         } catch (e) {
+            // we only need the finally block
         } finally {
             expect(querySpy.exceptions).to.have.length(1);
             expect(querySpy.exceptions[0].message).to.have.string('1437846575');
@@ -70,6 +71,7 @@ describe('SimpleVertecApi', function () {
                 ]
             });
         } catch (e) {
+            // we only need the finally block
         } finally {
             expect(buildXmlSpy.exceptions).to.have.length(1);
             expect(buildXmlSpy.exceptions[0].message).to.have.string('1437849815');
