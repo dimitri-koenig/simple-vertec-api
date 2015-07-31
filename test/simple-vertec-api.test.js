@@ -1,12 +1,12 @@
 'use strict';
 
-var SimpleVertecApi = require('../lib/simple-vertec-api').SimpleVertecApi,
-    expect          = require('chai').expect,
-    sinon           = require('sinon-bluebird');
+var SimpleVertecApi = require('../lib/simple-vertec-api').SimpleVertecApi;
+var expect = require('chai').expect;
+var sinon = require('sinon-bluebird');
 
 describe('SimpleVertecApi', function () {
-    var api,
-        buildXmlSpy;
+    var api;
+    var buildXmlSpy;
 
     beforeEach('setup', function () {
         api = new SimpleVertecApi('http://localhost', 'my-username', 'my-password');

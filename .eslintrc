@@ -1,5 +1,23 @@
 {
   "rules": {
+    "strict": [
+      2,
+      "global"
+    ],
+    "one-var": [
+      2,
+      "never"
+    ],
+    "camelcase": [
+      2,
+      {
+        "properties": "always"
+      }
+    ],
+    "eqeqeq": [
+      2,
+      "smart"
+    ],
     "indent": [
       2,
       4
