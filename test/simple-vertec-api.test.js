@@ -170,6 +170,30 @@ describe('SimpleVertecApi', function () {
         }
     });
 
+    it('converts select parameter of type Date to special encodeDate format', function () {
+        sinon.stub(api, 'doRequest');
+
+        api.query(
+            'where-x-expression = :id and where-y-expression = :today',
+            {
+                id:    123,
+                today: new Date('2015-08-01')
+            },
+            ['foobar']
+        );
+        expect(buildXmlSpy.returnValues.shift()).to.equal('<Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><ocl>where-x-expression = 123 and where-y-expression = encodeDate(2015,8,1)</ocl></Selection><Resultdef><member>foobar</member></Resultdef></Query></Body></Envelope>');
+
+        api.query(
+            'where-x-expression = ? and where-y-expression = ?',
+            [
+                123,
+                new Date('2015-08-01')
+            ],
+            ['foobar']
+        );
+        expect(buildXmlSpy.returnValues.shift()).to.equal('<Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><ocl>where-x-expression = 123 and where-y-expression = encodeDate(2015,8,1)</ocl></Selection><Resultdef><member>foobar</member></Resultdef></Query></Body></Envelope>');
+    });
+
     it('converts response to json and extracts useful content', function () {
         sinon.stub(api, 'request').resolves('<Envelope><Body><QueryResponse><Kontakt><objid>12345</objid><sprache>DE</sprache></Kontakt><Kontakt><objid>23456</objid><sprache>EN</sprache></Kontakt></QueryResponse></Body></Envelope>');
 
