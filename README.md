@@ -5,11 +5,105 @@
 [![Dependency Status](https://david-dm.org/dimitri-koenig/simple-vertec-api.svg)](https://david-dm.org/dimitri-koenig/simple-vertec-api)
 [![Documentation](https://inch-ci.org/github/dimitri-koenig/simple-vertec-api.svg?branch=master)](https://inch-ci.org/github/dimitri-koenig/simple-vertec-api)
 
+
 ## Installation
 
 Run this command:
+```
+$ npm install simple-vertec-api --save
+```
 
-    $ npm install simple-vertec-api --save
+
+## Examples
+
+### Simple query example
+
+```javascript
+var SimpleVertecApi = require('simple-vertec-api').SimpleVertecApi;
+var api = new SimpleVertecApi('http://localhost', 'my-username', 'my-password', true);
+
+// fetches all active users ordered by their name
+var select = 'projektbearbeiter->select(aktiv)->orderby(name)';
+var fields = [
+    'name', // normal field name
+    { // special expression for additional data conversion, same like in sql: select 'briefemail' as 'email'
+        alias: 'email',
+        ocl: 'briefemail'
+    }
+];
+api.query(select, fields).then(function(response) {
+    // do something with the result
+    console.log(response);
+});
+```
+
+### Simple array with select parameters
+
+```javascript
+var SimpleVertecApi = require('simple-vertec-api').SimpleVertecApi;
+var api = new SimpleVertecApi('http://localhost', 'my-username', 'my-password', true);
+
+// fetches records of user 12345 ordered by their date
+var select = 'projektbearbeiter->select(boldid = ?).offeneleistungen->orderby(datum)';
+var params = [
+    12345
+];
+var fields = [
+    'minutenInt',
+    'minutenExt',
+    'datum'
+];
+api.query(select, params, fields).then(function(response) {
+    // do something with the result
+    console.log(response);
+});
+// rendered select: projektbearbeiter->select(boldid = 12345).offeneleistungen->orderby(datum)
+```
+
+### Named parameters for select
+
+```javascript
+var SimpleVertecApi = require('simple-vertec-api').SimpleVertecApi;
+var api = new SimpleVertecApi('http://localhost', 'my-username', 'my-password', true);
+
+// fetches records between two dates
+var select = 'self.verrechneteleistungen->select( (datum >= :startDate) and (datum <= :endDate) )';
+var params = [
+    startDate: new Date('2015-08-03'), // if you pass a value of type Date, it get's rendered to encodeDate(Year,Month,Day)
+    endDate: new Date('2015-08-09')
+];
+var fields = [
+    'minutenInt',
+    'minutenExt',
+    'datum'
+];
+api.query(select, params, fields).then(function(response) {
+    // do something with the result
+    console.log(response);
+});
+// rendered select: self.verrechneteleistungen->select( (datum >= encodeDate(2015,8,3)) and (datum <= encodeDate(2015,8,9)) )
+```
+
+
+## API
+
+### new SimpleVertecApi(vertecUrl, username, password, [verbose])
+
+Returns a new SimpleVertecApi object.
+
+* `vertecUrl`: A string containing the url the your vertec server, e.g. `https://vertec.company.com:8090/xml`
+* `username`: A string with your vertec username
+* `password`: A string with your vertec username
+* `verbose` *(optional)*: A boolean which set on true will output additional log data
+
+### SimpleVertecApi#query(select, [params], fields)
+
+Does a query on the server with additional parameters for the select. Returns a [Promise](https://github.com/petkaantonov/bluebird).
+
+* `select`: A string containing the ocl expression for fetching the data
+* `params` *(optional)*: An array with placeholders to be replaced in the select, e.g. `select where expression = ?`, or an object with key => value so that named parameters can be used in the select, e.g. `select where expression = :id`
+* `fields`: An array containing the fields which should be returned. Accepts a string as item, or an object with the fields `ocl` and `alias` to do further expressions.
+
 
 ## Contributing
 
@@ -26,9 +120,3 @@ Dimitri König (@dimitrikoenig)
 ## License
 
 Simple Vertec Api is released under the Apache License V2. See the `LICENSE` file for further details.
-
-## TODOS
-
-* Examples
-* More catching of possible errors and exceptions
-* Extend `select` of the `query` method with additional parameter feature (named, like `:boldid`)
