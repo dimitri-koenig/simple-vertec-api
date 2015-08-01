@@ -30,7 +30,7 @@ describe('SimpleVertecApi', function () {
         expect(buildXmlSpy.returnValues[1]).to.equal('<Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><ocl>something else</ocl></Selection></Query></Body></Envelope>');
     });
 
-    it('throws an error when no select given', function () {
+    it('throws an error if no select given', function () {
         sinon.stub(api, 'doRequest');
         var querySpy = sinon.spy(api, 'query');
 
@@ -44,7 +44,7 @@ describe('SimpleVertecApi', function () {
         }
     });
 
-    it('throws an error when fields parameter is not an array', function () {
+    it('throws an error if fields parameter is not an array', function () {
         sinon.stub(api, 'doRequest');
         var querySpy = sinon.spy(api, 'query');
 
@@ -75,14 +75,98 @@ describe('SimpleVertecApi', function () {
         sinon.stub(api, 'doRequest');
 
         try {
-            api.query('something', [
-                123
-            ]);
+            api.query('something', [123]);
         } catch (e) {
             // we only need the finally block
         } finally {
             expect(buildXmlSpy.exceptions).to.have.length(1);
             expect(buildXmlSpy.exceptions[0].message).to.have.string('1437849815');
+        }
+    });
+
+    it('accepts array as params argument in query', function () {
+        sinon.stub(api, 'doRequest');
+
+        api.query(
+            'where-expression = ?',
+            [123],
+            [
+                'normal-field',
+                {
+                    alias: 'foobar',
+                    ocl:   'object.field'
+                }
+            ]
+        );
+        expect(buildXmlSpy.returnValues[0]).to.equal('<Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><ocl>where-expression = 123</ocl></Selection><Resultdef><member>normal-field</member><expression><alias>foobar</alias><ocl>object.field</ocl></expression></Resultdef></Query></Body></Envelope>');
+    });
+
+    it('returns ? placeholder if more placeholders then params in array given', function () {
+        sinon.stub(api, 'doRequest');
+
+        api.query(
+            'where-x-expression = ? and where-y-expression = ?',
+            [123],
+            [
+                'normal-field',
+                {
+                    alias: 'foobar',
+                    ocl:   'object.field'
+                }
+            ]
+        );
+        expect(buildXmlSpy.returnValues[0]).to.equal('<Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><ocl>where-x-expression = 123 and where-y-expression = ?</ocl></Selection><Resultdef><member>normal-field</member><expression><alias>foobar</alias><ocl>object.field</ocl></expression></Resultdef></Query></Body></Envelope>');
+    });
+
+    it('accepts object as params argument in query', function () {
+        sinon.stub(api, 'doRequest');
+
+        api.query(
+            'where-x-expression = :id and where-y-expression = :id',
+            {
+                id: 123
+            },
+            [
+                'normal-field',
+                {
+                    alias: 'foobar',
+                    ocl:   'object.field'
+                }
+            ]
+        );
+        expect(buildXmlSpy.returnValues[0]).to.equal('<Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><ocl>where-x-expression = 123 and where-y-expression = 123</ocl></Selection><Resultdef><member>normal-field</member><expression><alias>foobar</alias><ocl>object.field</ocl></expression></Resultdef></Query></Body></Envelope>');
+    });
+
+    it('throws an error if named parameter does not exist in params object', function () {
+        sinon.stub(api, 'doRequest');
+        var querySpy = sinon.spy(api, 'query');
+
+        try {
+            api.query(
+                'where-x-expression = :id and where-y-expression = :name',
+                {
+                    id: 123
+                },
+                { foo: 'bar' });
+        } catch (e) {
+            // we only need the finally block
+        } finally {
+            expect(querySpy.exceptions).to.have.length(1);
+            expect(querySpy.exceptions[0].message).to.have.string('1438415385');
+        }
+    });
+
+    it('throws an error if 3 params given and fields param is not an array', function () {
+        sinon.stub(api, 'doRequest');
+        var querySpy = sinon.spy(api, 'query');
+
+        try {
+            api.query('some select', [123], { foo: 'bar' });
+        } catch (e) {
+            // we only need the finally block
+        } finally {
+            expect(querySpy.exceptions).to.have.length(1);
+            expect(querySpy.exceptions[0].message).to.have.string('1438412211');
         }
     });
 
