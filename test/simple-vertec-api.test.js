@@ -7,31 +7,30 @@ var sinon = require('sinon-bluebird');
 describe('SimpleVertecApi', function () {
     var api;
     var buildXmlSpy;
-    var consoleStub = sinon.stub(console, 'log');
 
     beforeEach('setup', function () {
-        api = new SimpleVertecApi('http://localhost', 'my-username', 'my-password', true);
+        api = new SimpleVertecApi('http://localhost', 'my-username', 'my-password');
         buildXmlSpy = sinon.spy(api, 'buildXml');
     });
 
     it('sets authentication data', function () {
         sinon.stub(api, 'doRequest');
 
-        api.query('something');
+        api.query('something', []);
         expect(buildXmlSpy.returnValues[0]).to.equal('<Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><ocl>something</ocl></Selection></Query></Body></Envelope>');
     });
 
     it('does two requests with same auth data', function () {
         sinon.stub(api, 'doRequest');
 
-        api.query('something');
+        api.query('something', []);
         expect(buildXmlSpy.returnValues[0]).to.equal('<Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><ocl>something</ocl></Selection></Query></Body></Envelope>');
 
-        api.query('something else');
+        api.query('something else', []);
         expect(buildXmlSpy.returnValues[1]).to.equal('<Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><ocl>something else</ocl></Selection></Query></Body></Envelope>');
     });
 
-    it('throws an error if no select given', function () {
+    it('throws an error if no select or fields arguments given', function () {
         sinon.stub(api, 'doRequest');
         var querySpy = sinon.spy(api, 'query');
 
@@ -41,11 +40,20 @@ describe('SimpleVertecApi', function () {
             // we only need the finally block
         } finally {
             expect(querySpy.exceptions).to.have.length(1);
-            expect(querySpy.exceptions[0].message).to.have.string('1437846575');
+            expect(querySpy.exceptions.shift().message).to.have.string('1438427960');
+        }
+
+        try {
+            api.query('something');
+        } catch (e) {
+            // we only need the finally block
+        } finally {
+            expect(querySpy.exceptions).to.have.length(1);
+            expect(querySpy.exceptions.shift().message).to.have.string('1438427960');
         }
     });
 
-    it('throws an error if fields parameter is not an array', function () {
+    it('throws an error if select or fields arguments are not valid', function () {
         sinon.stub(api, 'doRequest');
         var querySpy = sinon.spy(api, 'query');
 
@@ -55,7 +63,16 @@ describe('SimpleVertecApi', function () {
             // we only need the finally block
         } finally {
             expect(querySpy.exceptions).to.have.length(1);
-            expect(querySpy.exceptions[0].message).to.have.string('1438412211');
+            expect(querySpy.exceptions.shift().message).to.have.string('1438428337');
+        }
+
+        try {
+            api.query({ foo: 'bar' }, []);
+        } catch (e) {
+            // we only need the finally block
+        } finally {
+            expect(querySpy.exceptions).to.have.length(1);
+            expect(querySpy.exceptions.shift().message).to.have.string('1438428337');
         }
     });
 
@@ -148,40 +165,12 @@ describe('SimpleVertecApi', function () {
                 {
                     id: 123
                 },
-                { foo: 'bar' });
+                ['foobar']);
         } catch (e) {
             // we only need the finally block
         } finally {
             expect(querySpy.exceptions).to.have.length(1);
             expect(querySpy.exceptions[0].message).to.have.string('1438415385');
-        }
-    });
-
-    it('throws an error if query select param is wether an object nor an array', function () {
-        sinon.stub(api, 'doRequest');
-        var querySpy = sinon.spy(api, 'query');
-
-        try {
-            api.query('some select', '', { foo: 'bar' });
-        } catch (e) {
-            // we only need the finally block
-        } finally {
-            expect(querySpy.exceptions).to.have.length(1);
-            expect(querySpy.exceptions[0].message).to.have.string('1438415275');
-        }
-    });
-
-    it('throws an error if 3 params given and fields param is not an array', function () {
-        sinon.stub(api, 'doRequest');
-        var querySpy = sinon.spy(api, 'query');
-
-        try {
-            api.query('some select', [123], { foo: 'bar' });
-        } catch (e) {
-            // we only need the finally block
-        } finally {
-            expect(querySpy.exceptions).to.have.length(1);
-            expect(querySpy.exceptions[0].message).to.have.string('1438412211');
         }
     });
 
@@ -212,7 +201,7 @@ describe('SimpleVertecApi', function () {
     it('converts response to json and extracts useful content', function () {
         sinon.stub(api, 'request').resolves('<Envelope><Body><QueryResponse><Kontakt><objid>12345</objid><sprache>DE</sprache></Kontakt><Kontakt><objid>23456</objid><sprache>EN</sprache></Kontakt></QueryResponse></Body></Envelope>');
 
-        return api.query('something').then(function (content) {
+        return api.query('something', []).then(function (content) {
             expect(content.Kontakt.length).to.equal(2);
             expect(content.Kontakt[0].objid).to.equal('12345');
             expect(content.Kontakt[0].sprache).to.equal('DE');
@@ -224,7 +213,7 @@ describe('SimpleVertecApi', function () {
     it('converts fault messages from server', function () {
         sinon.stub(api, 'request').resolves('<Envelope><Body><Fault><faultcode>Client</faultcode></Fault></Body></Envelope>');
 
-        return api.query('some faulty select').then(function (result) {
+        return api.query('some faulty select', []).then(function (result) {
             throw new Error('Promise was unexpectedly fulfilled. Result: ' + result);
         }, function (result) {
             expect(result).to.include.keys('Fault');
