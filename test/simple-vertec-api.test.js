@@ -93,7 +93,7 @@ describe('SimpleVertecApi', function () {
             // we only need the finally block
         } finally {
             expect(querySpy.exceptions).to.have.length(1);
-            expect(querySpy.exceptions.shift().message).to.have.string('1438428671');
+            expect(querySpy.exceptions.shift().message).to.have.string('1438428337');
         }
     });
 
