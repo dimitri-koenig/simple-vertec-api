@@ -198,6 +198,25 @@ describe('SimpleVertecApi', function () {
         expect(buildXmlSpy.returnValues.shift()).to.equal('<Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><ocl>where-x-expression = 123 and where-y-expression = encodeDate(2015,8,1)</ocl></Selection><Resultdef><member>foobar</member></Resultdef></Query></Body></Envelope>');
     });
 
+    it('accepts a string/number/date as param argument in query', function () {
+        sinon.stub(api, 'doRequest');
+
+        var select = 'where-x-expression = ?';
+        var fields = [];
+
+        var param = 123;
+        api.query(select, param, fields);
+        expect(buildXmlSpy.returnValues.shift()).to.equal('<Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><ocl>where-x-expression = 123</ocl></Selection></Query></Body></Envelope>');
+
+        param = 'foobar';
+        api.query(select, param, fields);
+        expect(buildXmlSpy.returnValues.shift()).to.equal('<Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><ocl>where-x-expression = foobar</ocl></Selection></Query></Body></Envelope>');
+
+        param = new Date('2015-08-01');
+        api.query(select, param, fields);
+        expect(buildXmlSpy.returnValues.shift()).to.equal('<Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><ocl>where-x-expression = encodeDate(2015,8,1)</ocl></Selection></Query></Body></Envelope>');
+    });
+
     it('converts response to json and extracts useful content', function () {
         sinon.stub(api, 'request').resolves('<Envelope><Body><QueryResponse><Kontakt><objid>12345</objid><sprache>DE</sprache></Kontakt><Kontakt><objid>23456</objid><sprache>EN</sprache></Kontakt></QueryResponse></Body></Envelope>');
 
