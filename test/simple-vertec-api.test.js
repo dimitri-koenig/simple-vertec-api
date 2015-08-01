@@ -7,9 +7,10 @@ var sinon = require('sinon-bluebird');
 describe('SimpleVertecApi', function () {
     var api;
     var buildXmlSpy;
+    var consoleStub = sinon.stub(console, 'log');
 
     beforeEach('setup', function () {
-        api = new SimpleVertecApi('http://localhost', 'my-username', 'my-password');
+        api = new SimpleVertecApi('http://localhost', 'my-username', 'my-password', true);
         buildXmlSpy = sinon.spy(api, 'buildXml');
     });
 
