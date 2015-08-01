@@ -157,6 +157,20 @@ describe('SimpleVertecApi', function () {
         }
     });
 
+    it('throws an error if query select param is wether an object nor an array', function () {
+        sinon.stub(api, 'doRequest');
+        var querySpy = sinon.spy(api, 'query');
+
+        try {
+            api.query('some select', '', { foo: 'bar' });
+        } catch (e) {
+            // we only need the finally block
+        } finally {
+            expect(querySpy.exceptions).to.have.length(1);
+            expect(querySpy.exceptions[0].message).to.have.string('1438415275');
+        }
+    });
+
     it('throws an error if 3 params given and fields param is not an array', function () {
         sinon.stub(api, 'doRequest');
         var querySpy = sinon.spy(api, 'query');
