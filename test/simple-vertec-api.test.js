@@ -13,6 +13,18 @@ describe('SimpleVertecApi', function () {
         buildXmlSpy = sinon.spy(api, 'buildXml');
     });
 
+    it('logging will be called', function () {
+        sinon.stub(api, 'doRequest');
+        api.verbose = true;
+        var consoleMock = sinon.stub(console, 'log');
+
+        api.query('something', []);
+
+        expect(consoleMock.called).to.equal(true);
+
+        consoleMock.restore();
+    });
+
     it('sets authentication data', function () {
         sinon.stub(api, 'doRequest');
 
@@ -73,6 +85,15 @@ describe('SimpleVertecApi', function () {
         } finally {
             expect(querySpy.exceptions).to.have.length(1);
             expect(querySpy.exceptions.shift().message).to.have.string('1438428337');
+        }
+
+        try {
+            api.query({ foo: 'bar' }, 'something', []);
+        } catch (e) {
+            // we only need the finally block
+        } finally {
+            expect(querySpy.exceptions).to.have.length(1);
+            expect(querySpy.exceptions.shift().message).to.have.string('1438428671');
         }
     });
 
