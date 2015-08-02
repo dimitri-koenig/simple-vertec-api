@@ -103,8 +103,8 @@ describe('SimpleVertecApi', function () {
         api.query('something', [
             'normal-field',
             {
-                alias: 'foobar',
-                ocl:   'object.field'
+                alias:      'foobar',
+                expression: 'object.field'
             }
         ]);
         expect(buildXmlSpy.returnValues[0]).to.equal('<Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><ocl>something</ocl></Selection><Resultdef><member>normal-field</member><expression><alias>foobar</alias><ocl>object.field</ocl></expression></Resultdef></Query></Body></Envelope>');
@@ -132,8 +132,8 @@ describe('SimpleVertecApi', function () {
             [
                 'normal-field',
                 {
-                    alias: 'foobar',
-                    ocl:   'object.field'
+                    alias:      'foobar',
+                    expression: 'object.field'
                 }
             ]
         );
@@ -149,8 +149,8 @@ describe('SimpleVertecApi', function () {
             [
                 'normal-field',
                 {
-                    alias: 'foobar',
-                    ocl:   'object.field'
+                    alias:      'foobar',
+                    expression: 'object.field'
                 }
             ]
         );
@@ -168,8 +168,8 @@ describe('SimpleVertecApi', function () {
             [
                 'normal-field',
                 {
-                    alias: 'foobar',
-                    ocl:   'object.field'
+                    alias:      'foobar',
+                    expression: 'object.field'
                 }
             ]
         );
