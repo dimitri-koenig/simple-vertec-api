@@ -3,6 +3,7 @@
 var SimpleVertecApi = require('../lib/simple-vertec-api').SimpleVertecApi;
 var expect = require('chai').expect;
 var sinon = require('sinon-bluebird');
+var moment = require('moment');
 
 describe('SimpleVertecApi', function () {
     var api;
@@ -195,28 +196,30 @@ describe('SimpleVertecApi', function () {
         }
     });
 
-    it('converts select parameter of type Date to special encodeDate format', function () {
+    it('converts select parameter of type Date/moment to special encodeDate format', function () {
         sinon.stub(api, 'doRequest');
 
         api.query(
-            'where-x-expression = :id and where-y-expression = :today',
+            'where-x-expression = :id and where-y-expression = :fromDate and where-z-expression = :toDate',
             {
                 id:    123,
-                today: new Date('2015-08-01')
+                fromDate: new Date('2015-08-03'),
+                toDate: moment('2015-08-09')
             },
             ['foobar']
         );
-        expect(buildXmlSpy.returnValues.shift()).to.equal('<Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><ocl>where-x-expression = 123 and where-y-expression = encodeDate(2015,8,1)</ocl></Selection><Resultdef><member>foobar</member></Resultdef></Query></Body></Envelope>');
+        expect(buildXmlSpy.returnValues.shift()).to.equal('<Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><ocl>where-x-expression = 123 and where-y-expression = encodeDate(2015,8,3) and where-z-expression = encodeDate(2015,8,9)</ocl></Selection><Resultdef><member>foobar</member></Resultdef></Query></Body></Envelope>');
 
         api.query(
-            'where-x-expression = ? and where-y-expression = ?',
+            'where-x-expression = ? and where-y-expression = ? and where-z-expression = ?',
             [
                 123,
-                new Date('2015-08-01')
+                new Date('2015-08-03'),
+                moment('2015-08-09')
             ],
             ['foobar']
         );
-        expect(buildXmlSpy.returnValues.shift()).to.equal('<Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><ocl>where-x-expression = 123 and where-y-expression = encodeDate(2015,8,1)</ocl></Selection><Resultdef><member>foobar</member></Resultdef></Query></Body></Envelope>');
+        expect(buildXmlSpy.returnValues.shift()).to.equal('<Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><ocl>where-x-expression = 123 and where-y-expression = encodeDate(2015,8,3) and where-z-expression = encodeDate(2015,8,9)</ocl></Selection><Resultdef><member>foobar</member></Resultdef></Query></Body></Envelope>');
     });
 
     it('accepts a string/number/date as param argument in query', function () {
