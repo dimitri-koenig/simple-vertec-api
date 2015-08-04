@@ -80,7 +80,7 @@ describe('SimpleVertecApi', function () {
         }
 
         try {
-            api.query({ foo: 'bar' }, []);
+            api.query(['something'], []);
         } catch (e) {
             // we only need the finally block
         } finally {
@@ -89,7 +89,7 @@ describe('SimpleVertecApi', function () {
         }
 
         try {
-            api.query({ foo: 'bar' }, 'something', []);
+            api.query(null, 'something', []);
         } catch (e) {
             // we only need the finally block
         } finally {
@@ -239,6 +239,32 @@ describe('SimpleVertecApi', function () {
         param = new Date('2015-08-01');
         api.query(select, param, fields);
         expect(buildXmlSpy.returnValues.shift()).to.equal('<Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><ocl>where-x-expression = encodeDate(2015,8,1)</ocl></Selection></Query></Body></Envelope>');
+    });
+
+    it('accepts object as select argument in query', function () {
+        sinon.stub(api, 'doRequest');
+
+        api.query(
+            {
+                ocl: 'something :param1',
+                where: 'something else :param2',
+                order: 'foobar :param3'
+            },
+            {
+                param1: 123,
+                param2: 234,
+                param3: 345
+            },
+            [
+                'normal-field',
+                {
+                    alias:      'foobar',
+                    expression: 'object.field'
+                }
+            ]
+        );
+
+        expect(buildXmlSpy.returnValues[0]).to.equal('<Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><ocl>something 123</ocl><sqlwhere>something else 234</sqlwhere><sqlorder>foobar 345</sqlorder></Selection><Resultdef><member>normal-field</member><expression><alias>foobar</alias><ocl>object.field</ocl></expression></Resultdef></Query></Body></Envelope>');
     });
 
     it('converts response to json and extracts useful content', function () {
