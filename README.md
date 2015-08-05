@@ -40,9 +40,6 @@ api.query(select, fields).then(function(response) {
 ### Simple array with select parameters
 
 ```javascript
-var SimpleVertecApi = require('simple-vertec-api').SimpleVertecApi;
-var api = new SimpleVertecApi('http://localhost', 'my-username', 'my-password', true);
-
 // fetches records of user 12345 ordered by their date
 var select = 'projektbearbeiter->select(boldid = ?).offeneleistungen->orderby(datum)';
 var params = [
@@ -63,9 +60,6 @@ api.query(select, params, fields).then(function(response) {
 ### Named parameters for select
 
 ```javascript
-var SimpleVertecApi = require('simple-vertec-api').SimpleVertecApi;
-var api = new SimpleVertecApi('http://localhost', 'my-username', 'my-password', true);
-
 // fetches records between two dates
 var select = 'self.verrechneteleistungen->select( (datum >= :startDate) and (datum <= :endDate) )';
 var params = [
@@ -87,9 +81,6 @@ api.query(select, params, fields).then(function(response) {
 ### Using a simple string/number/date for select parameter
 
 ```javascript
-var SimpleVertecApi = require('simple-vertec-api').SimpleVertecApi;
-var api = new SimpleVertecApi('http://localhost', 'my-username', 'my-password', true);
-
 // fetches records between two dates
 var select = 'self.offeneleistungen->select(datum = ?)';
 var param = new Date('2015-08-03');
@@ -103,6 +94,31 @@ api.query(select, param, fields).then(function(response) {
     console.log(response);
 });
 // rendered self.offeneleistungen->select(datum = encodeDate(2015,8,3))
+```
+
+### Advanced sql query
+
+```javascript
+// searches for some records starting from day X
+var select = {
+	ocl: 'Leistung',
+	where: "(text like '%?%') and (CreationDateTime >= {ts '? 00:00:00'})",
+	order: 'datum'
+};
+var params = [
+    'search text',
+    new Date('2015-08-05')
+];
+var fields = [
+    'minutenInt',
+    'minutenExt',
+    'datum',
+    'text'
+];
+api.query(select, params, fields).then(function(response) {
+    // do something with the result
+    console.log(response);
+});
 ```
 
 ## API
