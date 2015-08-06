@@ -17,6 +17,7 @@
     "url": "https://github.com/dimitri-koenig/simple-vertec-api/issues"
   },
   "dependencies": {
+    "babel": "^5.8.21",
     "bluebird": "^2.9.34",
     "lodash": "^3.10.0",
     "moment": "^2.10.6",
