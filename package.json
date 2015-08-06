@@ -1,7 +1,7 @@
 {
   "name": "simple-vertec-api",
   "description": "Simple Vertec Api for Node.JS/io.js",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "author": "Dimitri König <dimitri@dimitrikoenig.net>",
   "contributors": [
     {
@@ -43,5 +43,5 @@
     "watch:test": "nodemon -w test -w lib -e js -x npm test",
     "coverage": "./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- -R spec ./test/*"
   },
-  "license": "Apache License 2.0"
+  "license": "MIT"
 }
