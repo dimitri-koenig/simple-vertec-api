@@ -155,4 +155,4 @@ Dimitri König (@dimitrikoenig)
 
 ## License
 
-Simple Vertec Api is released under the Apache License V2. See the `LICENSE` file for further details.
+The Simple Vertec Api is open-sourced software licensed under the [MIT license](http://opensource.org/licenses/MIT)
