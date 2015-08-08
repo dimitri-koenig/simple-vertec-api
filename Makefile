@@ -28,7 +28,7 @@ watch: ; @echo 'Running test watch task...'
 	nodemon -w test -w lib -e js -x npm test
 
 collect-coverage: ; @echo 'Collecting coverage data...'
-	@./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/mocha test
+	@./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- test
 
 publish-coverage: ; @echo 'Publishing coverage data'
 	@npm install codeclimate-test-reporter
