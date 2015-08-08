@@ -140,6 +140,11 @@ Does a query on the server with additional parameters for the select. Returns a 
 * `params` *(optional)*: An array with placeholders to be replaced in the select, e.g. `select where expression = ?`, or an object with key => value so that named parameters can be used in the select, e.g. `select where expression = :id`. If you only have one parameter you can also use just one `?` and set params to that string/number/date.
 * `fields`: An array containing the fields which should be returned. Accepts a string as item, or an object with the fields `expression` and `alias` to do further expressions.
 
+### SimpleVertecApi#delete(id)
+
+Does a delete query on the server to delete some ids. Returns a [Promise](https://github.com/petkaantonov/bluebird).
+
+* `id`: A single number or an array of numbers
 
 ## Contributing
 
