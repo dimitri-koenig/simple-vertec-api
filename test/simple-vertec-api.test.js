@@ -43,15 +43,15 @@ describe('SimpleVertecApi', () => {
 
     it('throws an error if no select or fields arguments given', () => {
         sinon.stub(api, 'doRequest');
-        var querySpy = sinon.spy(api, 'select');
+        var selectSpy = sinon.spy(api, 'select');
 
         try {
             api.select();
         } catch (e) {
             // we only need the finally block
         } finally {
-            expect(querySpy.exceptions).to.have.length(1);
-            expect(querySpy.exceptions.shift().message).to.have.string('1438427960');
+            expect(selectSpy.exceptions).to.have.length(1);
+            expect(selectSpy.exceptions.shift().message).to.have.string('1438427960');
         }
 
         try {
@@ -59,22 +59,22 @@ describe('SimpleVertecApi', () => {
         } catch (e) {
             // we only need the finally block
         } finally {
-            expect(querySpy.exceptions).to.have.length(1);
-            expect(querySpy.exceptions.shift().message).to.have.string('1438427960');
+            expect(selectSpy.exceptions).to.have.length(1);
+            expect(selectSpy.exceptions.shift().message).to.have.string('1438427960');
         }
     });
 
     it('throws an error if select or fields arguments are not valid', () => {
         sinon.stub(api, 'doRequest');
-        var querySpy = sinon.spy(api, 'select');
+        var selectSpy = sinon.spy(api, 'select');
 
         try {
             api.select('some select', { foo: 'bar' });
         } catch (e) {
             // we only need the finally block
         } finally {
-            expect(querySpy.exceptions).to.have.length(1);
-            expect(querySpy.exceptions.shift().message).to.have.string('1438428337');
+            expect(selectSpy.exceptions).to.have.length(1);
+            expect(selectSpy.exceptions.shift().message).to.have.string('1438428337');
         }
 
         try {
@@ -82,8 +82,8 @@ describe('SimpleVertecApi', () => {
         } catch (e) {
             // we only need the finally block
         } finally {
-            expect(querySpy.exceptions).to.have.length(1);
-            expect(querySpy.exceptions.shift().message).to.have.string('1438428337');
+            expect(selectSpy.exceptions).to.have.length(1);
+            expect(selectSpy.exceptions.shift().message).to.have.string('1438428337');
         }
 
         try {
@@ -91,8 +91,8 @@ describe('SimpleVertecApi', () => {
         } catch (e) {
             // we only need the finally block
         } finally {
-            expect(querySpy.exceptions).to.have.length(1);
-            expect(querySpy.exceptions.shift().message).to.have.string('1438428337');
+            expect(selectSpy.exceptions).to.have.length(1);
+            expect(selectSpy.exceptions.shift().message).to.have.string('1438428337');
         }
     });
 
@@ -111,14 +111,15 @@ describe('SimpleVertecApi', () => {
 
     it('throws an error on an unknown field config type', () => {
         sinon.stub(api, 'doRequest');
+        var selectSpy = sinon.spy(api, 'select');
 
         try {
             api.select('something', [123]);
         } catch (e) {
             // we only need the finally block
         } finally {
-            expect(buildXmlSpy.exceptions).to.have.length(1);
-            expect(buildXmlSpy.exceptions[0].message).to.have.string('1437849815');
+            expect(selectSpy.exceptions).to.have.length(1);
+            expect(selectSpy.exceptions[0].message).to.have.string('1437849815');
         }
     });
 
@@ -177,7 +178,7 @@ describe('SimpleVertecApi', () => {
 
     it('throws an error if named parameter does not exist in params object', () => {
         sinon.stub(api, 'doRequest');
-        var querySpy = sinon.spy(api, 'select');
+        var selectSpy = sinon.spy(api, 'select');
 
         try {
             api.select(
@@ -189,8 +190,8 @@ describe('SimpleVertecApi', () => {
         } catch (e) {
             // we only need the finally block
         } finally {
-            expect(querySpy.exceptions).to.have.length(1);
-            expect(querySpy.exceptions[0].message).to.have.string('1438415385');
+            expect(selectSpy.exceptions).to.have.length(1);
+            expect(selectSpy.exceptions[0].message).to.have.string('1438415385');
         }
     });
 
