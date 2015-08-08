@@ -11,3 +11,4 @@ examples
 .eslintrc
 .npmignore
 .travis.yml
+lib

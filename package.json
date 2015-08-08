@@ -1,7 +1,7 @@
 {
   "name": "simple-vertec-api",
   "description": "Simple Vertec Api for Node.JS/io.js",
-  "version": "1.4.1",
+  "version": "1.5.0",
   "author": "Dimitri König <dimitri@dimitrikoenig.net>",
   "contributors": [
     {
@@ -17,6 +17,7 @@
     "url": "https://github.com/dimitri-koenig/simple-vertec-api/issues"
   },
   "dependencies": {
+    "babel": "^5.8.21",
     "bluebird": "^2.9.34",
     "lodash": "^3.10.0",
     "moment": "^2.10.6",
@@ -37,11 +38,9 @@
     "vertec",
     "nodejs"
   ],
-  "main": "index",
+  "main": "./node/simple-vertec-api",
   "scripts": {
-    "test": "./node_modules/eslint/bin/eslint.js lib test & ./node_modules/mocha/bin/mocha ./test/*",
-    "watch:test": "nodemon -w test -w lib -e js -x npm test",
-    "coverage": "./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- -R spec ./test/*"
+    "test": "make test"
   },
   "license": "MIT"
 }
