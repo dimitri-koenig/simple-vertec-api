@@ -293,4 +293,52 @@ describe('SimpleVertecApi', () => {
             expect(buildXmlSpy.returnValues.shift()).to.equal('<Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><ocl>something 123</ocl><sqlwhere>something else 234</sqlwhere><sqlorder>foobar 345</sqlorder></Selection><Resultdef><member>normal-field</member><expression><alias>foobar</alias><ocl>object.field</ocl></expression></Resultdef></Query></Body></Envelope>');
         });
     });
+
+    describe('delete()', () => {
+        it('accepts a number as parameter', () => {
+            sinon.stub(api, 'doRequest');
+
+            api.delete('123');
+            expect(buildXmlSpy.returnValues.shift()).to.equal('<Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Delete><objref>123</objref></Delete></Body></Envelope>');
+
+            api.delete(123);
+            expect(buildXmlSpy.returnValues.shift()).to.equal('<Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Delete><objref>123</objref></Delete></Body></Envelope>');
+        });
+
+        it('accepts an array of ids', () => {
+            sinon.stub(api, 'doRequest');
+
+            api.delete([
+                '123',
+                234
+            ]);
+            expect(buildXmlSpy.returnValues.shift()).to.equal('<Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Delete><objref>123</objref><objref>234</objref></Delete></Body></Envelope>');
+        });
+
+        it('throws an error if an id is not a number', () => {
+            sinon.stub(api, 'doRequest');
+            var deleteSpy = sinon.spy(api, 'delete');
+
+            try {
+                api.delete({ foo: 'bar' });
+            } catch (e) {
+                // we only need the finally block
+            } finally {
+                expect(deleteSpy.exceptions).to.have.length(1);
+                expect(deleteSpy.exceptions.shift().message).to.have.string('1439056797');
+            }
+
+            try {
+                api.delete([
+                    123,
+                    { foo: 'bar' }
+                ]);
+            } catch (e) {
+                // we only need the finally block
+            } finally {
+                expect(deleteSpy.exceptions).to.have.length(1);
+                expect(deleteSpy.exceptions.shift().message).to.have.string('1439056797');
+            }
+        });
+    });
 });
