@@ -12,7 +12,7 @@ build: ; @echo 'Making build...'
 
 test: ; @echo 'Running tests...'
 	@NODE_ENV=test ./node_modules/eslint/bin/eslint.js lib test
-	@NODE_ENV=test ./node_modules/mocha/bin/mocha ./test/*
+	@NODE_ENV=test ./node_modules/mocha/bin/mocha test
 
 install: ; @echo 'Installing packages...'
 	@npm install
@@ -28,7 +28,7 @@ watch: ; @echo 'Running test watch task...'
 	nodemon -w test -w lib -e js -x npm test
 
 collect-coverage: ; @echo 'Collecting coverage data...'
-	@./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- -R spec ./test/*
+	@./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/mocha test
 
 publish-coverage: ; @echo 'Publishing coverage data'
 	@npm install codeclimate-test-reporter
