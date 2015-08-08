@@ -16,9 +16,7 @@ cache:
     - node_modules
 
 after_success:
-  - npm install codeclimate-test-reporter
-  - npm run coverage
-  - codeclimate-test-reporter < coverage/lcov.info
+  - make publish-coverage
 
 matrix:
   fast_finish: true
