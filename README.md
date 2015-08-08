@@ -16,7 +16,7 @@ $ npm install simple-vertec-api --save
 
 ## Examples
 
-### Simple query example
+### Simple select example
 
 ```javascript
 var SimpleVertecApi = require('simple-vertec-api').SimpleVertecApi;
@@ -31,7 +31,7 @@ var fields = [
         expression: 'briefemail'
     }
 ];
-api.query(select, fields).then(function(response) {
+api.select(select, fields).then(function(response) {
     // do something with the result
     console.log(response);
 });
@@ -50,7 +50,7 @@ var fields = [
     'minutenExt',
     'datum'
 ];
-api.query(select, params, fields).then(function(response) {
+api.select(select, params, fields).then(function(response) {
     // do something with the result
     console.log(response);
 });
@@ -71,7 +71,7 @@ var fields = [
     'minutenExt',
     'datum'
 ];
-api.query(select, params, fields).then(function(response) {
+api.select(select, params, fields).then(function(response) {
     // do something with the result
     console.log(response);
 });
@@ -89,14 +89,14 @@ var fields = [
     'minutenExt',
     'datum'
 ];
-api.query(select, param, fields).then(function(response) {
+api.select(select, param, fields).then(function(response) {
     // do something with the result
     console.log(response);
 });
 // rendered self.offeneleistungen->select(datum = encodeDate(2015,8,3))
 ```
 
-### Advanced sql query
+### Advanced sql select
 
 ```javascript
 // searches for some records starting from day X
@@ -115,7 +115,7 @@ var fields = [
     'datum',
     'text'
 ];
-api.query(select, params, fields).then(function(response) {
+api.select(select, params, fields).then(function(response) {
     // do something with the result
     console.log(response);
 });
@@ -132,7 +132,7 @@ Returns a new SimpleVertecApi object.
 * `password`: A string with your vertec username
 * `verbose` *(optional)*: A boolean which set on true will output additional log data
 
-### SimpleVertecApi#query(select, [params], fields)
+### SimpleVertecApi#select(select, [params], fields)
 
 Does a query on the server with additional parameters for the select. Returns a [Promise](https://github.com/petkaantonov/bluebird).
 
