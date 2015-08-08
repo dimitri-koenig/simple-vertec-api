@@ -17,7 +17,7 @@ describe('SimpleVertecApi', () => {
         api.verbose = true;
         var consoleMock = sinon.stub(console, 'log');
 
-        api.query('something', []);
+        api.select('something', []);
 
         expect(consoleMock.called).to.equal(true);
 
@@ -27,26 +27,26 @@ describe('SimpleVertecApi', () => {
     it('sets authentication data', () => {
         sinon.stub(api, 'doRequest');
 
-        api.query('something', []);
+        api.select('something', []);
         expect(buildXmlSpy.returnValues[0]).to.equal('<Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><ocl>something</ocl></Selection></Query></Body></Envelope>');
     });
 
     it('does two requests with same auth data', () => {
         sinon.stub(api, 'doRequest');
 
-        api.query('something', []);
+        api.select('something', []);
         expect(buildXmlSpy.returnValues[0]).to.equal('<Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><ocl>something</ocl></Selection></Query></Body></Envelope>');
 
-        api.query('something else', []);
+        api.select('something else', []);
         expect(buildXmlSpy.returnValues[1]).to.equal('<Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><ocl>something else</ocl></Selection></Query></Body></Envelope>');
     });
 
     it('throws an error if no select or fields arguments given', () => {
         sinon.stub(api, 'doRequest');
-        var querySpy = sinon.spy(api, 'query');
+        var querySpy = sinon.spy(api, 'select');
 
         try {
-            api.query();
+            api.select();
         } catch (e) {
             // we only need the finally block
         } finally {
@@ -55,7 +55,7 @@ describe('SimpleVertecApi', () => {
         }
 
         try {
-            api.query('something');
+            api.select('something');
         } catch (e) {
             // we only need the finally block
         } finally {
@@ -66,10 +66,10 @@ describe('SimpleVertecApi', () => {
 
     it('throws an error if select or fields arguments are not valid', () => {
         sinon.stub(api, 'doRequest');
-        var querySpy = sinon.spy(api, 'query');
+        var querySpy = sinon.spy(api, 'select');
 
         try {
-            api.query('some select', { foo: 'bar' });
+            api.select('some select', { foo: 'bar' });
         } catch (e) {
             // we only need the finally block
         } finally {
@@ -78,7 +78,7 @@ describe('SimpleVertecApi', () => {
         }
 
         try {
-            api.query(['something'], []);
+            api.select(['something'], []);
         } catch (e) {
             // we only need the finally block
         } finally {
@@ -87,7 +87,7 @@ describe('SimpleVertecApi', () => {
         }
 
         try {
-            api.query(null, 'something', []);
+            api.select(null, 'something', []);
         } catch (e) {
             // we only need the finally block
         } finally {
@@ -99,7 +99,7 @@ describe('SimpleVertecApi', () => {
     it('sets members and expressions', () => {
         sinon.stub(api, 'doRequest');
 
-        api.query('something', [
+        api.select('something', [
             'normal-field',
             {
                 alias:      'foobar',
@@ -113,7 +113,7 @@ describe('SimpleVertecApi', () => {
         sinon.stub(api, 'doRequest');
 
         try {
-            api.query('something', [123]);
+            api.select('something', [123]);
         } catch (e) {
             // we only need the finally block
         } finally {
@@ -125,7 +125,7 @@ describe('SimpleVertecApi', () => {
     it('accepts array as params argument in query', () => {
         sinon.stub(api, 'doRequest');
 
-        api.query(
+        api.select(
             'where-expression = ?',
             [123],
             [
@@ -142,7 +142,7 @@ describe('SimpleVertecApi', () => {
     it('returns ? placeholder if more placeholders then params in array given', () => {
         sinon.stub(api, 'doRequest');
 
-        api.query(
+        api.select(
             'where-x-expression = ? and where-y-expression = ?',
             [123],
             [
@@ -159,7 +159,7 @@ describe('SimpleVertecApi', () => {
     it('accepts object as params argument in query', () => {
         sinon.stub(api, 'doRequest');
 
-        api.query(
+        api.select(
             'where-x-expression = :id and where-y-expression = :id',
             {
                 id: 123
@@ -177,10 +177,10 @@ describe('SimpleVertecApi', () => {
 
     it('throws an error if named parameter does not exist in params object', () => {
         sinon.stub(api, 'doRequest');
-        var querySpy = sinon.spy(api, 'query');
+        var querySpy = sinon.spy(api, 'select');
 
         try {
-            api.query(
+            api.select(
                 'where-x-expression = :id and where-y-expression = :name',
                 {
                     id: 123
@@ -197,7 +197,7 @@ describe('SimpleVertecApi', () => {
     it('converts select parameter of type Date/moment to special encodeDate format', () => {
         sinon.stub(api, 'doRequest');
 
-        api.query(
+        api.select(
             'where-x-expression = :id and where-y-expression = :fromDate and where-z-expression = :toDate',
             {
                 id:       123,
@@ -208,7 +208,7 @@ describe('SimpleVertecApi', () => {
         );
         expect(buildXmlSpy.returnValues.shift()).to.equal('<Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><ocl>where-x-expression = 123 and where-y-expression = encodeDate(2015,8,3) and where-z-expression = encodeDate(2015,8,9)</ocl></Selection><Resultdef><member>foobar</member></Resultdef></Query></Body></Envelope>');
 
-        api.query(
+        api.select(
             'where-x-expression = ? and where-y-expression = ? and where-z-expression = ?',
             [
                 123,
@@ -227,22 +227,22 @@ describe('SimpleVertecApi', () => {
         var fields = [];
 
         var param = 123;
-        api.query(select, param, fields);
+        api.select(select, param, fields);
         expect(buildXmlSpy.returnValues.shift()).to.equal('<Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><ocl>where-x-expression = 123</ocl></Selection></Query></Body></Envelope>');
 
         param = 'foobar';
-        api.query(select, param, fields);
+        api.select(select, param, fields);
         expect(buildXmlSpy.returnValues.shift()).to.equal('<Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><ocl>where-x-expression = foobar</ocl></Selection></Query></Body></Envelope>');
 
         param = new Date('2015-08-01');
-        api.query(select, param, fields);
+        api.select(select, param, fields);
         expect(buildXmlSpy.returnValues.shift()).to.equal('<Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><ocl>where-x-expression = encodeDate(2015,8,1)</ocl></Selection></Query></Body></Envelope>');
     });
 
     it('accepts object as select argument in query', () => {
         sinon.stub(api, 'doRequest');
 
-        api.query(
+        api.select(
             {
                 ocl:   'something :param1',
                 where: 'something else :param2',
@@ -268,7 +268,7 @@ describe('SimpleVertecApi', () => {
     it('converts response to json and extracts useful content', () => {
         sinon.stub(api, 'request').resolves('<Envelope><Body><QueryResponse><Kontakt><objid>12345</objid><sprache>DE</sprache></Kontakt><Kontakt><objid>23456</objid><sprache>EN</sprache></Kontakt></QueryResponse></Body></Envelope>');
 
-        return api.query('something', []).then(
+        return api.select('something', []).then(
             (content) => {
                 expect(content.Kontakt.length).to.equal(2);
                 expect(content.Kontakt[0].objid).to.equal('12345');
@@ -281,7 +281,7 @@ describe('SimpleVertecApi', () => {
     it('converts fault messages from server', () => {
         sinon.stub(api, 'request').resolves('<Envelope><Body><Fault><faultcode>Client</faultcode></Fault></Body></Envelope>');
 
-        return api.query('some faulty select', []).then(
+        return api.select('some faulty select', []).then(
             (result) => {
                 throw new Error('Promise was unexpectedly fulfilled. Result: ' + result);
             }, (result) => {
