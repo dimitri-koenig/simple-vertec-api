@@ -4,5 +4,5 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased][unreleased]
 ### New Featured
-* Added delete() method
+* Added delete() method (#18)
 * Added create() method (#16)
