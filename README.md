@@ -146,6 +146,19 @@ Does a delete query on the server to delete some ids. Returns a [Promise](https:
 
 * `id`: A single number or an array of numbers
 
+### SimpleVertecApi#create([objectsArray], [className, data])
+
+Does a create query on the server to some new records. Returns a [Promise](https://github.com/petkaantonov/bluebird).
+
+Either:
+* `objectsData`: An array of objects with each having a `className` string field and `data` object field
+
+Or:
+* `className`: String with target vertec class like `OffeneLeistung`
+* `data`: Object of fields to use for the new record
+
+
+
 ## Contributing
 
 1. [Fork it!](https://github.com/dimitri-koenig/simple-vertec-api/fork)
