@@ -146,9 +146,9 @@ Does a delete query on the server to delete some ids. Returns a [Promise](https:
 
 * `id`: A single number or an array of numbers
 
-### SimpleVertecApi#create([objectsArray], [className, data])
+### SimpleVertecApi#save([objectsArray], [className, data])
 
-Does a create query on the server to some new records. Returns a [Promise](https://github.com/petkaantonov/bluebird).
+Does a save query on the server to some records. Returns a [Promise](https://github.com/petkaantonov/bluebird).
 
 Either:
 * `objectsData`: An array of objects with each having a `className` string field and `data` object field
@@ -157,6 +157,7 @@ Or:
 * `className`: String with target vertec class like `OffeneLeistung`
 * `data`: Object of fields to use for the new record
 
+If in the data array the field `objref` is found, an update operation will be made. If there isn't such a field, a create operation will be made.
 
 
 ## Contributing
