@@ -272,9 +272,10 @@ describe('SimpleVertecApi', () => {
 
             api.select(
                 {
-                    ocl:   'something :param1',
-                    where: 'something else :param2',
-                    order: 'foobar :param3'
+                    objref:   987,
+                    ocl:      'something :param1',
+                    sqlwhere: 'something else :param2',
+                    sqlorder: 'foobar :param3'
                 },
                 {
                     param1: 123,
@@ -290,7 +291,37 @@ describe('SimpleVertecApi', () => {
                 ]
             );
 
-            expect(buildXmlSpy.returnValues.shift()).to.equal('<Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><ocl>something 123</ocl><sqlwhere>something else 234</sqlwhere><sqlorder>foobar 345</sqlorder></Selection><Resultdef><member>normal-field</member><expression><alias>foobar</alias><ocl>object.field</ocl></expression></Resultdef></Query></Body></Envelope>');
+            expect(buildXmlSpy.returnValues.shift()).to.equal('<Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><objref>987</objref><ocl>something 123</ocl><sqlwhere>something else 234</sqlwhere><sqlorder>foobar 345</sqlorder></Selection><Resultdef><member>normal-field</member><expression><alias>foobar</alias><ocl>object.field</ocl></expression></Resultdef></Query></Body></Envelope>');
+        });
+
+        it('accepts select object with multiple objref references', () => {
+            sinon.stub(api, 'doRequest');
+
+            api.select(
+                {
+                    objref:   [
+                        987,
+                        876
+                    ],
+                    ocl:      'something :param1',
+                    sqlwhere: 'something else :param2',
+                    sqlorder: 'foobar :param3'
+                },
+                {
+                    param1: 123,
+                    param2: 234,
+                    param3: 345
+                },
+                [
+                    'normal-field',
+                    {
+                        alias: 'foobar',
+                        ocl:   'object.field'
+                    }
+                ]
+            );
+
+            expect(buildXmlSpy.returnValues.shift()).to.equal('<Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><objref>987</objref><objref>876</objref><ocl>something 123</ocl><sqlwhere>something else 234</sqlwhere><sqlorder>foobar 345</sqlorder></Selection><Resultdef><member>normal-field</member><expression><alias>foobar</alias><ocl>object.field</ocl></expression></Resultdef></Query></Body></Envelope>');
         });
     });
 
