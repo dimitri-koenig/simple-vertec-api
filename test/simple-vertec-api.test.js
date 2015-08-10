@@ -74,8 +74,8 @@ describe('SimpleVertecApi', () => {
             api.select('something', [
                 'normal-field',
                 {
-                    alias:      'foobar',
-                    expression: 'object.field'
+                    alias: 'foobar',
+                    ocl:   'object.field'
                 }
             ]);
             expect(buildXmlSpy.returnValues.shift()).to.equal('<Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><ocl>something</ocl></Selection><Resultdef><member>normal-field</member><expression><alias>foobar</alias><ocl>object.field</ocl></expression></Resultdef></Query></Body></Envelope>');
@@ -159,8 +159,8 @@ describe('SimpleVertecApi', () => {
                 [
                     'normal-field',
                     {
-                        alias:      'foobar',
-                        expression: 'object.field'
+                        alias: 'foobar',
+                        ocl:   'object.field'
                     }
                 ]
             );
@@ -176,8 +176,8 @@ describe('SimpleVertecApi', () => {
                 [
                     'normal-field',
                     {
-                        alias:      'foobar',
-                        expression: 'object.field'
+                        alias: 'foobar',
+                        ocl:   'object.field'
                     }
                 ]
             );
@@ -195,8 +195,8 @@ describe('SimpleVertecApi', () => {
                 [
                     'normal-field',
                     {
-                        alias:      'foobar',
-                        expression: 'object.field'
+                        alias: 'foobar',
+                        ocl:   'object.field'
                     }
                 ]
             );
@@ -284,8 +284,8 @@ describe('SimpleVertecApi', () => {
                 [
                     'normal-field',
                     {
-                        alias:      'foobar',
-                        expression: 'object.field'
+                        alias: 'foobar',
+                        ocl:   'object.field'
                     }
                 ]
             );
