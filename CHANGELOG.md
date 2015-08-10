@@ -5,3 +5,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ## [2.0.0-beta][unreleased]
 ### New Featured
 * Added save() method for creating/updating objects (#26)
+* Select query can include any possible parameters (#28)
+
+### Changed
+* Modified select object parameters to enable original vertec fields (#28)
