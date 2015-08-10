@@ -342,11 +342,11 @@ describe('SimpleVertecApi', () => {
         });
     });
 
-    describe('create()', () => {
+    describe('save()', () => {
         it('accepts a class name and an array of fields', () => {
             sinon.stub(api, 'doRequest');
 
-            api.create('OffeneLeistung', {
+            api.save('OffeneLeistung', {
                 bearbeiter: {
                     objref: 123
                 },
@@ -361,7 +361,7 @@ describe('SimpleVertecApi', () => {
         it('accepts an array of new objects-data', () => {
             sinon.stub(api, 'doRequest');
 
-            api.create([
+            api.save([
                 {
                     className: 'OffeneLeistung',
                     data:      {
@@ -387,12 +387,42 @@ describe('SimpleVertecApi', () => {
             expect(buildXmlSpy.returnValues.shift()).to.equal('<Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Create><OffeneLeistung><bearbeiter><objref>123</objref></bearbeiter><projekt><objref>234</objref></projekt><minutenint>60</minutenint></OffeneLeistung><SonstigeLeistung><phase><objref>345</objref></phase><minutenExt>30</minutenExt></SonstigeLeistung></Create></Body></Envelope>');
         });
 
+        it('uses update cmd if object already exists', () => {
+            sinon.stub(api, 'doRequest');
+
+            api.save([
+                {
+                    className: 'OffeneLeistung',
+                    data:      {
+                        bearbeiter: {
+                            objref: 123
+                        },
+                        projekt:    {
+                            objref: 234
+                        },
+                        minutenint: 60
+                    }
+                },
+                {
+                    className: 'VerrechneteLeistung',
+                    data:      {
+                        objref:     987,
+                        phase:      {
+                            objref: 345
+                        },
+                        minutenExt: 30
+                    }
+                }
+            ]);
+            expect(buildXmlSpy.returnValues.shift()).to.equal('<Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Create><OffeneLeistung><bearbeiter><objref>123</objref></bearbeiter><projekt><objref>234</objref></projekt><minutenint>60</minutenint></OffeneLeistung></Create><Update><VerrechneteLeistung><objref>987</objref><phase><objref>345</objref></phase><minutenExt>30</minutenExt></VerrechneteLeistung></Update></Body></Envelope>');
+        });
+
         it('throws an error if className or data fields not present or not valid', () => {
             sinon.stub(api, 'doRequest');
-            var createSpy = sinon.spy(api, 'create');
+            var createSpy = sinon.spy(api, 'save');
 
             try {
-                api.create({ foo: 'bar' });
+                api.save({ foo: 'bar' });
             } catch (e) {
                 // we only need the finally block
             } finally {
@@ -401,7 +431,7 @@ describe('SimpleVertecApi', () => {
             }
 
             try {
-                api.create([
+                api.save([
                     123,
                     { foo: 'bar' }
                 ]);
@@ -413,7 +443,7 @@ describe('SimpleVertecApi', () => {
             }
 
             try {
-                api.create([
+                api.save([
                     {
                         noClassName: 'foobar',
                         data:        { foo: 'bar' }
@@ -427,7 +457,7 @@ describe('SimpleVertecApi', () => {
             }
 
             try {
-                api.create([
+                api.save([
                     {
                         className: 'foobar',
                         noData:    { foo: 'bar' }
