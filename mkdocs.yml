@@ -1,0 +1,10 @@
+site_name: Simple Vertec Api | Simple wrapper around www.vertec.com XML webservice for Node.JS/io.js
+site_description: Simple Vertec Api is an simple wrapper around www.vertec.com XML webservice for Node.JS/io.js
+repo_url: https://github.com/dimitri-koenig/simple-vertec-api
+site_url: http://simple-vertec-api.readthedocs.org/
+markdown_extensions: [gfm]
+theme: readthedocs
+extra_javascript:
+- //cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/highlight.min.js
+pages:
+- Home: 'index.md'
