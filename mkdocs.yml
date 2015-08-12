@@ -4,7 +4,6 @@ site_author: Dimitri König
 repo_url: https://github.com/dimitri-koenig/simple-vertec-api
 site_url: http://simple-vertec-api.readthedocs.org/
 google_analytics: ['UA-55378539-1', 'simple-vertec-api.readthedocs.org']
-markdown_extensions: [gfm]
 theme: readthedocs
 extra_javascript:
 - //cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/highlight.min.js
