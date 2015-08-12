@@ -17,4 +17,5 @@ lib
 node_modules
 test
 Makefile
-
+docs 
+mkdocs.yml
