@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Beispiel: Alle Leistungen von heute</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+  </head>
+  <body>
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12">
+          <div id="highcharts-container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+    <script src="http://code.highcharts.com/highcharts.js"></script>
+
+    <script>
+        $(function () {
+            var data = [
+                {
+                    name: 'Verrechenbar',
+                    data: []
+                },
+                {
+                    name: 'Nicht verrechenbar',
+                    data: []
+                }
+            ];
+
+            $.get('http://localhost:8080/alleleistungenvonheute').then(function(result) {
+                var totalBillable = 0,
+                    totalUnbillable = 0;
+
+                $.each(result.leistungen, function(index, leistung) {
+                    totalBillable += parseFloat(leistung.wertExt.replace('\'', ''));
+                    totalUnbillable += parseFloat(leistung.wertInt.replace('\'', '')) - parseFloat(leistung.wertExt.replace('\'', ''));
+                });
+
+                data[0].data.push(totalBillable);
+                data[1].data.push(totalUnbillable);
+
+                createHighcharts();
+            });
+
+            var createHighcharts = function() {
+                $('#highcharts-container').highcharts({
+                    chart: {
+                        type: 'column'
+                    },
+                    title: {
+                        text: 'Alle Leistungen von heute'
+                    },
+                    series: data,
+                    yAxis: {
+                        title: {
+                            text: 'CHF'
+                        }
+                    },
+                    xAxis: {
+                        currentMin: 0
+                    },
+                    size: {
+                        width: 900,
+                        height: 550
+                    },
+                    legend: {
+                        align: 'right',
+                        x: -30,
+                        verticalAlign: 'top',
+                        y: 25,
+                        floating: true,
+                        backgroundColor: (Highcharts.theme && Highcharts.theme.background2) || 'white',
+                        borderColor: '#CCC',
+                        borderWidth: 1,
+                        shadow: false
+                    },
+                    tooltip: {
+                        formatter: function () {
+                            return this.series.name + ': ' + Highcharts.numberFormat(this.y, 0) + '<br/>' +
+                                'Total: ' + Highcharts.numberFormat(this.point.stackTotal, 0);
+                        }
+                    },
+                    plotOptions: {
+                        column: {
+                            stacking: 'normal',
+                            dataLabels: {
+                                enabled: true,
+                                formatter: function () {
+                                    return 'CHF ' + Highcharts.numberFormat(this.y, 0, '.', '\'') + '.--  (' + Highcharts.numberFormat(this.y / this.point.stackTotal * 100, 1) + '%)';
+                                }
+                            }
+                        }
+                    }
+                });
+            };
+        });
+    </script>
+  </body>
+</html>
