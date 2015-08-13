@@ -1,0 +1,22 @@
+{
+  "name": "simple-vertec-api-examples",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server/start.js",
+  "scripts": {
+    "start": "node server/start.js",
+    "test": ""
+  },
+  "author": "Dimitri König <dimitri@dimitrikoenig.net>",
+  "contributors": [
+    {
+      "name": "Dimitri König",
+      "email": "dimitri@dimitrikoenig.net"
+    }
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "restify": "^3.0.3",
+    "simple-vertec-api": "^2.0.0"
+  }
+}
