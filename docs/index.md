@@ -41,7 +41,7 @@ api.select(select, params, fields).then(function(response) {
 
 ## Use included example
 
-The is one basic example included. To get it up and running you have to follow this steps:
+There is one basic example included. To get it up and running you have to follow these steps:
 
 * Run `git clone https://github.com/dimitri-koenig/simple-vertec-api.git`
 * cd into `simple-vertec-api/examples` directory
