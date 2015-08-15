@@ -3,7 +3,8 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased][unreleased]
-### New Features
+### Internal Changes
+* Replaced request-promise with request (#34)
 
 ## [2.0.0][2015-08-13]
 ### New Features
