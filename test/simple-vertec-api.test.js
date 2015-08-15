@@ -1,6 +1,6 @@
 import {SimpleVertecApi} from '../lib/simple-vertec-api';
 import {expect} from 'chai';
-import sinon from 'sinon-bluebird';
+import sinon from 'sinon';
 import moment from 'moment';
 
 describe('SimpleVertecApi', () => {
@@ -43,7 +43,7 @@ describe('SimpleVertecApi', () => {
         });
 
         it('converts response to json and extracts useful content', () => {
-            sinon.stub(api, 'request').resolves('<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><QueryResponse><Kontakt><objid>12345</objid><sprache>DE</sprache></Kontakt><Kontakt><objid>23456</objid><sprache>EN</sprache></Kontakt></QueryResponse></Body></Envelope>');
+            sinon.stub(api, 'request').yields(null, null, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><QueryResponse><Kontakt><objid>12345</objid><sprache>DE</sprache></Kontakt><Kontakt><objid>23456</objid><sprache>EN</sprache></Kontakt></QueryResponse></Body></Envelope>');
 
             return api.select('something', []).then(
                 (content) => {
@@ -56,7 +56,7 @@ describe('SimpleVertecApi', () => {
         });
 
         it('converts fault messages from server', () => {
-            sinon.stub(api, 'request').resolves('<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><Fault><faultcode>Client</faultcode></Fault></Body></Envelope>');
+            sinon.stub(api, 'request').yields(null, null, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><Fault><faultcode>Client</faultcode></Fault></Body></Envelope>');
 
             return api.select('some faulty select', []).then(
                 (result) => {
