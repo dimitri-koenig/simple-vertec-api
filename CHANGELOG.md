@@ -4,6 +4,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased][unreleased]
 
+## [2.1.1][2015-08-17]
+### Bugfixes
+* Request errors in doRequest() wouldn't be catched (#35)
+
 ## [2.1.0][2015-08-16]
 ### Internal Changes
 * Replaced request-promise with request (#34)
