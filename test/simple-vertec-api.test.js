@@ -65,6 +65,17 @@ describe('SimpleVertecApi', () => {
                     expect(result).to.include.keys('Fault');
                 });
         });
+
+        it('catches request errors', () => {
+            sinon.stub(api, 'request').yields({ Error: 'Some error message' }, null, null);
+
+            return api.select('some faulty select', []).then(
+                (result) => {
+                    throw new Error('Promise was unexpectedly fulfilled. Result: ' + result);
+                }, (result) => {
+                    expect(result).to.include.keys('Error');
+                });
+        });
     });
 
     describe('select()', () => {
