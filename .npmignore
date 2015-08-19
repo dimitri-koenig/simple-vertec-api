@@ -19,3 +19,4 @@ test
 Makefile
 docs 
 mkdocs.yml
+.codeclimate.yml
