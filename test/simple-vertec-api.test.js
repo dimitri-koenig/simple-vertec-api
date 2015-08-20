@@ -336,6 +336,57 @@ describe('SimpleVertecApi', () => {
         });
     });
 
+    describe('findById()', () => {
+        it('accepts a number as first parameter and an array as second', () => {
+            sinon.stub(api, 'doRequest');
+
+            api.findById('123', ['foo']);
+            expect(buildXmlSpy.returnValues.shift()).to.equal('<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><objref>123</objref></Selection><Resultdef><member>foo</member></Resultdef></Query></Body></Envelope>');
+
+            api.findById(123, ['bar']);
+            expect(buildXmlSpy.returnValues.shift()).to.equal('<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><objref>123</objref></Selection><Resultdef><member>bar</member></Resultdef></Query></Body></Envelope>');
+        });
+
+        it('accepts an array of ids', () => {
+            sinon.stub(api, 'doRequest');
+
+            api.findById([
+                '123',
+                234
+            ], [
+                'foo',
+                'bar'
+            ]);
+            expect(buildXmlSpy.returnValues.shift()).to.equal('<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><objref>123</objref><objref>234</objref></Selection><Resultdef><member>foo</member><member>bar</member></Resultdef></Query></Body></Envelope>');
+        });
+
+        it('throws an error if an id is not a number', () => {
+            sinon.stub(api, 'doRequest');
+            var findByIdSpy = sinon.spy(api, 'findById');
+
+            try {
+                api.findById({ foo: 'bar' });
+            } catch (e) {
+                // we only need the finally block
+            } finally {
+                expect(findByIdSpy.exceptions).to.have.length(1);
+                expect(findByIdSpy.exceptions.shift().message).to.have.string('1440046203');
+            }
+
+            try {
+                api.findById([
+                    123,
+                    { foo: 'bar' }
+                ]);
+            } catch (e) {
+                // we only need the finally block
+            } finally {
+                expect(findByIdSpy.exceptions).to.have.length(1);
+                expect(findByIdSpy.exceptions.shift().message).to.have.string('1440046203');
+            }
+        });
+    });
+
     describe('delete()', () => {
         it('accepts a number as parameter', () => {
             sinon.stub(api, 'doRequest');
