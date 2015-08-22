@@ -102,8 +102,8 @@ api.select(select, param, fields).then(function(response) {
 // searches for some records starting from day X
 var select = {
 	ocl: 'Leistung',
-	where: "(text like '%?%') and (CreationDateTime >= {ts '? 00:00:00'})",
-	order: 'datum'
+	sqlwhere: "(text like '%?%') and (CreationDateTime >= {ts '? 00:00:00'})",
+	sqlorder: 'datum'
 };
 var params = [
     'search text',
