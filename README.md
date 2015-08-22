@@ -18,6 +18,35 @@ $ npm install simple-vertec-api --save
 ```
 
 
+## Example
+
+```javascript
+var SimpleVertecApi = require('simple-vertec-api').SimpleVertecApi;
+var api = new SimpleVertecApi('http://localhost', 'my-username', 'my-password', true);
+
+// searches for some records starting from day X
+var select = {
+	ocl: 'Leistung',
+	sqlwhere: "(text like '%?%') and (CreationDateTime >= {ts '? 00:00:00'})",
+	sqlorder: 'datum'
+};
+var params = [
+    'search text',
+    '2015-08-22'
+];
+var fields = [
+    'minutenInt',
+    'minutenExt',
+    'datum',
+    'text'
+];
+api.select(select, params, fields).then(function(response) {
+    // do something with the result
+    console.log(response);
+});
+```
+
+
 ## Versioning
 
 From 2.0.0 and up `Simple Vertec Api` will follow SEMVER.
