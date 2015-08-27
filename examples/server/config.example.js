@@ -1,6 +1,6 @@
 module.exports = {
 	vertec: {
-		url: 'https://your-host-url:8080',
+		url: 'http://your-vertec-webservice-url',
 		username: 'your-username',
 		password: 'your-password'
 	}

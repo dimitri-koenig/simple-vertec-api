@@ -15,7 +15,7 @@ $ npm install simple-vertec-api --save
 
 ```javascript
 var SimpleVertecApi = require('simple-vertec-api').SimpleVertecApi;
-var api = new SimpleVertecApi('http://localhost', 'my-username', 'my-password', true);
+var api = new SimpleVertecApi('http://my-vertec-webservice-url', 'my-username', 'my-password', true);
 
 // searches for some records starting from day X
 var select = {

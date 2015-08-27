@@ -20,7 +20,7 @@ Does a query on the server with additional parameters for the select. Returns a 
 
 ```javascript
 var SimpleVertecApi = require('simple-vertec-api').SimpleVertecApi;
-var api = new SimpleVertecApi('http://localhost', 'my-username', 'my-password', true);
+var api = new SimpleVertecApi('http://my-vertec-webservice-url', 'my-username', 'my-password', true);
 
 // fetches all active users ordered by their name
 var select = 'projektbearbeiter->select(aktiv)->orderby(name)';
