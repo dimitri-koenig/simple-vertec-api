@@ -4,6 +4,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased][unreleased]
 
+## [2.3.0][2015-08-27]
+### Deprecated
+* Date/Moment object conversion will be removed in 2.5
+
 ## [2.2.0][2015-08-20]
 ### Features
 * New "findById" feature (#30)
