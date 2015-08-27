@@ -12,7 +12,7 @@ Returns a new SimpleVertecApi object.
 Does a query on the server with additional parameters for the select. Returns a [Promise](https://github.com/petkaantonov/bluebird).
 
 * `select`: A string containing the ocl expression for fetching the data, or an object with 'ocl', 'sqlwhere' and 'sqlorder' fields or an objref field with an id or an array of ids for a more advanced query
-* `params` *(optional)*: An array with placeholders to be replaced in the select, e.g. `select where expression = ?`, or an object with key => value so that named parameters can be used in the select, e.g. `select where expression = :id`. If you only have one parameter you can also use just one `?` and set params to that string/number/date.
+* `params` *(optional)*: An array with placeholders to be replaced in the select, e.g. `select where expression = ?`, or an object with key => value so that named parameters can be used in the select, e.g. `select where expression = :id`. If you only have one parameter you can also use just one `?` and set params to that string/number.
 * `fields`: An array containing the fields which should be returned. Accepts a string as item, or an object with the fields `ocl` and `alias` to do further expressions.
 
 
@@ -61,10 +61,10 @@ api.select(select, params, fields).then(function(response) {
 
 ```javascript
 // fetches records between two dates
-var select = 'self.verrechneteleistungen->select( (datum >= :startDate) and (datum <= :endDate) )';
+var select = 'self.verrechneteleistungen->select( (datum >= encodeDate(:startDate) and (datum <= encodeDate(:endDate)) )';
 var params = [
-    startDate: new Date('2015-08-03'), // if you pass a value of type Date, it get's rendered to encodeDate(Year,Month,Day)
-    endDate: new Date('2015-08-09')
+    startDate: '2015,08,03',
+    endDate: '2015,08,09'
 ];
 var fields = [
     'minutenInt',
@@ -78,12 +78,12 @@ api.select(select, params, fields).then(function(response) {
 // rendered select: self.verrechneteleistungen->select( (datum >= encodeDate(2015,8,3)) and (datum <= encodeDate(2015,8,9)) )
 ```
 
-### Using a simple string/number/date for select parameter
+### Using a simple string/number for select parameter
 
 ```javascript
 // fetches records between two dates
-var select = 'self.offeneleistungen->select(datum = ?)';
-var param = new Date('2015-08-03');
+var select = 'self.offeneleistungen->select(datum = encodeDate(?))';
+var param = '2015-08-03';
 var fields = [
     'minutenInt',
     'minutenExt',
