@@ -22,7 +22,6 @@
     "lodash": "^3.10.1",
     "moment": "^2.10.6",
     "request": "^2.61.0",
-    "simple-xml": "0.0.9",
     "xml-digester": "0.0.5"
   },
   "devDependencies": {
