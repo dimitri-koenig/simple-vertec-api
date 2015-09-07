@@ -233,33 +233,7 @@ describe('SimpleVertecApi', () => {
             }
         });
 
-        it('converts select parameter of type Date/moment to special encodeDate format', () => {
-            sinon.stub(api, 'doRequest');
-
-            api.select(
-                'where-x-expression = :id and where-y-expression = :fromDate and where-z-expression = :toDate',
-                {
-                    id:       123,
-                    fromDate: new Date('2015-08-03'),
-                    toDate:   moment('2015-08-09')
-                },
-                ['foobar']
-            );
-            expect(buildXmlSpy.returnValues.shift()).to.equal('<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><ocl>where-x-expression = 123 and where-y-expression = encodeDate(2015,8,3) and where-z-expression = encodeDate(2015,8,9)</ocl></Selection><Resultdef><member>foobar</member></Resultdef></Query></Body></Envelope>');
-
-            api.select(
-                'where-x-expression = ? and where-y-expression = ? and where-z-expression = ?',
-                [
-                    123,
-                    new Date('2015-08-03'),
-                    moment('2015-08-09')
-                ],
-                ['foobar']
-            );
-            expect(buildXmlSpy.returnValues.shift()).to.equal('<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><ocl>where-x-expression = 123 and where-y-expression = encodeDate(2015,8,3) and where-z-expression = encodeDate(2015,8,9)</ocl></Selection><Resultdef><member>foobar</member></Resultdef></Query></Body></Envelope>');
-        });
-
-        it('accepts a string/number/date as param argument in query', () => {
+        it('accepts a string/number as param argument in query', () => {
             sinon.stub(api, 'doRequest');
 
             var select = 'where-x-expression = ?';
@@ -272,10 +246,6 @@ describe('SimpleVertecApi', () => {
             param = 'foobar';
             api.select(select, param, fields);
             expect(buildXmlSpy.returnValues.shift()).to.equal('<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><ocl>where-x-expression = foobar</ocl></Selection></Query></Body></Envelope>');
-
-            param = new Date('2015-08-01');
-            api.select(select, param, fields);
-            expect(buildXmlSpy.returnValues.shift()).to.equal('<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><ocl>where-x-expression = encodeDate(2015,8,1)</ocl></Selection></Query></Body></Envelope>');
         });
 
         it('accepts object as select argument in query', () => {
