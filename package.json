@@ -20,7 +20,6 @@
     "babel": "^5.8.23",
     "bluebird": "^2.9.34",
     "lodash": "^3.10.1",
-    "moment": "^2.10.6",
     "request": "^2.61.0",
     "xml-digester": "0.0.5"
   },

@@ -1,7 +1,6 @@
 import {SimpleVertecApi} from '../lib/simple-vertec-api';
 import {expect} from 'chai';
 import sinon from 'sinon';
-import moment from 'moment';
 
 describe('SimpleVertecApi', () => {
     var api;
