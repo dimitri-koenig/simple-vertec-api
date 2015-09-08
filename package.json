@@ -17,13 +17,13 @@
     "url": "https://github.com/dimitri-koenig/simple-vertec-api/issues"
   },
   "dependencies": {
-    "babel": "^5.8.23",
     "bluebird": "^2.9.34",
     "lodash": "^3.10.1",
     "request": "^2.61.0",
     "xml-digester": "0.0.5"
   },
   "devDependencies": {
+    "babel": "^5.8.23",
     "chai": "^3.2.0",
     "eslint": "^1.3.0",
     "istanbul": "^0.3.18",
