@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased][unreleased]
+
+## [2.5.0][2015-09-08]
 ### Internal
 * Replaced simple-xml with own object to xml converter (#43)
 * Simplified object building process (#44)
