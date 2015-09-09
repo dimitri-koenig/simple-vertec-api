@@ -4,6 +4,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased][unreleased]
 
+## [2.6.0][2015-09-09]
+### Feature
+* Added special chars handling (#47)
+
 ## [2.5.0][2015-09-08]
 ### Internal
 * Replaced simple-xml with own object to xml converter (#43)
