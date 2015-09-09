@@ -303,6 +303,32 @@ describe('SimpleVertecApi', () => {
 
             expect(buildXmlSpy.returnValues.shift()).to.equal('<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><objref>987</objref><objref>876</objref><ocl>something 123</ocl><sqlwhere>something else 234</sqlwhere><sqlorder>foobar 345</sqlorder></Selection><Resultdef><member>normal-field</member><expression><alias>foobar</alias><ocl>object.field</ocl></expression></Resultdef></Query></Body></Envelope>');
         });
+
+        it('escapes select object properties', () => {
+            sinon.stub(api, 'doRequest');
+
+            api.select(
+                {
+                    ocl:      '\':param1\'',
+                    sqlwhere: 'something < else > :param2 & foobar',
+                    sqlorder: 'foobar ":param3"'
+                },
+                {
+                    param1: 123,
+                    param2: 234,
+                    param3: 345
+                },
+                [
+                    'normal-field',
+                    {
+                        alias: 'foobar',
+                        ocl:   'object.field'
+                    }
+                ]
+            );
+
+            expect(buildXmlSpy.returnValues.shift()).to.equal('<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><ocl>&apos;123&apos;</ocl><sqlwhere>something &lt; else &gt; 234 &amp; foobar</sqlwhere><sqlorder>foobar &apos;345&apos;</sqlorder></Selection><Resultdef><member>normal-field</member><expression><alias>foobar</alias><ocl>object.field</ocl></expression></Resultdef></Query></Body></Envelope>');
+        });
     });
 
     describe('findById()', () => {
