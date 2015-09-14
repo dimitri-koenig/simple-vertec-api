@@ -12,7 +12,7 @@ describe('XmlConverter', () => {
                 ]
             }
         };
-        var xml = '<entries><entry><value>Entry 1</value></entry><entry><value>Entry 2</value></entry><entry><value>Entry 3</value></entry></entries>';
+        var xml = '<?xml version="1.0" encoding="UTF-8"?><entries><entry><value>Entry 1</value></entry><entry><value>Entry 2</value></entry><entry><value>Entry 3</value></entry></entries>';
         var result = XmlConverter.toXml(obj);
         expect(result).to.equal(xml);
     });
@@ -28,7 +28,7 @@ describe('XmlConverter', () => {
             },
             entries2:  {}
         };
-        var xml = '<entries><entry><value>Entry 1</value></entry><entry><value>Entry 2</value></entry><entry><value>Entry 3</value></entry></entries>';
+        var xml = '<?xml version="1.0" encoding="UTF-8"?><entries><entry><value>Entry 1</value></entry><entry><value>Entry 2</value></entry><entry><value>Entry 3</value></entry></entries>';
         var result = XmlConverter.toXml(obj);
         expect(result).to.equal(xml);
     });
@@ -43,7 +43,7 @@ describe('XmlConverter', () => {
                 ]
             }
         };
-        var xml = '<entries><entry>Entry 1</entry><entry>Entry 2</entry><entry>Entry 3</entry></entries>';
+        var xml = '<?xml version="1.0" encoding="UTF-8"?><entries><entry>Entry 1</entry><entry>Entry 2</entry><entry>Entry 3</entry></entries>';
         var result = XmlConverter.toXml(obj);
         expect(result).to.equal(xml);
     });
@@ -59,7 +59,7 @@ describe('XmlConverter', () => {
             },
             entries2:  []
         };
-        var xml = '<entries><entry>Entry 1</entry><entry>Entry 2</entry><entry>Entry 3</entry></entries>';
+        var xml = '<?xml version="1.0" encoding="UTF-8"?><entries><entry>Entry 1</entry><entry>Entry 2</entry><entry>Entry 3</entry></entries>';
         var result = XmlConverter.toXml(obj);
         expect(result).to.equal(xml);
     });
