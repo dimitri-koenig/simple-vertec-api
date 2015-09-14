@@ -1,4 +1,9 @@
-languages:
-  JavaScript: true
+engines:
+  eslint:
+    enabled: true
+ratings:
+   paths:
+   - lib/**
+   - test/**
 exclude_paths:
-  - "examples/*"
+- "examples/*"
