@@ -10,6 +10,11 @@ Simple Vertec Api is an simple wrapper around www.vertec.com XML webservice for 
 [Documentation](http://simple-vertec-api.readthedocs.org/en/latest/)
 
 
+## Delimination and Responsibility
+
+This XML wrapper will only give you a simpler way of making requests via Vertec's own XML interface. There won't be any validations done for data input (you have to do it or rely on Vertec's validation as it is their responsibility on server side), nor will there be any additional features which would go beyond wrapping just the XML request part in a simple manner.
+
+
 ## Installation
 
 Run this command:
