@@ -354,32 +354,6 @@ describe('SimpleVertecApi', () => {
             ]);
             expect(buildXmlSpy.returnValues.shift()).to.equal('<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><objref>123</objref><objref>234</objref></Selection><Resultdef><member>foo</member><member>bar</member></Resultdef></Query></Body></Envelope>');
         });
-
-        it('throws an error if an id is not a number', () => {
-            sinon.stub(api, 'doRequest');
-            var findByIdSpy = sinon.spy(api, 'findById');
-
-            try {
-                api.findById({ foo: 'bar' });
-            } catch (e) {
-                // we only need the finally block
-            } finally {
-                expect(findByIdSpy.exceptions).to.have.length(1);
-                expect(findByIdSpy.exceptions.shift().message).to.have.string('1440046203');
-            }
-
-            try {
-                api.findById([
-                    123,
-                    { foo: 'bar' }
-                ]);
-            } catch (e) {
-                // we only need the finally block
-            } finally {
-                expect(findByIdSpy.exceptions).to.have.length(1);
-                expect(findByIdSpy.exceptions.shift().message).to.have.string('1440046203');
-            }
-        });
     });
 
     describe('delete()', () => {
@@ -401,32 +375,6 @@ describe('SimpleVertecApi', () => {
                 234
             ]);
             expect(buildXmlSpy.returnValues.shift()).to.equal('<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Delete><objref>123</objref><objref>234</objref></Delete></Body></Envelope>');
-        });
-
-        it('throws an error if an id is not a number', () => {
-            sinon.stub(api, 'doRequest');
-            var deleteSpy = sinon.spy(api, 'delete');
-
-            try {
-                api.delete({ foo: 'bar' });
-            } catch (e) {
-                // we only need the finally block
-            } finally {
-                expect(deleteSpy.exceptions).to.have.length(1);
-                expect(deleteSpy.exceptions.shift().message).to.have.string('1439056797');
-            }
-
-            try {
-                api.delete([
-                    123,
-                    { foo: 'bar' }
-                ]);
-            } catch (e) {
-                // we only need the finally block
-            } finally {
-                expect(deleteSpy.exceptions).to.have.length(1);
-                expect(deleteSpy.exceptions.shift().message).to.have.string('1439056797');
-            }
         });
     });
 
