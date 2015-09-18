@@ -6,6 +6,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ### Internal
 * Moved all XML related stuff to XmlConverter class (#49)
 * Refactored XmlConverter class (#50)
+* Cleanup after responsibility clarification (#54)
 
 ## [2.6.0][2015-09-09]
 ### Feature
