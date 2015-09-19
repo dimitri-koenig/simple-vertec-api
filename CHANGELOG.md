@@ -17,6 +17,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 * Replaced simple-xml with own object to xml converter (#43)
 * Simplified object building process (#44)
 * Moved babel package to dev deps (#46)
+* Objects with empty arrays won't be included in XML (#57)
 
 ### Deprecated
 * Removed inconsistent usage of date encoding (#40)
