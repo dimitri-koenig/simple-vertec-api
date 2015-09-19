@@ -4,7 +4,7 @@ import {expect} from 'chai';
 describe('XmlConverter', () => {
     it('converts an object into an xml string', function () {
         var obj = {
-            'firstEntries': {
+            'firstEntries':  {
                 'entry': [
                     { 'value': 'Entry 1' },
                     { 'value': 'Entry 2' },
@@ -34,6 +34,25 @@ describe('XmlConverter', () => {
                 ]
             },
             entries2:  {}
+        };
+        var xml = '<?xml version="1.0" encoding="UTF-8"?><entries><entry><value>Entry 1</value></entry><entry><value>Entry 2</value></entry><entry><value>Entry 3</value></entry></entries>';
+        var result = XmlConverter.toXml(obj);
+        expect(result).to.equal(xml);
+    });
+
+    it('ignores an object with empty arrays', function () {
+        var obj = {
+            'entries': {
+                'entry': [
+                    { 'value': 'Entry 1' },
+                    { 'value': 'Entry 2' },
+                    { 'value': 'Entry 3' }
+                ]
+            },
+            entries2:  {
+                'firstEntry':  [],
+                'secondEntry': []
+            }
         };
         var xml = '<?xml version="1.0" encoding="UTF-8"?><entries><entry><value>Entry 1</value></entry><entry><value>Entry 2</value></entry><entry><value>Entry 3</value></entry></entries>';
         var result = XmlConverter.toXml(obj);
