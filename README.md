@@ -5,7 +5,7 @@
 [![Code Climate](https://codeclimate.com/github/dimitri-koenig/simple-vertec-api/badges/gpa.svg)](https://codeclimate.com/github/dimitri-koenig/simple-vertec-api)
 [![Dependency Status](https://david-dm.org/dimitri-koenig/simple-vertec-api.svg)](https://david-dm.org/dimitri-koenig/simple-vertec-api)
 
-Simple Vertec Api is an simple wrapper around www.vertec.com XML webservice for Node.JS/io.js It features solid CRUD support for dealing with Vertec's data.
+Simple Vertec Api is an simple wrapper around www.vertec.com XML webservice for Node.JS/io.js. It features solid CRUD support for dealing with Vertec's data.
 
 [Documentation](http://simple-vertec-api.readthedocs.org/en/latest/)
 
