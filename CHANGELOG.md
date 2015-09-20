@@ -7,6 +7,9 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 * Moved all XML related stuff to XmlConverter class (#49)
 * Refactored XmlConverter class (#50)
 * Cleanup after responsibility clarification (#54)
+* Objects with empty arrays won't be included in XML (#57)
+* Refactored XmlConverter Class (#50)
+* Refactored Main Class (#51)
 
 ## [2.6.0][2015-09-09]
 ### Feature
@@ -17,7 +20,6 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 * Replaced simple-xml with own object to xml converter (#43)
 * Simplified object building process (#44)
 * Moved babel package to dev deps (#46)
-* Objects with empty arrays won't be included in XML (#57)
 
 ### Deprecated
 * Removed inconsistent usage of date encoding (#40)
