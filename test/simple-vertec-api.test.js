@@ -177,23 +177,6 @@ describe('SimpleVertecApi', () => {
             expect(buildXmlSpy.returnValues.shift()).to.equal('<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><ocl>where-expression = 123</ocl></Selection><Resultdef><member>normal-field</member><expression><alias>foobar</alias><ocl>object.field</ocl></expression></Resultdef></Query></Body></Envelope>');
         });
 
-        it('returns ? placeholder if more placeholders then params in array given', () => {
-            sinon.stub(api, 'doRequest');
-
-            api.select(
-                'where-x-expression = ? and where-y-expression = ?',
-                [123],
-                [
-                    'normal-field',
-                    {
-                        alias: 'foobar',
-                        ocl:   'object.field'
-                    }
-                ]
-            );
-            expect(buildXmlSpy.returnValues.shift()).to.equal('<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><ocl>where-x-expression = 123 and where-y-expression = ?</ocl></Selection><Resultdef><member>normal-field</member><expression><alias>foobar</alias><ocl>object.field</ocl></expression></Resultdef></Query></Body></Envelope>');
-        });
-
         it('accepts object as params argument in query', () => {
             sinon.stub(api, 'doRequest');
 
@@ -211,25 +194,6 @@ describe('SimpleVertecApi', () => {
                 ]
             );
             expect(buildXmlSpy.returnValues.shift()).to.equal('<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><ocl>where-x-expression = 123 and where-y-expression = 123</ocl></Selection><Resultdef><member>normal-field</member><expression><alias>foobar</alias><ocl>object.field</ocl></expression></Resultdef></Query></Body></Envelope>');
-        });
-
-        it('throws an error if named parameter does not exist in params object', () => {
-            sinon.stub(api, 'doRequest');
-            var selectSpy = sinon.spy(api, 'select');
-
-            try {
-                api.select(
-                    'where-x-expression = :id and where-y-expression = :name',
-                    {
-                        id: 123
-                    },
-                    ['foobar']);
-            } catch (e) {
-                // we only need the finally block
-            } finally {
-                expect(selectSpy.exceptions).to.have.length(1);
-                expect(selectSpy.exceptions.shift().message).to.have.string('1438415385');
-            }
         });
 
         it('accepts a string/number as param argument in query', () => {
