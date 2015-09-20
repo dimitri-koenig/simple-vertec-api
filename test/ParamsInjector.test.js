@@ -96,4 +96,12 @@ describe('ParamsInjector', () => {
             expect(injectionSpy.exceptions.shift().message).to.have.string('1438415385');
         }
     });
+
+    it('Returns target as it is if it\'s not a string or object', () => {
+        expect(ParamsInjector.inject(123, 123)).to.equal(123);
+        expect(ParamsInjector.inject(null, 123)).to.equal(null);
+
+        var targetArray = [];
+        expect(ParamsInjector.inject(targetArray, 123)).to.equal(targetArray);
+    });
 });
