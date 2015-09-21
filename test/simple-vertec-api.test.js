@@ -293,6 +293,26 @@ describe('SimpleVertecApi', () => {
 
             expect(buildXmlSpy.returnValues.shift()).to.equal('<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><ocl>&apos;123&apos;</ocl><sqlwhere>something &lt; else &gt; 234 &amp; foobar</sqlwhere><sqlorder>foobar &apos;345&apos;</sqlorder></Selection><Resultdef><member>normal-field</member><expression><alias>foobar</alias><ocl>object.field</ocl></expression></Resultdef></Query></Body></Envelope>');
         });
+
+        it('replaces placeholders both in query and fields', () => {
+            sinon.stub(api, 'doRequest');
+
+            api.select(
+                'where-x-expression = :id and where-y-expression = ":date"',
+                {
+                    id: 123,
+                    date: '2015-09-21'
+                },
+                [
+                    'normal-field :id',
+                    {
+                        alias: 'foobar-:id',
+                        ocl:   'object.field-:date'
+                    }
+                ]
+            );
+            expect(buildXmlSpy.returnValues.shift()).to.equal('<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><ocl>where-x-expression = 123 and where-y-expression = &apos;2015-09-21&apos;</ocl></Selection><Resultdef><member>normal-field 123</member><expression><alias>foobar-123</alias><ocl>object.field-2015-09-21</ocl></expression></Resultdef></Query></Body></Envelope>');
+        });
     });
 
     describe('findById()', () => {
