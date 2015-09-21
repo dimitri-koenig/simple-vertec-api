@@ -4,6 +4,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased][unreleased]
 
+## [2.8.0][2015-09-21]
+### Feature
+* Params replacement also available for fields (#55)
+
 ## [2.7.0][2015-09-20]
 ### Internal
 * Moved all XML related stuff to XmlConverter class (#49)
