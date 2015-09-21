@@ -78,6 +78,44 @@ describe('ParamsInjector', () => {
         expect(ParamsInjector.inject(given, params)).to.equal(expected);
     });
 
+    it('Replaces multiple named parameters with string/number values from an object when given an object', () => {
+        var given = {
+            item1: 'where-x-expression = :x',
+            item2: 'where-y-expression = :y'
+        };
+        var params = {
+            x: 123,
+            y: '234'
+        };
+        var expected = {
+            item1: 'where-x-expression = 123',
+            item2: 'where-y-expression = 234'
+        };
+
+        expect(ParamsInjector.inject(given, params)).to.deep.equal(expected);
+    });
+
+    it('Replaces multiple named parameters with string/number values from an object when given an array of strings and objects', () => {
+        var given = [
+            'where-x-expression = :x',
+            {
+                subitem: 'where-y-expression = :y'
+            }
+        ];
+        var params = {
+            x: 123,
+            y: '234'
+        };
+        var expected = [
+            'where-x-expression = 123',
+            {
+                subitem: 'where-y-expression = 234'
+            }
+        ];
+
+        expect(ParamsInjector.inject(given, params)).to.deep.equal(expected);
+    });
+
     it('throws an error if named parameter does not exist in params object', () => {
         var injectionSpy = sinon.spy(ParamsInjector, 'inject');
 
@@ -100,8 +138,5 @@ describe('ParamsInjector', () => {
     it('Returns target as it is if it\'s not a string or object', () => {
         expect(ParamsInjector.inject(123, 123)).to.equal(123);
         expect(ParamsInjector.inject(null, 123)).to.equal(null);
-
-        var targetArray = [];
-        expect(ParamsInjector.inject(targetArray, 123)).to.equal(targetArray);
     });
 });
