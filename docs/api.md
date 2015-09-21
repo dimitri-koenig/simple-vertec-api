@@ -12,7 +12,7 @@ Returns a new SimpleVertecApi object.
 Does a query on the server with additional parameters for the select. Returns a [Promise](https://github.com/petkaantonov/bluebird).
 
 * `select`: A string containing the ocl expression for fetching the data, or an object with 'ocl', 'sqlwhere' and 'sqlorder' fields or an objref field with an id or an array of ids for a more advanced query
-* `params` *(optional)*: An array with placeholders to be replaced in the select, e.g. `select where expression = ?`, or an object with key => value so that named parameters can be used in the select, e.g. `select where expression = :id`. If you only have one parameter you can also use just one `?` and set params to that string/number.
+* `params` *(optional)*: An array with placeholders to be replaced in the query and fields, e.g. `select where expression = ?`, or an object with key => value so that named parameters can be used in the select, e.g. `select where expression = :id`. If you only have one parameter you can also use just one `?` and set params to that string/number.
 * `fields`: An array containing the fields which should be returned. Accepts a string as item, or an object with the fields `ocl` and `alias` to do further expressions.
 
 
@@ -114,6 +114,34 @@ var fields = [
     'minutenExt',
     'datum',
     'text'
+];
+api.select(select, params, fields).then(function(response) {
+    // do something with the result
+    console.log(response);
+});
+```
+
+```javascript
+// searches for some records starting from day X, using params object
+var select = {
+    ocl: 'Leistung',
+    sqlwhere: "(text like '%:searchText%') and (CreationDateTime >= {ts ':date 00:00:00'})",
+    sqlorder: 'datum'
+};
+var params = {
+    searchText: 'search text',
+    date: '2015-08-05'
+};
+var fields = [
+    'minutenInt',
+    'minutenExt',
+    'datum',
+    'text',
+    {
+        alias: 'datum-:date',
+        ocl: 'datum'
+    }
+}
 ];
 api.select(select, params, fields).then(function(response) {
     // do something with the result
