@@ -5,6 +5,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ## [unreleased][unreleased]
 ### Internal
 * Modified ParamsInjection delimiter to some random string (#59)
+* Moved sensible data out of module export scope (#62)
 
 ## [2.8.0][2015-09-21]
 ### Feature
