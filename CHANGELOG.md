@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased][unreleased]
+### Feature
+* Enforcing raw output logging of response data strings (#64)
 
 ## [2.9.0][2015-09-24]
 ### Internal
