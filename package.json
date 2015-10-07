@@ -20,7 +20,8 @@
     "bluebird": "^2.9.34",
     "lodash": "^3.10.1",
     "request": "^2.61.0",
-    "xml-digester": "0.0.5"
+    "xml-digester": "0.0.5",
+    "simple-xml-converter": "1.1.1"
   },
   "devDependencies": {
     "babel": "^5.8.23",
