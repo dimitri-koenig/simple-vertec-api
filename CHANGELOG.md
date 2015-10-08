@@ -5,6 +5,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ## [unreleased][unreleased]
 ### Feature
 * Enforcing raw output logging of response data strings (#64)
+* Added indentation for xml building for better log outputs (#65)
 
 ### Internal
 * Extracted xml converter class into separate simple-xml-converter package and replaced class (#58)
