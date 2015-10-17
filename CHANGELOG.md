@@ -9,6 +9,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Internal
 * Extracted xml converter class into separate simple-xml-converter package and replaced class (#58)
+* Extracted parameter injector class into separate simple-parameter-injector package and replaced class (#58)
 
 ## [2.9.0][2015-09-24]
 ### Internal
