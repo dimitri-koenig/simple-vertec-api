@@ -74,9 +74,11 @@ describe('SimpleVertecApi', () => {
             return api.select('some faulty select', []).then(
                 (result) => {
                     throw new Error('Promise was unexpectedly fulfilled. Result: ' + result);
-                }, (result) => {
+                },
+                (result) => {
                     expect(result).to.include.keys('Fault');
-                });
+                }
+            );
         });
 
         it('catches request errors', () => {
@@ -85,9 +87,11 @@ describe('SimpleVertecApi', () => {
             return api.select('some faulty select', []).then(
                 (result) => {
                     throw new Error('Promise was unexpectedly fulfilled. Result: ' + result);
-                }, (result) => {
+                },
+                (result) => {
                     expect(result).to.include.keys('Error');
-                });
+                }
+            );
         });
     });
 
