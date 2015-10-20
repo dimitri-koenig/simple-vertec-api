@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased][unreleased]
+
+## [2.10.0][2015-10-20]
 ### Feature
 * Enforcing raw output logging of response data strings (#64)
 * Added indentation for xml building for better log outputs (#65)
