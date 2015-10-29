@@ -2,7 +2,9 @@
 
 # select(ocl)
 
-`select(ocl)` takes one string parameter which specifies an ocl expression or ocl class.
+Does a query on the server to fetch multiple rows.
+
+* `ocl`: A string containing the ocl expression or sql class.
 
 To fire the request and get a [Promise](https://github.com/petkaantonov/bluebird) you can use the additional method `get()` like this:
 
@@ -15,3 +17,18 @@ The following optional methods can further specify the query:
 * `setObjref(ids)`: An single object id or an array of object ids to fetch directly.
 * `setSqlwhere(whereClause)`: Sets an additional where clause which also translates into this query being handled as an sql query.
 * `setSqlorder(field)`: Sets the order for an sql query.
+
+
+# findById(id)
+
+Does a select query on the server to find some objects by their id/ids.
+
+* `id`: A single number or an array of numbers
+
+To fire the request and get a [Promise](https://github.com/petkaantonov/bluebird) you can use the additional method `get()` like this:
+
+`findById(123).get()`
+
+The following optional methods can further specify the query:
+
+* `setResultFields(fields)`: An array containing the fields which should be returned. Accepts a string as item, or an object with the fields `ocl` and `alias` to do further expressions.
