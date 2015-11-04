@@ -32,3 +32,12 @@ To fire the request and get a [Promise](https://github.com/petkaantonov/bluebird
 The following optional methods can further specify the query:
 
 * `setResultFields(fields)`: An array containing the fields which should be returned. Accepts a string as item, or an object with the fields `ocl` and `alias` to do further expressions.
+
+
+# delete(id)
+
+Does a delete query on the server to delete some ids. Returns a [Promise](https://github.com/petkaantonov/bluebird).
+This method does not change compared to version 2.
+
+* `id`: A single number or an array of numbers
+
