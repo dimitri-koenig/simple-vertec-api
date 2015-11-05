@@ -41,3 +41,19 @@ This method does not change compared to version 2.
 
 * `id`: A single number or an array of numbers
 
+
+# save([objectsArray | className])
+
+Does a save query on the server to some records.
+
+Either:
+
+* `objectsData`: An array of objects with each having a `className` string field and `data` object field
+
+Or:
+
+* `className`: String with target vertec class like `OffeneLeistung`
+* `setData(saveData)`: An object containing the fields and values which should be saved.
+
+If in the data array the field `objref` is found, an update operation will be made. If there isn't such a field, a create operation will be made.
+
