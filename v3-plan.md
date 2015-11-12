@@ -1,6 +1,8 @@
 # Plan for v3 changes
 
-# select(ocl)
+## API Changes
+
+### select(ocl)
 
 Does a query on the server to fetch multiple rows.
 
@@ -19,7 +21,7 @@ The following optional methods can further specify the query:
 * `setSqlorder(field)`: Sets the order for an sql query.
 
 
-# findById(id)
+### findById(id)
 
 Does a select query on the server to find some objects by their id/ids.
 
@@ -34,7 +36,7 @@ The following optional methods can further specify the query:
 * `setResultFields(fields)`: An array containing the fields which should be returned. Accepts a string as item, or an object with the fields `ocl` and `alias` to do further expressions.
 
 
-# delete(id)
+### delete(id)
 
 Does a delete query on the server to delete some ids. Returns a [Promise](https://github.com/petkaantonov/bluebird).
 This method does not change compared to version 2.
@@ -42,7 +44,7 @@ This method does not change compared to version 2.
 * `id`: A single number or an array of numbers
 
 
-# save([objectsArray | className])
+### save([objectsArray | className])
 
 Does a save query on the server to some records.
 
@@ -57,3 +59,7 @@ Or:
 
 If in the data array the field `objref` is found, an update operation will be made. If there isn't such a field, a create operation will be made.
 
+
+## Logging
+
+`bunyan` will be used for extended logging, where extended logging streams can be defined and depending on log level more information can be provided.
