@@ -4,6 +4,13 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased][unreleased]
 
+## [2.11.0][2015-12-01]
+### Enhancement
+* Added more logging (#21)
+
+### Bugfix
+* Fixed digester errors (#69)
+
 ## [2.10.0][2015-10-20]
 ### Feature
 * Enforcing raw output logging of response data strings (#64)
