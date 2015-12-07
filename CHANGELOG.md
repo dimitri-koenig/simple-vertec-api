@@ -4,6 +4,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased][unreleased]
 
+## [2.11.1][2015-12-07]
+### Enhancement
+* Interpret HTML output as error (#70)
+
 ## [2.11.0][2015-12-01]
 ### Enhancement
 * Added more logging (#21)
