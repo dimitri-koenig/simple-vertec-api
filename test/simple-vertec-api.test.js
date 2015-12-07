@@ -81,6 +81,20 @@ describe('SimpleVertecApi', () => {
             );
         });
 
+        it('converts html error messages from server', () => {
+            sinon.stub(api, 'request').yields(null, null, '<HTML><BODY><P>Error message with missing closing p tag!</BODY></HTML>');
+
+            return api.select('some faulty select', []).then(
+                (result) => {
+                    throw new Error('Promise was unexpectedly fulfilled. Result: ' + result);
+                },
+                (result) => {
+                    expect(result).to.include.keys('Error');
+                    expect(result.Error.faultstring).to.equal('Error message with missing closing p tag!');
+                }
+            );
+        });
+
         it('catches request errors', () => {
             sinon.stub(api, 'request').yields({ Error: 'Some error message' }, null, null);
 
