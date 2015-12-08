@@ -11,8 +11,8 @@ build: ; @echo 'Making build...'
 	done
 
 test: ; @echo 'Running tests...'
-	@NODE_ENV=test ./node_modules/.bin/mocha test
-	@NODE_ENV=test ./node_modules/.bin/eslint lib test
+	@NODE_ENV=test ./node_modules/.bin/babel-node ./node_modules/.bin/_mocha test
+	@NODE_ENV=test ./node_modules/.bin/babel-node ./node_modules/.bin/eslint lib test
 
 install: ; @echo 'Installing packages...'
 	@npm install
@@ -32,7 +32,7 @@ watch: ; @echo 'Running test watch task...'
 	nodemon -w test -w lib -e js -x npm test
 
 collect-coverage: ; @echo 'Collecting coverage data...'
-	@NODE_ENV=test ./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha --report lcovonly -- test
+	@NODE_ENV=test ./node_modules/.bin/babel-node ./node_modules/.bin/babel-istanbul cover --report lcovonly ./node_modules/.bin/_mocha -- test
 
 publish-coverage: ; @echo 'Publishing coverage data'
 	@npm install codeclimate-test-reporter
