@@ -1,6 +1,7 @@
 import {SimpleVertecApi} from '../lib/simple-vertec-api';
 import {expect} from 'chai';
 import sinon from 'sinon';
+import xmlDigester from 'xml-digester';
 
 /**
  * Checks actual string which gets filtered with new lines and intendation spaces against expected string
@@ -84,7 +85,7 @@ describe('SimpleVertecApi', () => {
         it('converts html error messages from server', () => {
             sinon.stub(api, 'request').yields(null, null, '<HTML><BODY><P>Error message with missing closing p tag!</BODY></HTML>');
 
-            return api.select('some faulty select', []).then(
+            return api.select('some select with fauly response', []).then(
                 (result) => {
                     throw new Error('Promise was unexpectedly fulfilled. Result: ' + result);
                 },
@@ -93,6 +94,25 @@ describe('SimpleVertecApi', () => {
                     expect(result.Error.faultstring).to.equal('Error message with missing closing p tag!');
                 }
             );
+        });
+
+        it('catches xml to json conversion errors', () => {
+            sinon.stub(api, 'request').yields(null, null, '<container><firstElement><onlyFirstTag>Missing closing tag!</firstElement></container>');
+
+            let xmlDigesterLogger = xmlDigester._logger;
+            let originalLevel = xmlDigesterLogger.level();
+            xmlDigesterLogger.level(0.5);
+
+            return api.select('some select with fauly response', []).then(
+                (result) => {
+                    throw new Error('Promise was unexpectedly fulfilled. Result: ' + result);
+                },
+                (result) => {
+                    
+                }
+            ).finally(() => {
+                xmlDigesterLogger.level(originalLevel);
+            });
         });
 
         it('catches request errors', () => {
