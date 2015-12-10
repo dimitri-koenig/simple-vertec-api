@@ -96,7 +96,7 @@ describe('SimpleVertecApi', () => {
             );
         });
 
-        it('catches xml to json conversion errors', () => {
+        it('catches xml to json conversion errors', (done) => {
             sinon.stub(api, 'request').yields(null, null, '<container><firstElement><onlyFirstTag>Missing closing tag!</firstElement></container>');
 
             let xmlDigesterLogger = xmlDigester._logger;
@@ -107,8 +107,8 @@ describe('SimpleVertecApi', () => {
                 (result) => {
                     throw new Error('Promise was unexpectedly fulfilled. Result: ' + result);
                 },
-                (result) => {
-                    
+                () => {
+                    done();
                 }
             ).finally(() => {
                 xmlDigesterLogger.level(originalLevel);
