@@ -143,7 +143,7 @@ describe('SimpleVertecApi', () => {
             compareFilteredString(buildXmlSpy.returnValues.shift(), '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><ocl>something</ocl></Selection><Resultdef><member>normal-field</member><expression><alias>foobar</alias><ocl>object.field</ocl></expression></Resultdef></Query></Body></Envelope>');
         });
 
-        it('throws an error if no select query given', () => {
+        it('throws an error if no valid select query given', () => {
             sinon.stub(api, 'doRequest');
             var selectSpy = sinon.spy(api, 'select');
 
@@ -153,13 +153,8 @@ describe('SimpleVertecApi', () => {
                 // we only need the finally block
             } finally {
                 expect(selectSpy.exceptions).to.have.length(1);
-                expect(selectSpy.exceptions.shift().message).to.have.string('1438427960');
+                expect(selectSpy.exceptions.shift().message).to.have.string('1438428337');
             }
-        });
-
-        it('throws an error if select query is not valid', () => {
-            sinon.stub(api, 'doRequest');
-            var selectSpy = sinon.spy(api, 'select');
 
             try {
                 api.select(['something']);
