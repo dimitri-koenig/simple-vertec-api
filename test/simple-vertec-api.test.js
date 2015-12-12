@@ -32,7 +32,7 @@ describe('SimpleVertecApi', () => {
             api.verbose = true;
             var consoleMock = sinon.stub(console, 'log');
 
-            api.select('something', []);
+            api.select('something');
 
             expect(consoleMock.called).to.equal(true);
 
@@ -42,24 +42,24 @@ describe('SimpleVertecApi', () => {
         it('sets authentication data', () => {
             sinon.stub(api, 'doRequest');
 
-            api.select('something', []);
+            api.select('something');
             compareFilteredString(buildXmlSpy.returnValues.shift(), '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><ocl>something</ocl></Selection></Query></Body></Envelope>');
         });
 
         it('does two requests with same auth data', () => {
             sinon.stub(api, 'doRequest');
 
-            api.select('something', []);
+            api.select('something');
             compareFilteredString(buildXmlSpy.returnValues.shift(), '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><ocl>something</ocl></Selection></Query></Body></Envelope>');
 
-            api.select('something else', []);
+            api.select('something else');
             compareFilteredString(buildXmlSpy.returnValues.shift(), '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><ocl>something else</ocl></Selection></Query></Body></Envelope>');
         });
 
         it('converts response to json and extracts useful content', () => {
             sinon.stub(api, 'request').yields(null, null, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><QueryResponse><Kontakt><objid>12345</objid><sprache>DE</sprache></Kontakt><Kontakt><objid>23456</objid><sprache>EN</sprache></Kontakt></QueryResponse></Body></Envelope>');
 
-            return api.select('something', []).then(
+            return api.select('something').then(
                 (content) => {
                     expect(content.Kontakt.length).to.equal(2);
                     expect(content.Kontakt[0].objid).to.equal('12345');
@@ -72,7 +72,7 @@ describe('SimpleVertecApi', () => {
         it('converts fault messages from server', () => {
             sinon.stub(api, 'request').yields(null, null, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><Fault><faultcode>Client</faultcode></Fault></Body></Envelope>');
 
-            return api.select('some faulty select', []).then(
+            return api.select('some faulty select').then(
                 (result) => {
                     throw new Error('Promise was unexpectedly fulfilled. Result: ' + result);
                 },
@@ -85,7 +85,7 @@ describe('SimpleVertecApi', () => {
         it('converts html error messages from server', () => {
             sinon.stub(api, 'request').yields(null, null, '<HTML><BODY><P>Error message with missing closing p tag!</BODY></HTML>');
 
-            return api.select('some select with fauly response', []).then(
+            return api.select('some select with fauly response').then(
                 (result) => {
                     throw new Error('Promise was unexpectedly fulfilled. Result: ' + result);
                 },
@@ -103,7 +103,7 @@ describe('SimpleVertecApi', () => {
             let originalLevel = xmlDigesterLogger.level();
             xmlDigesterLogger.level(0.5);
 
-            return api.select('some select with fauly response', []).then(
+            return api.select('some select with fauly response').then(
                 (result) => {
                     throw new Error('Promise was unexpectedly fulfilled. Result: ' + result);
                 },
@@ -118,7 +118,7 @@ describe('SimpleVertecApi', () => {
         it('catches request errors', () => {
             sinon.stub(api, 'request').yields({ Error: 'Some error message' }, null, null);
 
-            return api.select('some faulty select', []).then(
+            return api.select('some faulty select').then(
                 (result) => {
                     throw new Error('Promise was unexpectedly fulfilled. Result: ' + result);
                 },
@@ -143,7 +143,7 @@ describe('SimpleVertecApi', () => {
             compareFilteredString(buildXmlSpy.returnValues.shift(), '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><ocl>something</ocl></Selection><Resultdef><member>normal-field</member><expression><alias>foobar</alias><ocl>object.field</ocl></expression></Resultdef></Query></Body></Envelope>');
         });
 
-        it('throws an error if no select or fields arguments given', () => {
+        it('throws an error if no select query given', () => {
             sinon.stub(api, 'doRequest');
             var selectSpy = sinon.spy(api, 'select');
 
@@ -155,23 +155,14 @@ describe('SimpleVertecApi', () => {
                 expect(selectSpy.exceptions).to.have.length(1);
                 expect(selectSpy.exceptions.shift().message).to.have.string('1438427960');
             }
-
-            try {
-                api.select('something');
-            } catch (e) {
-                // we only need the finally block
-            } finally {
-                expect(selectSpy.exceptions).to.have.length(1);
-                expect(selectSpy.exceptions.shift().message).to.have.string('1438427960');
-            }
         });
 
-        it('throws an error if select or fields arguments are not valid', () => {
+        it('throws an error if select query is not valid', () => {
             sinon.stub(api, 'doRequest');
             var selectSpy = sinon.spy(api, 'select');
 
             try {
-                api.select('some select', { foo: 'bar' });
+                api.select(['something']);
             } catch (e) {
                 // we only need the finally block
             } finally {
@@ -180,16 +171,7 @@ describe('SimpleVertecApi', () => {
             }
 
             try {
-                api.select(['something'], []);
-            } catch (e) {
-                // we only need the finally block
-            } finally {
-                expect(selectSpy.exceptions).to.have.length(1);
-                expect(selectSpy.exceptions.shift().message).to.have.string('1438428337');
-            }
-
-            try {
-                api.select(null, 'something', []);
+                api.select(null);
             } catch (e) {
                 // we only need the finally block
             } finally {
