@@ -180,6 +180,15 @@ describe('SimpleVertecApi', () => {
             var selectSpy = sinon.spy(api, 'select');
 
             try {
+                api.select('something', null);
+            } catch (e) {
+                // we only need the finally block
+            } finally {
+                expect(selectSpy.exceptions).to.have.length(1);
+                expect(selectSpy.exceptions.shift().message).to.have.string('1449929652');
+            }
+
+            try {
                 api.select('something', [123]);
             } catch (e) {
                 // we only need the finally block
