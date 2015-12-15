@@ -60,6 +60,13 @@ Or:
 If in the data array the field `objref` is found, an update operation will be made. If there isn't such a field, a create operation will be made.
 
 
+### retryAttempts(num)
+
+Defines how often a failed request should be retried again.
+
+* `num`: Number of retry attempts
+
+
 ## Logging
 
 `bunyan` will be used for extended logging, where extended logging streams can be defined and depending on log level more information can be provided.
