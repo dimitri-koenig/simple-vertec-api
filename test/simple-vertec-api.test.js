@@ -127,6 +127,17 @@ describe('SimpleVertecApi', () => {
                 }
             );
         });
+
+        it('determines correct retry strategy', () => {
+            expect(api.requestRetryStrategy(null, {})).to.be.false;
+            expect(api.requestRetryStrategy({}, {})).to.be.true;
+            expect(api.requestRetryStrategy(null, {statusCode: 300})).to.be.false;
+            expect(api.requestRetryStrategy(null, {statusCode: 400})).to.be.true;
+            expect(api.requestRetryStrategy(null, {statusCode: 500})).to.be.true;
+            expect(api.requestRetryStrategy(null, {body: '<xml><something /></xml>'})).to.be.false;
+            expect(api.requestRetryStrategy(null, {body: '<xml><fault>something</fault></xml>'})).to.be.true;
+            expect(api.requestRetryStrategy(null, {body: '<DOCTYPE><HTML><BODY>SOMETHING</BODY></HTML>'})).to.be.true;
+        });
     });
 
     describe('select()', () => {
