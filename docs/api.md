@@ -1,4 +1,4 @@
-# new SimpleVertecApi(vertecUrl, username, password, [verbose])
+# new SimpleVertecApi(vertecUrl, username, password, [verbose, defaultRequestOptions])
 
 Returns a new SimpleVertecApi object.
 
@@ -6,6 +6,7 @@ Returns a new SimpleVertecApi object.
 * `username`: A string with your vertec username
 * `password`: A string with your vertec username
 * `verbose` *(optional)*: A boolean which set on true will output additional log data
+* `defaultRequestOptions` *(optional)*: An object with addition request default options which can override standard options
 
 # select(select, [params], fields) -> Promise
 
