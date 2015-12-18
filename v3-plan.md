@@ -67,6 +67,13 @@ Defines how often a failed request should be retried again.
 * `num`: Number of retry attempts
 
 
+### retryDelay(ms)
+
+Defines how many ms to wait till the next retry attempt
+
+* `ms`: Number of milliseconds till the next retry attempt
+
+
 ## Logging
 
 `bunyan` will be used for extended logging, where extended logging streams can be defined and depending on log level more information can be provided.
