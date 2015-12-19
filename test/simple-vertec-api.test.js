@@ -2,6 +2,7 @@ import {SimpleVertecApi} from '../lib/simple-vertec-api';
 import {expect} from 'chai';
 import sinon from 'sinon';
 import xmlDigester from 'xml-digester';
+import q from 'bluebird';
 
 /**
  * Checks actual string which gets filtered with new lines and intendation spaces against expected string
@@ -361,6 +362,32 @@ describe('SimpleVertecApi', () => {
                 ]
             );
             compareFilteredString(buildXmlSpy.returnValues.shift(), '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><ocl>where-x-expression = 123 and where-y-expression = &apos;2015-09-21&apos;</ocl></Selection><Resultdef><member>normal-field 123</member><expression><alias>foobar-123</alias><ocl>object.field-2015-09-21</ocl></expression></Resultdef></Query></Body></Envelope>');
+        });
+
+        it('catches multiple equal requests and returns one promise', (done) => {
+            var resolveCount = 0;
+
+            sinon.stub(api, 'doRequest', () => {
+                return new q((resolve) => {
+                    setTimeout(() => { // eslint-disable-line max-nested-callbacks
+                        resolveCount++;
+                        resolve({it: 'works'});
+                    }, 10);
+                });
+            });
+
+            q.all([
+                api.select('something'),
+                api.select('something'),
+                api.select('something else'),
+                api.select('something else'),
+                api.select('something again')
+            ]).finally(() => {
+                api.select('something').then(() => {
+                    expect(resolveCount).to.equal(4);
+                    done();
+                });
+            });
         });
     });
 
