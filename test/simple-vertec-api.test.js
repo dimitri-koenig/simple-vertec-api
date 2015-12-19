@@ -3,6 +3,7 @@ import {expect} from 'chai';
 import sinon from 'sinon';
 import xmlDigester from 'xml-digester';
 import q from 'bluebird';
+import _ from 'lodash';
 
 /**
  * Checks actual string which gets filtered with new lines and intendation spaces against expected string
@@ -387,6 +388,33 @@ describe('SimpleVertecApi', () => {
                     expect(resolveCount).to.equal(4);
                     done();
                 });
+            });
+        });
+
+        it('has a working garbage collector', (done) => {
+            sinon.stub(api, 'doRequest', () => {
+                return new q((resolve) => {
+                    setTimeout(() => { // eslint-disable-line max-nested-callbacks
+                        resolve({it: 'works'});
+                    }, 10);
+                });
+            });
+
+            api.select('something');
+            api.select('something else');
+
+            api.gcPromises();
+            expect(_.size(api.storedPromises)).to.equal(2);
+
+            q.all([
+                api.select('something'),
+                api.select('something else'),
+                api.select('something again')
+            ]).finally(() => {
+                expect(_.size(api.storedPromises)).to.equal(3);
+                api.gcPromises();
+                expect(_.size(api.storedPromises)).to.equal(0);
+                done();
             });
         });
     });
