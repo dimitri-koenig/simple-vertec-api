@@ -17,6 +17,11 @@ Does a query on the server with additional parameters for the select. Returns a 
 * `fields` *(optional)*: An array containing the fields which should be returned. Accepts a string as item, or an object with the fields `ocl` and `alias` to do further expressions.
 
 
+### Multiple identical select requests
+
+Multiple identical select requests will be temporarily stored and thus only one promise returned. Because every select is stateless and contains every information it needs there shouldn't be any issues even with different user data.
+
+
 ### Simple select example
 
 ```javascript
