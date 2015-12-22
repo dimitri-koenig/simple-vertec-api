@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased][unreleased]
+### Bugfix
+* Error logging within retryStrategy results in error due to wrong 'this' reference (#75)
 
 ## [2.14.0][2015-12-20]
 ### Feature
