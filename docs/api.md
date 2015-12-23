@@ -17,11 +17,6 @@ Does a query on the server with additional parameters for the select. Returns a 
 * `fields` *(optional)*: An array containing the fields which should be returned. Accepts a string as item, or an object with the fields `ocl` and `alias` to do further expressions.
 
 
-### Multiple identical select requests
-
-Multiple identical select requests will be temporarily stored and thus only one promise returned. Because every select is stateless and contains every information it needs there shouldn't be any issues even with different user data.
-
-
 ### Simple select example
 
 ```javascript
@@ -184,3 +179,7 @@ Or:
 
 If in the data array the field `objref` is found, an update operation will be made. If there isn't such a field, a create operation will be made.
 
+
+### Multiple identical & simultaneous requests
+
+Multiple identical & simultaneous requests will be temporarily stored and thus only one promise returned. Because every query is stateless and contains every information it needs there shouldn't be any issues even with different user data.
