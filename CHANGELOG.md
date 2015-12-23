@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased][unreleased]
+### Feature
+* Extended pending request storage to every request (#77)
 
 ## [2.14.1][2015-12-22]
 ### Bugfix
