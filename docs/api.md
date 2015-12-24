@@ -151,12 +151,13 @@ api.select(select, params, fields).then(function(response) {
 ```
 
 
-# findById(id, fields) -> Promise
+# findById(id, [params], fields) -> Promise
 
 Does a select query on the server to find some objects by their id/ids. Returns a [Promise](https://github.com/petkaantonov/bluebird).
 
 * `id`: A single number or an array of numbers
-* `fields`: An array containing the fields which should be returned. Accepts a string as item, or an object with the fields `ocl` and `alias` to do further expressions.
+* `params` *(optional)*: An array with placeholders to be replaced in the fields, or an object with key => value so that named parameters can be used. If you only have one parameter you can also use just one `?` and set params to that string/number.
+* `fields` *(optional)*: An array containing the fields which should be returned. Accepts a string as item, or an object with the fields `ocl` and `alias` to do further expressions.
 
 # delete(id) -> Promise
 
