@@ -442,6 +442,26 @@ describe('SimpleVertecApi', () => {
             ]);
             compareFilteredString(buildXmlSpy.returnValues.shift(), '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><objref>123</objref><objref>234</objref></Selection><Resultdef><member>foo</member><member>bar</member></Resultdef></Query></Body></Envelope>');
         });
+
+        it('replaces placeholders in fields', () => {
+            sinon.stub(api, 'doRequest');
+
+            api.findById(
+                123456,
+                {
+                    id: 123,
+                    date: '2015-09-21'
+                },
+                [
+                    'normal-field :id',
+                    {
+                        alias: 'foobar-:id',
+                        ocl:   'object.field-:date'
+                    }
+                ]
+            );
+            compareFilteredString(buildXmlSpy.returnValues.shift(), '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><objref>123456</objref></Selection><Resultdef><member>normal-field 123</member><expression><alias>foobar-123</alias><ocl>object.field-2015-09-21</ocl></expression></Resultdef></Query></Body></Envelope>');
+        });
     });
 
     describe('delete()', () => {
