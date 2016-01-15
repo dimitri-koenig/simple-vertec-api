@@ -71,6 +71,22 @@ describe('SimpleVertecApi', () => {
                 });
         });
 
+        it('creates object if an alias contains a dot', () => {
+            sinon.stub(api, 'request').yields(null, null, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><QueryResponse><List><Person.Kontakt><objid>12345</objid><sprache>DE</sprache></Person.Kontakt><Person.Kontakt><objid>23456</objid><sprache>EN</sprache></Person.Kontakt><Person.Addresse><objid>12345</objid></Person.Addresse><Person.Addresse><objid>23456</objid></Person.Addresse></List></QueryResponse></Body></Envelope>');
+
+            return api.select('something').then(
+                (content) => {
+                    expect(content.List.Person.Kontakt.length).to.equal(2);
+                    expect(content.List.Person.Kontakt[0].objid).to.equal('12345');
+                    expect(content.List.Person.Kontakt[0].sprache).to.equal('DE');
+                    expect(content.List.Person.Kontakt[1].objid).to.equal('23456');
+                    expect(content.List.Person.Kontakt[1].sprache).to.equal('EN');
+                    expect(content.List.Person.Addresse.length).to.equal(2);
+                    expect(content.List.Person.Addresse[0].objid).to.equal('12345');
+                    expect(content.List.Person.Addresse[1].objid).to.equal('23456');
+                });
+        });
+
         it('converts fault messages from server', () => {
             sinon.stub(api, 'request').yields(null, null, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><Fault><faultcode>Client</faultcode></Fault></Body></Envelope>');
 
