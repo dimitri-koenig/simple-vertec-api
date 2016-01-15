@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased][unreleased]
+
+## [2.17.0][2016-01-15]
 ### Feature
 * If an expression alias contains a dot it will be transformed like an object path
 
