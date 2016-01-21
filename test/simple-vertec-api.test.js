@@ -186,7 +186,7 @@ describe('SimpleVertecApi', () => {
             }
 
             try {
-                api.select(['something']);
+                api.select(12345);
             } catch (e) {
                 // we only need the finally block
             } finally {
@@ -379,6 +379,44 @@ describe('SimpleVertecApi', () => {
                 ]
             );
             compareFilteredString(buildXmlSpy.returnValues.shift(), '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><ocl>where-x-expression = 123 and where-y-expression = &apos;2015-09-21&apos;</ocl></Selection><Resultdef><member>normal-field 123</member><expression><alias>foobar-123</alias><ocl>object.field-2015-09-21</ocl></expression></Resultdef></Query></Body></Envelope>');
+        });
+
+        it('combines an array of selection arguments into a single request', () => {
+            sinon.stub(api, 'doRequest');
+
+            let firstQuery = [
+                'where-x-expression = :id and where-y-expression = ":date"',
+                {
+                    id: 123,
+                    date: '2015-09-21'
+                },
+                [
+                    'normal-field :id',
+                    {
+                        alias: 'foobar-:id',
+                        ocl:   'object.field-:date'
+                    }
+                ]
+            ];
+
+            let secondQuery = [
+                {
+                    objref: [
+                        12345,
+                        23456
+                    ]
+                },
+                [
+                    'first-field',
+                    'second-field'
+                ]
+            ];
+
+            api.select([
+                firstQuery,
+                secondQuery
+            ]);
+            compareFilteredString(buildXmlSpy.returnValues.shift(), '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><ocl>where-x-expression = 123 and where-y-expression = &apos;2015-09-21&apos;</ocl></Selection><Resultdef><member>normal-field 123</member><expression><alias>foobar-123</alias><ocl>object.field-2015-09-21</ocl></expression></Resultdef></Query><Query><Selection><objref>12345</objref><objref>23456</objref></Selection><Resultdef><member>first-field</member><member>second-field</member></Resultdef></Query></Body></Envelope>');
         });
 
         it('catches multiple equal requests and returns one promise', (done) => {
