@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased][unreleased]
+### Feature
+* Enabled multiple query elements in one request (#81)
 
 ## [2.17.0][2016-01-15]
 ### Feature
