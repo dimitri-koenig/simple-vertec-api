@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased][unreleased]
+### Feature
+* Implemented feature for splitting alias with multiple dots into an object (#83)
 
 ## [2.18.0][2016-01-21]
 ### Feature
