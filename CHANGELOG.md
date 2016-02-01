@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased][unreleased]
+### Bugfix
+* Fixed crash on missing response object (#84)
 
 ## [2.19.0][2016-01-29]
 ### Feature
