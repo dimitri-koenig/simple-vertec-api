@@ -4,6 +4,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased][unreleased]
 
+## [2.19.2][2016-02-02]
+### Bugfix
+* Forgot to compile and package new version
+
 ## [2.19.1][2016-02-01]
 ### Bugfix
 * Fixed crash on missing response object (#84)
