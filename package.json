@@ -19,7 +19,7 @@
   "dependencies": {
     "bluebird": "^3.0.2",
     "bunyan": "^1.5.1",
-    "lodash": "^3.10.1",
+    "lodash": "^4.2.0",
     "md5": "^2.0.0",
     "requestretry": "^1.5.0",
     "simple-parameter-injector": "1.0.0",
@@ -30,7 +30,7 @@
   "devDependencies": {
     "babel-cli": "^6.0.14",
     "babel-core": "^6.0.14",
-    "babel-istanbul": "^0.5.9",
+    "babel-istanbul": "^0.6.0",
     "babel-preset-es2015": "^6.0.14",
     "chai": "^3.2.0",
     "eslint": "^1.3.0",
