@@ -587,6 +587,30 @@ describe('SimpleVertecApi', () => {
         });
     });
 
+    describe('multiFindById()', () => {
+        it('makes multiple requests in parallel', done => {
+            let requestStub = sinon.stub(api, 'request');
+            requestStub.onFirstCall().yields(null, null, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><QueryResponse><Kontakt><objid>12345</objid><sprache>DE</sprache></Kontakt><Kontakt><objid>23456</objid><sprache>EN</sprache></Kontakt></QueryResponse></Body></Envelope>');
+            requestStub.onSecondCall().yields(null, null, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><QueryResponse><Adresse><objid>12345</objid><sprache>DE</sprache></Adresse><Adresse><objid>23456</objid><sprache>EN</sprache></Adresse></QueryResponse></Body></Envelope>');
+
+            api.multiFindById([
+                '123',
+                234
+            ], [
+                'foo',
+                'bar'
+            ]).then(returnData => {
+                expect(returnData.length).to.equal(2);
+
+                expect(buildXmlSpy.returnValues.length).to.equal(2);
+                compareFilteredString(buildXmlSpy.returnValues.shift(), '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><objref>123</objref></Selection><Resultdef><member>foo</member><member>bar</member></Resultdef></Query></Body></Envelope>');
+                compareFilteredString(buildXmlSpy.returnValues.shift(), '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><objref>234</objref></Selection><Resultdef><member>foo</member><member>bar</member></Resultdef></Query></Body></Envelope>');
+
+                done();
+            });
+        });
+    });
+
     describe('delete()', () => {
         it('accepts a number as parameter', () => {
             sinon.stub(api, 'doRequest');
