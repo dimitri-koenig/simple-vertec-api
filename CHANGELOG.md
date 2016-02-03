@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased][unreleased]
+
+## [2.20.1][2016-02-03]
 ### Bugfix
 * Multiple response objects will now be returned as array rather then merged (#87)
 
