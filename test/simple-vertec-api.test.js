@@ -490,20 +490,20 @@ describe('SimpleVertecApi', () => {
                 secondQuery
             ]).then(returnData => {
                 expect(buildXmlSpy.returnValues.length).to.equal(2);
-
                 compareFilteredString(buildXmlSpy.returnValues.shift(), '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><ocl>where-x-expression = 123 and where-y-expression = &apos;2015-09-21&apos;</ocl></Selection><Resultdef><member>normal-field 123</member><expression><alias>foobar-123</alias><ocl>object.field-2015-09-21</ocl></expression></Resultdef></Query></Body></Envelope>');
                 compareFilteredString(buildXmlSpy.returnValues.shift(), '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><objref>12345</objref><objref>23456</objref></Selection><Resultdef><member>first-field</member><member>second-field</member></Resultdef></Query></Body></Envelope>');
 
-                expect(returnData.Kontakt.length).to.equal(2);
-                expect(returnData.Kontakt[0].objid).to.equal('12345');
-                expect(returnData.Kontakt[0].sprache).to.equal('DE');
-                expect(returnData.Kontakt[1].objid).to.equal('23456');
-                expect(returnData.Kontakt[1].sprache).to.equal('EN');
-                expect(returnData.Adresse.length).to.equal(2);
-                expect(returnData.Adresse[0].objid).to.equal('12345');
-                expect(returnData.Adresse[0].sprache).to.equal('DE');
-                expect(returnData.Adresse[1].objid).to.equal('23456');
-                expect(returnData.Adresse[1].sprache).to.equal('EN');
+                expect(returnData.length).to.equal(2);
+                expect(returnData[0].Kontakt.length).to.equal(2);
+                expect(returnData[0].Kontakt[0].objid).to.equal('12345');
+                expect(returnData[0].Kontakt[0].sprache).to.equal('DE');
+                expect(returnData[0].Kontakt[1].objid).to.equal('23456');
+                expect(returnData[0].Kontakt[1].sprache).to.equal('EN');
+                expect(returnData[1].Adresse.length).to.equal(2);
+                expect(returnData[1].Adresse[0].objid).to.equal('12345');
+                expect(returnData[1].Adresse[0].sprache).to.equal('DE');
+                expect(returnData[1].Adresse[1].objid).to.equal('23456');
+                expect(returnData[1].Adresse[1].sprache).to.equal('EN');
 
                 done();
             });
