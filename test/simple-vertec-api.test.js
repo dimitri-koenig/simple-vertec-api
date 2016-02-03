@@ -452,9 +452,7 @@ describe('SimpleVertecApi', () => {
     });
 
     describe('multiSelect()', () => {
-        it('combines an array of selection arguments into a single request', () => {
-            sinon.stub(api, 'doRequest');
-
+        it('makes multiple requests in parallel', done => {
             let firstQuery = [
                 'where-x-expression = :id and where-y-expression = ":date"',
                 {
@@ -483,11 +481,32 @@ describe('SimpleVertecApi', () => {
                 ]
             ];
 
+            let requestStub = sinon.stub(api, 'request');
+            requestStub.onFirstCall().yields(null, null, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><QueryResponse><Kontakt><objid>12345</objid><sprache>DE</sprache></Kontakt><Kontakt><objid>23456</objid><sprache>EN</sprache></Kontakt></QueryResponse></Body></Envelope>');
+            requestStub.onSecondCall().yields(null, null, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><QueryResponse><Adresse><objid>12345</objid><sprache>DE</sprache></Adresse><Adresse><objid>23456</objid><sprache>EN</sprache></Adresse></QueryResponse></Body></Envelope>');
+
             api.multiSelect([
                 firstQuery,
                 secondQuery
-            ]);
-            compareFilteredString(buildXmlSpy.returnValues.shift(), '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><ocl>where-x-expression = 123 and where-y-expression = &apos;2015-09-21&apos;</ocl></Selection><Resultdef><member>normal-field 123</member><expression><alias>foobar-123</alias><ocl>object.field-2015-09-21</ocl></expression></Resultdef></Query><Query><Selection><objref>12345</objref><objref>23456</objref></Selection><Resultdef><member>first-field</member><member>second-field</member></Resultdef></Query></Body></Envelope>');
+            ]).then(returnData => {
+                expect(buildXmlSpy.returnValues.length).to.equal(2);
+
+                compareFilteredString(buildXmlSpy.returnValues.shift(), '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><ocl>where-x-expression = 123 and where-y-expression = &apos;2015-09-21&apos;</ocl></Selection><Resultdef><member>normal-field 123</member><expression><alias>foobar-123</alias><ocl>object.field-2015-09-21</ocl></expression></Resultdef></Query></Body></Envelope>');
+                compareFilteredString(buildXmlSpy.returnValues.shift(), '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><objref>12345</objref><objref>23456</objref></Selection><Resultdef><member>first-field</member><member>second-field</member></Resultdef></Query></Body></Envelope>');
+
+                expect(returnData.Kontakt.length).to.equal(2);
+                expect(returnData.Kontakt[0].objid).to.equal('12345');
+                expect(returnData.Kontakt[0].sprache).to.equal('DE');
+                expect(returnData.Kontakt[1].objid).to.equal('23456');
+                expect(returnData.Kontakt[1].sprache).to.equal('EN');
+                expect(returnData.Adresse.length).to.equal(2);
+                expect(returnData.Adresse[0].objid).to.equal('12345');
+                expect(returnData.Adresse[0].sprache).to.equal('DE');
+                expect(returnData.Adresse[1].objid).to.equal('23456');
+                expect(returnData.Adresse[1].sprache).to.equal('EN');
+
+                done();
+            });
         });
 
         it('throws an error if first and only argument is not an array', () => {
