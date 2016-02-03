@@ -21,7 +21,7 @@ clean: ; @echo 'Cleaning up...'
 	@rm -fr node
 
 publish: ; @echo 'Publishing...'
-	@npm make
+	@make
 	@git push --tags
 	@npm publish
 
