@@ -6,6 +6,9 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ### Feature
 * Execute multiselect requests in parallel (#85)
 
+### Enhancements
+* Updated dep packages (#86)
+
 ## [2.19.2][2016-02-02]
 ### Bugfix
 * Forgot to compile and package new version
