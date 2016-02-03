@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased][unreleased]
+
+## [2.20.0][2016-02-03]
 ### Feature
 * Execute multiselect requests in parallel (#85)
 
