@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased][unreleased]
+
+## [2.21.0][2016-02-03]
 ### Feature
 * multiFindById: Making parallel requests using findById (#88)
 
