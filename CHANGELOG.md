@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased][unreleased]
+### Bugfix
+* this.log with parameter != string produces an uncatched error resulting in a crash (#89)
 
 ## [2.21.0][2016-02-03]
 ### Feature
