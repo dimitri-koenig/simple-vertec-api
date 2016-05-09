@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased][unreleased]
+### Bugfix
+* Multiple create/update objects won't be saved #90 (#90)
 
 ## [2.21.1][2016-02-05]
 ### Bugfix
