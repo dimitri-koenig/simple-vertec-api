@@ -708,6 +708,66 @@ describe('SimpleVertecApi', () => {
             compareFilteredString(buildXmlSpy.returnValues.shift(), '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Create><OffeneLeistung><bearbeiter><objref>123</objref></bearbeiter><projekt><objref>234</objref></projekt><minutenint>60</minutenint></OffeneLeistung></Create><Update><VerrechneteLeistung><objref>987</objref><phase><objref>345</objref></phase><minutenExt>30</minutenExt></VerrechneteLeistung></Update></Body></Envelope>');
         });
 
+        it('create multiple objects with same class', () => {
+            sinon.stub(api, 'doRequest');
+
+            api.save([
+                {
+                    className: 'OffeneLeistung',
+                    data:      {
+                        bearbeiter: {
+                            objref: 123
+                        },
+                        projekt:    {
+                            objref: 234
+                        },
+                        minutenint: 60
+                    }
+                },
+                {
+                    className: 'OffeneLeistung',
+                    data:      {
+                        bearbeiter: {
+                            objref: 234
+                        },
+                        projekt:    {
+                            objref: 345
+                        },
+                        minutenint: 120
+                    }
+                }
+            ]);
+            compareFilteredString(buildXmlSpy.returnValues.shift(), '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Create><OffeneLeistung><bearbeiter><objref>123</objref></bearbeiter><projekt><objref>234</objref></projekt><minutenint>60</minutenint></OffeneLeistung><OffeneLeistung><bearbeiter><objref>234</objref></bearbeiter><projekt><objref>345</objref></projekt><minutenint>120</minutenint></OffeneLeistung></Create></Body></Envelope>');
+        });
+
+        it('updates multiple objects with same class', () => {
+            sinon.stub(api, 'doRequest');
+
+            api.save([
+                {
+                    className: 'VerrechneteLeistung',
+                    data:      {
+                        objref:     987,
+                        phase:      {
+                            objref: 345
+                        },
+                        minutenExt: 30
+                    }
+                },
+                {
+                    className: 'VerrechneteLeistung',
+                    data:      {
+                        objref:     988,
+                        phase:      {
+                            objref: 345
+                        },
+                        minutenExt: 30
+                    }
+                }
+            ]);
+            compareFilteredString(buildXmlSpy.returnValues.shift(), '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Update><VerrechneteLeistung><objref>987</objref><phase><objref>345</objref></phase><minutenExt>30</minutenExt></VerrechneteLeistung><VerrechneteLeistung><objref>988</objref><phase><objref>345</objref></phase><minutenExt>30</minutenExt></VerrechneteLeistung></Update></Body></Envelope>');
+        });
+
         it('throws an error if className or data fields not present or not valid', () => {
             sinon.stub(api, 'doRequest');
             var createSpy = sinon.spy(api, 'save');
