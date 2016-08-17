@@ -42,7 +42,7 @@
     "vertec",
     "nodejs"
   ],
-  "main": "./node/simple-vertec-api",
+  "main": "./node/index",
   "scripts": {
     "test": "make test"
   },

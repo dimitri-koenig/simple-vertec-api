@@ -1,4 +1,4 @@
-import {SimpleVertecApi} from '../lib/simple-vertec-api';
+import {SimpleVertecApi} from '../lib/index';
 import {expect} from 'chai';
 import sinon from 'sinon';
 import xmlDigester from 'xml-digester';
