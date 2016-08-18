@@ -20,8 +20,8 @@ function compareFilteredString(actual, expected) {
 }
 
 describe('SimpleVertecApi', () => {
-    var api;
-    var buildXmlSpy;
+    let api;
+    let buildXmlSpy;
 
     beforeEach('setup', () => {
         api = new SimpleVertecApi('http://localhost', 'my-username', 'my-password');
@@ -32,7 +32,7 @@ describe('SimpleVertecApi', () => {
         it('logging will be called', () => {
             sinon.stub(api, 'doRequest');
             api.verbose = true;
-            var consoleMock = sinon.stub(console, 'log');
+            let consoleMock = sinon.stub(console, 'log');
 
             api.select('something');
 
@@ -190,7 +190,7 @@ describe('SimpleVertecApi', () => {
 
         it('throws an error if no valid select query given', () => {
             sinon.stub(api, 'doRequest');
-            var selectSpy = sinon.spy(api, 'select');
+            let selectSpy = sinon.spy(api, 'select');
 
             try {
                 api.select();
@@ -222,7 +222,7 @@ describe('SimpleVertecApi', () => {
 
         it('throws an error on an unknown field config type', () => {
             sinon.stub(api, 'doRequest');
-            var selectSpy = sinon.spy(api, 'select');
+            let selectSpy = sinon.spy(api, 'select');
 
             try {
                 api.select('something', null);
@@ -282,10 +282,10 @@ describe('SimpleVertecApi', () => {
         it('accepts a string/number as param argument in query', () => {
             sinon.stub(api, 'doRequest');
 
-            var select = 'where-x-expression = ?';
-            var fields = [];
+            let select = 'where-x-expression = ?';
+            let fields = [];
 
-            var param = 123;
+            let param = 123;
             api.select(select, param, fields);
             compareFilteredString(buildXmlSpy.returnValues.shift(), '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><ocl>where-x-expression = 123</ocl></Selection></Query></Body></Envelope>');
 
@@ -398,7 +398,7 @@ describe('SimpleVertecApi', () => {
         });
 
         it('catches multiple equal requests and returns one promise', (done) => {
-            var resolveCount = 0;
+            let resolveCount = 0;
 
             sinon.stub(api, 'doRequest', () => {
                 return new q((resolve) => {
@@ -511,7 +511,7 @@ describe('SimpleVertecApi', () => {
 
         it('throws an error if first and only argument is not an array', () => {
             sinon.stub(api, 'doRequest');
-            var selectSpy = sinon.spy(api, 'multiSelect');
+            let selectSpy = sinon.spy(api, 'multiSelect');
 
             try {
                 api.multiSelect({foo: 'bar'});
@@ -770,7 +770,7 @@ describe('SimpleVertecApi', () => {
 
         it('throws an error if className or data fields not present or not valid', () => {
             sinon.stub(api, 'doRequest');
-            var createSpy = sinon.spy(api, 'save');
+            let createSpy = sinon.spy(api, 'save');
 
             try {
                 api.save({ foo: 'bar' });
