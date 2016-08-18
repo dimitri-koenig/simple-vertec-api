@@ -3,36 +3,24 @@ import {expect} from 'chai';
 import sinon from 'sinon';
 
 describe('SimpleVertecQuery', () => {
-    let query;
     let api;
     let buildSelectObjectSpy;
 
-    beforeEach('setup', () => {
-        api = new SimpleVertecApi('http://localhost', 'my-username', 'my-password');
-        sinon.stub(api, 'doRequest');
-        buildSelectObjectSpy = sinon.spy(api, 'buildSelectObject');
-
-        query = new SimpleVertecQuery(api);
-    });
+    api = new SimpleVertecApi('http://localhost', 'my-username', 'my-password');
+    sinon.stub(api, 'doRequest');
+    buildSelectObjectSpy = sinon.spy(api, 'buildSelectObject');
 
     describe('some basics', () => {
-        it('logging will be called', () => {
-        });
+        it('sets default api', () => {
+            SimpleVertecQuery.setApi(api);
 
-        it('sets api', () => {
-        });
-
-        it('sets defaultOptions', () => {
+            expect(SimpleVertecQuery.api).to.equal(api);
         });
     });
 
     describe('createSelectQuery()', () => {
-        it('createSelectQuery creates a new instances of SimpleVertecQuery', () => {
-            expect(query.createSelectQuery()).to.be.an.instanceof(SimpleVertecQuery);
-        });
-
         it('findById() sets objref as query param', () => {
-            query.createSelectQuery().findById(123).get();
+            new SimpleVertecQuery().findById(123).get();
 
             expect(buildSelectObjectSpy.returnValues.shift()).to.deep.equal({
                 Query: {
@@ -48,7 +36,7 @@ describe('SimpleVertecQuery', () => {
         });
 
         it('whereOcl() sets ocl as query param', () => {
-            query.createSelectQuery().whereOcl('something').get();
+            new SimpleVertecQuery().whereOcl('something').get();
 
             expect(buildSelectObjectSpy.returnValues.shift()).to.deep.equal({
                 Query: {
@@ -64,7 +52,7 @@ describe('SimpleVertecQuery', () => {
         });
 
         it('whereSql() sets sqlwhere as query param', () => {
-            query.createSelectQuery().whereSql('something').get();
+            new SimpleVertecQuery().whereSql('something').get();
 
             expect(buildSelectObjectSpy.returnValues.shift()).to.deep.equal({
                 Query: {
@@ -80,7 +68,7 @@ describe('SimpleVertecQuery', () => {
         });
 
         it('orderBy() sets sqlorder as query param', () => {
-            query.createSelectQuery().orderBy('something').get();
+            new SimpleVertecQuery().orderBy('something').get();
 
             expect(buildSelectObjectSpy.returnValues.shift()).to.deep.equal({
                 Query: {
@@ -96,7 +84,7 @@ describe('SimpleVertecQuery', () => {
         });
 
         it('addParam() adds one string param to params array', () => {
-            query.createSelectQuery().whereOcl('x = ?, y = ?').addParam('123').addParam('234').get();
+            new SimpleVertecQuery().whereOcl('x = ?, y = ?').addParam('123').addParam('234').get();
 
             expect(buildSelectObjectSpy.returnValues.shift()).to.deep.equal({
                 Query: {
@@ -112,7 +100,7 @@ describe('SimpleVertecQuery', () => {
         });
 
         it('addParam() merges object param and one property with params object', () => {
-            query.createSelectQuery().whereOcl('x = :x, y = :y, z = :z').addParam({x: 123}).addParam({y: 234, z: 345}).get();
+            new SimpleVertecQuery().whereOcl('x = :x, y = :y, z = :z').addParam({x: 123}).addParam({y: 234, z: 345}).get();
 
             expect(buildSelectObjectSpy.returnValues.shift()).to.deep.equal({
                 Query: {
@@ -128,7 +116,7 @@ describe('SimpleVertecQuery', () => {
         });
 
         it('addParams() adds multiple string params to params array', () => {
-            query.createSelectQuery().whereOcl('x = ?, y = ?').addParams('123', '234').get();
+            new SimpleVertecQuery().whereOcl('x = ?, y = ?').addParams('123', '234').get();
 
             expect(buildSelectObjectSpy.returnValues.shift()).to.deep.equal({
                 Query: {
@@ -144,7 +132,7 @@ describe('SimpleVertecQuery', () => {
         });
 
         it('addField() adds a field to fields array', () => {
-            query.createSelectQuery()
+            new SimpleVertecQuery()
                 .addField('code')
                 .addField('date')
                 .addField({ocl: 'something', alias: 'else'})
@@ -175,7 +163,7 @@ describe('SimpleVertecQuery', () => {
         });
 
         it('addFields() adds multiple fields to fields array', () => {
-            query.createSelectQuery()
+            new SimpleVertecQuery()
                 .addField('code')
                 .addField({ocl: 'something', alias: 'else'})
                 .addFields(
@@ -224,7 +212,7 @@ describe('SimpleVertecQuery', () => {
 
         describe('get()', () => {
             it('compiles an empty query when no options set', () => {
-                query.createSelectQuery().get();
+                new SimpleVertecQuery().get();
 
                 expect(buildSelectObjectSpy.returnValues.shift()).to.deep.equal({
                     Query: {
@@ -238,7 +226,7 @@ describe('SimpleVertecQuery', () => {
             });
 
             it('compiles a query when all select options set', () => {
-                query.createSelectQuery().findById(123).whereOcl('leistungen').whereSql('something').orderBy('date').get();
+                new SimpleVertecQuery().findById(123).whereOcl('leistungen').whereSql('something').orderBy('date').get();
 
                 expect(buildSelectObjectSpy.returnValues.shift()).to.deep.equal({
                     Query: {
@@ -257,8 +245,8 @@ describe('SimpleVertecQuery', () => {
             });
 
             it('requests two independent queries', () => {
-                let firstQuery = query.createSelectQuery().findById(123).whereOcl('leistungen').addField('code');
-                let secondQuery = query.createSelectQuery().whereSql('x = ?').addParam(234).orderBy('date').addField('title');
+                let firstQuery = new SimpleVertecQuery().findById(123).whereOcl('leistungen').addField('code');
+                let secondQuery = new SimpleVertecQuery().whereSql('x = ?').addParam(234).orderBy('date').addField('title');
 
                 firstQuery.get();
                 secondQuery.get();
