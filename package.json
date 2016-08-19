@@ -22,7 +22,7 @@
     "lodash": "^4.2.0",
     "md5": "^2.0.0",
     "requestretry": "^1.5.0",
-    "simple-parameter-injector": "1.0.0",
+    "simple-parameter-injector": "1.0.1",
     "simple-xml-converter": "1.1.1",
     "traverse": "^0.6.6",
     "xml-digester": "0.0.5"
