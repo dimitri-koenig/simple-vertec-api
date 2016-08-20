@@ -186,7 +186,7 @@ describe('SimpleVertecQuery', () => {
             });
         });
 
-        it('addFields() adds multiple fields to fields array', () => {
+        it('addFields() adds multiple fields as multiple arguments to fields array', () => {
             new SimpleVertecQuery()
                 .addField('code')
                 .addField({ocl: 'something', alias: 'else'})
@@ -195,6 +195,45 @@ describe('SimpleVertecQuery', () => {
                     'date', 'title',
                     {ocl: 'bla', alias: 'blub'}
                 )
+                .get();
+
+            expect(buildSelectObjectSpy.returnValues.pop()).to.deep.equal({
+                Query: {
+                    Resultdef: {
+                        expression: [
+                            {
+                                ocl: 'something',
+                                alias: 'else'
+                            },
+                            {
+                                ocl: 'foo',
+                                alias: 'bar'
+                            },
+                            {
+                                ocl: 'bla',
+                                alias: 'blub'
+                            }
+                        ],
+                        member: [
+                            'code',
+                            'date',
+                            'title'
+                        ]
+                    },
+                    Selection: {}
+                }
+            });
+        });
+
+        it('addFields() adds multiple fields as one array argument to fields array', () => {
+            new SimpleVertecQuery()
+                .addField('code')
+                .addField({ocl: 'something', alias: 'else'})
+                .addFields([
+                    {ocl: 'foo', alias: 'bar'},
+                    'date', 'title',
+                    {ocl: 'bla', alias: 'blub'}
+                ])
                 .get();
 
             expect(buildSelectObjectSpy.returnValues.pop()).to.deep.equal({
