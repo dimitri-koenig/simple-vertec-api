@@ -5,6 +5,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ## [unreleased][unreleased]
 ### Feature
 * Added transformer feature before putting into cache (#95)
+* Added feature to merge specific response properties into result, with optional array transformation (#97)
 
 ### Enhancement
 * Added Vertec request time to result object (#96)
