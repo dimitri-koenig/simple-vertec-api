@@ -6,6 +6,9 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ### Feature
 * Added transformer feature before putting into cache (#95)
 
+### Enhancement
+* Added Vertec request time to result object (#96)
+
 ## [3.0.0-rc.3][2016-08-20]
 ### Bugfix
 * Fixed wrong calculation of softExpire timestamp
