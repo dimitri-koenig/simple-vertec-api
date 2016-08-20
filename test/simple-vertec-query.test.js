@@ -442,25 +442,6 @@ describe('SimpleVertecQuery', () => {
                 });
             });
 
-            it('fires request if no item in cache found but does not put it into cache cause empty array', (done) => {
-                sinon.stub(fakeCacheInstance, 'get').yields(null, false);
-
-                api.doRequest.restore();
-                sinon.stub(api, 'doRequest', () => {
-                    return new q((resolve) => {
-                        resolve([]);
-                    });
-                });
-
-                new SimpleVertecQuery().setCacheTTL(10).setCacheKey('test').get().then(response => {
-                    expect(response.onGrace).to.be.false;
-                    expect(response.data).to.deep.equal([]);
-                    expect(response.refresh).to.be.false;
-                    expect(cacheSetSpy.neverCalledWith('app-test')).to.be.true;
-                    done();
-                });
-            });
-
             it('does not fire request if item in cache found without grace', (done) => {
                 let cacheItem = {
                     softExpire: 0,
