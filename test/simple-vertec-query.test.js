@@ -314,7 +314,7 @@ describe('SimpleVertecQuery', () => {
         it('returns raw request result if no property filter defined', (done) => {
             let returnObject = {it: 'works 1'};
 
-            sinon.stub(api, 'doRequest', () => {
+            sinon.stub(api, 'select', () => {
                 return new q((resolve) => {
                     resolve(returnObject);
                 });
@@ -329,7 +329,7 @@ describe('SimpleVertecQuery', () => {
         it('adds one transformer', (done) => {
             let returnObject = {data: '123'};
 
-            sinon.stub(api, 'doRequest', () => {
+            sinon.stub(api, 'select', () => {
                 return new q((resolve) => {
                     resolve(returnObject);
                 });
@@ -350,7 +350,7 @@ describe('SimpleVertecQuery', () => {
         it('adds multiple transformers', (done) => {
             let returnObject = {data1: '123'};
 
-            sinon.stub(api, 'doRequest', () => {
+            sinon.stub(api, 'select', () => {
                 return new q((resolve) => {
                     resolve(returnObject);
                 });
@@ -489,7 +489,7 @@ describe('SimpleVertecQuery', () => {
             it('returns raw output of api if no cache is set', (done) => {
                 SimpleVertecQuery.setMemcached(undefined);
 
-                sinon.stub(api, 'doRequest', () => {
+                sinon.stub(api, 'select', () => {
                     return new q((resolve) => {
                         resolve({it: 'works 2'});
                     });
@@ -505,7 +505,7 @@ describe('SimpleVertecQuery', () => {
             it('returns raw output of api if no cache ttl is set', (done) => {
                 SimpleVertecQuery.setMemcached({});
 
-                sinon.stub(api, 'doRequest', () => {
+                sinon.stub(api, 'select', () => {
                     return new q((resolve) => {
                         resolve({it: 'works 3'});
                     });
@@ -519,7 +519,7 @@ describe('SimpleVertecQuery', () => {
             });
 
             it('catches request errors', (done) => {
-                sinon.stub(api, 'doRequest', () => {
+                sinon.stub(api, 'select', () => {
                     return new q((resolve, reject) => {
                         reject({ Error1: 'Some error message' });
                     });
@@ -559,7 +559,7 @@ describe('SimpleVertecQuery', () => {
 
                 sinon.stub(fakeCacheInstance, 'get').yields(null, false);
 
-                sinon.stub(api, 'doRequest', () => {
+                sinon.stub(api, 'select', () => {
                     return new q((resolve) => {
                         resolve({it: 'works 14'});
                     });
@@ -578,7 +578,7 @@ describe('SimpleVertecQuery', () => {
             it('puts result into cache with ttl', (done) => {
                 sinon.stub(fakeCacheInstance, 'get').yields(null, false);
 
-                sinon.stub(api, 'doRequest', () => {
+                sinon.stub(api, 'select', () => {
                     return new q((resolve) => {
                         resolve({it: 'works 4'});
                     });
@@ -597,7 +597,7 @@ describe('SimpleVertecQuery', () => {
             it('puts result into cache with ttl and grace time which saves soft expire date into cache item', (done) => {
                 sinon.stub(fakeCacheInstance, 'get').yields(null, false);
 
-                sinon.stub(api, 'doRequest', () => {
+                sinon.stub(api, 'select', () => {
                     return new q((resolve) => {
                         resolve({it: 'works 5'});
                     });
@@ -617,7 +617,7 @@ describe('SimpleVertecQuery', () => {
             it('fires request if no item in cache found and puts it into cache', (done) => {
                 sinon.stub(fakeCacheInstance, 'get').yields(null, false);
 
-                sinon.stub(api, 'doRequest', () => {
+                sinon.stub(api, 'select', () => {
                     return new q((resolve) => {
                         resolve({it: 'works 6'});
                     });
@@ -659,7 +659,7 @@ describe('SimpleVertecQuery', () => {
                 };
                 sinon.stub(fakeCacheInstance, 'get').yields(null, cacheItem);
 
-                sinon.stub(api, 'doRequest', () => {
+                sinon.stub(api, 'select', () => {
                     return new q((resolve) => {
                         resolve({it: 'works 12'});
                     });
@@ -717,7 +717,7 @@ describe('SimpleVertecQuery', () => {
                 };
                 sinon.stub(fakeCacheInstance, 'get').yields(null, cacheItem);
 
-                sinon.stub(api, 'doRequest', () => {
+                sinon.stub(api, 'select', () => {
                     return new q((resolve) => {
                         resolve({it: 'works 13'});
                     });
@@ -746,21 +746,22 @@ describe('SimpleVertecQuery', () => {
                 );
             });
 
-            it('catches request errors', () => {
+            it('catches request errors', (done) => {
                 sinon.stub(fakeCacheInstance, 'get').yields(null, null);
 
-                sinon.stub(api, 'doRequest', () => {
+                sinon.stub(api, 'select', () => {
                     return new q((resolve, reject) => {
                         reject({ Error3: 'Some error message' });
                     });
                 });
 
-                return new SimpleVertecQuery().setCacheTTL(10).setCacheKey('test9').get().then(
+                new SimpleVertecQuery().setCacheTTL(10).setCacheKey('test9').get().then(
                     (result) => {
                         throw new Error('Promise was unexpectedly fulfilled. Result: ' + JSON.stringify(result));
                     },
                     (error) => {
                         expect(error).to.include.keys('Error3');
+                        done();
                     }
                 );
             });
