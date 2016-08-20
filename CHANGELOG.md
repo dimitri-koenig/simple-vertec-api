@@ -4,6 +4,13 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased][unreleased]
 
+## [3.0.0-rc.2][2016-08-20]
+### Bugfix
+* Removed empty cache item check due to missing business logic per use case
+
+### Enhancement
+* Logging of build xml string only when sending request
+
 ## [3.0.0-rc.1][2016-08-20]
 ### Feature
 * Added query class for select operations
