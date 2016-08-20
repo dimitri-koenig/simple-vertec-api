@@ -4,6 +4,13 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased][unreleased]
 
+## [3.0.0-rc.1][2016-08-20]
+### Feature
+* Added query class for select operations
+
+### Bugfix
+* Updated simple-parameter-injector to 1.0.1 due to a nasty bug with parameters being modified
+
 ## [2.21.2][2016-05-09]
 ### Bugfix
 * Multiple create/update objects won't be saved (#90)
