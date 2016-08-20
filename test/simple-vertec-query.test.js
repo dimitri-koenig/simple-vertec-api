@@ -226,8 +226,8 @@ describe('SimpleVertecQuery', () => {
         });
 
         it('setCacheKey() sets cache key for cache objects', () => {
-            let query = new SimpleVertecQuery().setCacheKey('test');
-            expect(query.cacheKey).to.equal('test');
+            let query = new SimpleVertecQuery().setCacheKey('test1');
+            expect(query.cacheKey).to.equal('test1');
         });
 
         it('setCacheTTL() sets ttl for cache objects', () => {
@@ -310,6 +310,24 @@ describe('SimpleVertecQuery', () => {
         });
     });
 
+    describe('transformation testing', () => {
+        it('returns raw request result if no property filter defined', (done) => {
+            let returnObject = {it: 'works 1'};
+
+            sinon.stub(api, 'doRequest', () => {
+                return new q((resolve) => {
+                    resolve(returnObject);
+                });
+            });
+
+            new SimpleVertecQuery().get().then(response => {
+                expect(response.cacheDateTime).to.be.undefined;
+                expect(response.data).to.deep.equal(returnObject);
+                done();
+            });
+        });
+    });
+
     describe('cache testing', () => {
         describe('without cache access', () => {
             it('returns raw output of api if no cache is set', (done) => {
@@ -317,13 +335,13 @@ describe('SimpleVertecQuery', () => {
 
                 sinon.stub(api, 'doRequest', () => {
                     return new q((resolve) => {
-                        resolve({it: 'works'});
+                        resolve({it: 'works 2'});
                     });
                 });
 
                 new SimpleVertecQuery().get().then(response => {
                     expect(response.cacheDateTime).to.be.undefined;
-                    expect(response.data.it).to.equal('works');
+                    expect(response.data.it).to.equal('works 2');
                     done();
                 });
             });
@@ -333,13 +351,13 @@ describe('SimpleVertecQuery', () => {
 
                 sinon.stub(api, 'doRequest', () => {
                     return new q((resolve) => {
-                        resolve({it: 'works'});
+                        resolve({it: 'works 3'});
                     });
                 });
 
                 new SimpleVertecQuery().get().then(response => {
                     expect(response.cacheDateTime).to.be.undefined;
-                    expect(response.data.it).to.equal('works');
+                    expect(response.data.it).to.equal('works 3');
                     done();
                 });
             });
@@ -347,7 +365,7 @@ describe('SimpleVertecQuery', () => {
             it('catches request errors', (done) => {
                 sinon.stub(api, 'doRequest', () => {
                     return new q((resolve, reject) => {
-                        reject({ Error: 'Some error message' });
+                        reject({ Error1: 'Some error message' });
                     });
                 });
 
@@ -356,7 +374,7 @@ describe('SimpleVertecQuery', () => {
                         throw new Error('Promise was unexpectedly fulfilled. Result: ' + JSON.stringify(result));
                     },
                     (error) => {
-                        expect(error).to.include.keys('Error');
+                        expect(error).to.include.keys('Error1');
                         done();
                     }
                 );
@@ -365,35 +383,57 @@ describe('SimpleVertecQuery', () => {
 
         describe('with cache access', () => {
             let fakeCacheInstance;
-            let cacheSetSpy;
+            let cacheSetArguments;
 
-            beforeEach('query setup', () => {
+            beforeEach('setup', () => {
                 SimpleVertecQuery.setAppCacheKey('app');
+
+                cacheSetArguments = [];
+                fakeCacheInstance = {
+                    get() {},
+                    set() {
+                        cacheSetArguments = arguments;
+                    }
+                };
+                SimpleVertecQuery.setMemcached(fakeCacheInstance);
+            });
+
+            it('uses general app cache key if no app cache key defined', (done) => {
+                SimpleVertecQuery.setAppCacheKey(undefined);
+
+                sinon.stub(fakeCacheInstance, 'get').yields(null, false);
 
                 sinon.stub(api, 'doRequest', () => {
                     return new q((resolve) => {
-                        resolve([{it: 'works'}]);
+                        resolve({it: 'works 14'});
                     });
                 });
 
-                fakeCacheInstance = {
-                    get() {},
-                    set() {}
-                };
-                SimpleVertecQuery.setMemcached(fakeCacheInstance);
-
-                cacheSetSpy = sinon.spy(fakeCacheInstance, 'set');
+                new SimpleVertecQuery().setCacheTTL(10).setCacheKey('test10').get().then(response => {
+                    expect(response.onGrace).to.be.false;
+                    expect(response.data.it).to.equal('works 14');
+                    expect(response.refresh).to.be.false;
+                    expect(cacheSetArguments[0]).to.equal('svq-test10-10');
+                    expect(cacheSetArguments[2]).to.equal(10);
+                    done();
+                });
             });
 
             it('puts result into cache with ttl', (done) => {
                 sinon.stub(fakeCacheInstance, 'get').yields(null, false);
 
-                new SimpleVertecQuery().setCacheTTL(10).setCacheKey('test').get().then(response => {
+                sinon.stub(api, 'doRequest', () => {
+                    return new q((resolve) => {
+                        resolve({it: 'works 4'});
+                    });
+                });
+
+                new SimpleVertecQuery().setCacheTTL(10).setCacheKey('test2').get().then(response => {
                     expect(response.onGrace).to.be.false;
-                    expect(response.data[0].it).to.equal('works');
+                    expect(response.data.it).to.equal('works 4');
                     expect(response.refresh).to.be.false;
-                    expect(cacheSetSpy.alwaysCalledWith('app-test-10')).to.be.true;
-                    expect(cacheSetSpy.args.shift()[2]).to.equal(10);
+                    expect(cacheSetArguments[0]).to.equal('app-test2-10');
+                    expect(cacheSetArguments[2]).to.equal(10);
                     done();
                 });
             });
@@ -401,15 +441,19 @@ describe('SimpleVertecQuery', () => {
             it('puts result into cache with ttl and grace time which saves soft expire date into cache item', (done) => {
                 sinon.stub(fakeCacheInstance, 'get').yields(null, false);
 
-                new SimpleVertecQuery().setCacheTTL(10).setCacheGraceTime(5).setCacheKey('test').get().then(response => {
-                    expect(response.onGrace).to.be.false;
-                    expect(response.data[0].it).to.equal('works');
-                    expect(response.refresh).to.be.false;
-                    expect(cacheSetSpy.alwaysCalledWith('app-test-10')).to.be.true;
+                sinon.stub(api, 'doRequest', () => {
+                    return new q((resolve) => {
+                        resolve({it: 'works 5'});
+                    });
+                });
 
-                    let setArgs = cacheSetSpy.args.shift();
-                    expect(setArgs[1].softExpire).to.be.closeTo(new Date().getTime() + 10*1000, 500);
-                    expect(setArgs[2]).to.equal(15);
+                new SimpleVertecQuery().setCacheTTL(10).setCacheGraceTime(5).setCacheKey('test3').get().then(response => {
+                    expect(response.onGrace).to.be.false;
+                    expect(response.data.it).to.equal('works 5');
+                    expect(response.refresh).to.be.false;
+                    expect(cacheSetArguments[0]).to.equal('app-test3-10');
+                    expect(cacheSetArguments[1].softExpire).to.be.closeTo(new Date().getTime() + 10*1000, 500);
+                    expect(cacheSetArguments[2]).to.equal(15);
                     done();
                 });
             });
@@ -417,11 +461,17 @@ describe('SimpleVertecQuery', () => {
             it('fires request if no item in cache found and puts it into cache', (done) => {
                 sinon.stub(fakeCacheInstance, 'get').yields(null, false);
 
-                new SimpleVertecQuery().setCacheTTL(10).setCacheKey('test').get().then(response => {
+                sinon.stub(api, 'doRequest', () => {
+                    return new q((resolve) => {
+                        resolve({it: 'works 6'});
+                    });
+                });
+
+                new SimpleVertecQuery().setCacheTTL(10).setCacheKey('test4').get().then(response => {
                     expect(response.onGrace).to.be.false;
-                    expect(response.data[0].it).to.equal('works');
+                    expect(response.data.it).to.equal('works 6');
                     expect(response.refresh).to.be.false;
-                    expect(cacheSetSpy.alwaysCalledWith('app-test-10')).to.be.true;
+                    expect(cacheSetArguments[0]).to.equal('app-test4-10');
                     done();
                 });
             });
@@ -430,46 +480,60 @@ describe('SimpleVertecQuery', () => {
                 sinon.stub(fakeCacheInstance, 'get').yields(null, false);
                 let buildSelectStringSpy = sinon.spy(api, 'buildSelectString');
 
+                sinon.stub(api, 'doRequest', () => {
+                    return new q((resolve) => {
+                        resolve({it: 'works 7'});
+                    });
+                });
+
                 new SimpleVertecQuery().setCacheTTL(10).get().then(response => {
                     expect(response.onGrace).to.be.false;
-                    expect(response.data[0].it).to.equal('works');
+                    expect(response.data.it).to.equal('works 7');
                     expect(response.refresh).to.be.false;
-
-                    let setArgs = cacheSetSpy.args.shift();
-                    expect(setArgs[0]).to.match(/^app-\w{32}-10$/);
+                    expect(cacheSetArguments[0]).to.match(/^app-\w{32}-10$/);
                     expect(buildSelectStringSpy.returnValues).to.have.lengthOf(2);
                     done();
+                });
+            });
+
+            it('fires request if item in cache is on grace', (done) => {
+                let cacheItem = {
+                    softExpire: new Date().getTime() - 1000,
+                    data: {it: 'works 9'}
+                };
+                sinon.stub(fakeCacheInstance, 'get').yields(null, cacheItem);
+
+                sinon.stub(api, 'doRequest', () => {
+                    return new q((resolve) => {
+                        resolve({it: 'works 12'});
+                    });
+                });
+
+                new SimpleVertecQuery().setCacheTTL(10).setCacheGraceTime(5).setCacheKey('test6').get().then(response => {
+                    expect(response.onGrace).to.be.true;
+                    expect(response.data.it).to.equal('works 9');
+                    expect(response.refresh).to.be.false;
+
+                    setTimeout(() => {
+                        expect(cacheSetArguments[0]).to.equal('app-test6-10');
+                        expect(cacheSetArguments[1].data.it).to.equal('works 12');
+                        done();
+                    }, 10);
                 });
             });
 
             it('does not fire request if item in cache found without grace', (done) => {
                 let cacheItem = {
                     softExpire: 0,
-                    data: [{it: 'works'}]
+                    data: {it: 'works 8'}
                 };
                 sinon.stub(fakeCacheInstance, 'get').yields(null, cacheItem);
 
-                new SimpleVertecQuery().setCacheTTL(10).setCacheKey('test').get().then(response => {
+                new SimpleVertecQuery().setCacheTTL(10).setCacheKey('test5').get().then(response => {
                     expect(response.onGrace).to.be.false;
-                    expect(response.data[0].it).to.equal('works');
+                    expect(response.data.it).to.equal('works 8');
                     expect(response.refresh).to.be.false;
-                    expect(cacheSetSpy.neverCalledWith('app-test-10')).to.be.true;
-                    done();
-                });
-            });
-
-            it('fires request if item in cache found which is on grace', (done) => {
-                let cacheItem = {
-                    softExpire: new Date().getTime() - 1000,
-                    data: [{it: 'works'}]
-                };
-                sinon.stub(fakeCacheInstance, 'get').yields(null, cacheItem);
-
-                new SimpleVertecQuery().setCacheTTL(10).setCacheGraceTime(5).setCacheKey('test').get().then(response => {
-                    expect(response.onGrace).to.be.true;
-                    expect(response.data[0].it).to.equal('works');
-                    expect(response.refresh).to.be.false;
-                    expect(cacheSetSpy.alwaysCalledWith('app-test-10')).to.be.true;
+                    expect(cacheSetArguments[0]).to.be.undefined;
                     done();
                 });
             });
@@ -477,15 +541,15 @@ describe('SimpleVertecQuery', () => {
             it('does not fire request if item in cache found which could be on grace but is not', (done) => {
                 let cacheItem = {
                     softExpire: new Date().getTime() + 1000,
-                    data: [{it: 'works'}]
+                    data: {it: 'works 10'}
                 };
                 sinon.stub(fakeCacheInstance, 'get').yields(null, cacheItem);
 
-                new SimpleVertecQuery().setCacheTTL(10).setCacheGraceTime(5).setCacheKey('test').get().then(response => {
+                new SimpleVertecQuery().setCacheTTL(10).setCacheGraceTime(5).setCacheKey('test7').get().then(response => {
                     expect(response.onGrace).to.be.false;
-                    expect(response.data[0].it).to.equal('works');
+                    expect(response.data.it).to.equal('works 10');
                     expect(response.refresh).to.be.false;
-                    expect(cacheSetSpy.neverCalledWith('app-test-10')).to.be.true;
+                    expect(cacheSetArguments[0]).to.be.undefined;
                     done();
                 });
             });
@@ -493,50 +557,54 @@ describe('SimpleVertecQuery', () => {
             it('fires request if refresh = true even if item in cache found', (done) => {
                 let cacheItem = {
                     softExpire: new Date().getTime() - 1000,
-                    data: [{it: 'works'}]
+                    data: {it: 'works 11'}
                 };
                 sinon.stub(fakeCacheInstance, 'get').yields(null, cacheItem);
 
-                new SimpleVertecQuery().setCacheTTL(10).setCacheGraceTime(5).setCacheKey('test').get(true).then(response => {
+                sinon.stub(api, 'doRequest', () => {
+                    return new q((resolve) => {
+                        resolve({it: 'works 13'});
+                    });
+                });
+
+                new SimpleVertecQuery().setCacheTTL(10).setCacheGraceTime(5).setCacheKey('test8').get(true).then(response => {
                     expect(response.onGrace).to.be.false;
-                    expect(response.data[0].it).to.equal('works');
+                    expect(response.data.it).to.equal('works 13');
                     expect(response.refresh).to.be.true;
-                    expect(cacheSetSpy.alwaysCalledWith('app-test-10')).to.be.true;
+                    expect(cacheSetArguments[0]).to.equal('app-test8-10');
                     done();
                 });
             });
 
             it('catches cache fetching errors', (done) => {
-                sinon.stub(fakeCacheInstance, 'get').yields({ Error: 'Some error message' }, null);
+                sinon.stub(fakeCacheInstance, 'get').yields({ Error2: 'Some error message' }, null);
 
                 new SimpleVertecQuery().setCacheTTL(10).get().then(
                     (result) => {
                         throw new Error('Promise was unexpectedly fulfilled. Result: ' + JSON.stringify(result));
                     },
                     (error) => {
-                        expect(error).to.include.keys('Error');
+                        expect(error).to.include.keys('Error2');
                         done();
                     }
                 );
             });
 
-            it('catches request errors', (done) => {
+            it('catches request errors', () => {
                 sinon.stub(fakeCacheInstance, 'get').yields(null, null);
 
-                api.doRequest.restore();
                 sinon.stub(api, 'doRequest', () => {
                     return new q((resolve, reject) => {
-                        reject({ Error: 'Some error message' });
+                        reject({ Error3: 'Some error message' });
                     });
                 });
 
-                new SimpleVertecQuery().setCacheTTL(10).setCacheKey('test').get().then(
+                return new SimpleVertecQuery().setCacheTTL(10).setCacheKey('test9').get().then(
                     (result) => {
                         throw new Error('Promise was unexpectedly fulfilled. Result: ' + JSON.stringify(result));
                     },
                     (error) => {
-                        expect(error).to.include.keys('Error');
-                        done();
+                        expect(error).to.include.keys('Error3');
                     }
                 );
             });
