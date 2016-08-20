@@ -14,7 +14,7 @@ describe('SimpleVertecQuery', () => {
         SimpleVertecQuery.setApi(api);
     });
 
-    describe('some basic', () => {
+    describe('some basics', () => {
         it('sets default api', () => {
             expect(SimpleVertecQuery.api).to.equal(api);
         });
@@ -26,7 +26,7 @@ describe('SimpleVertecQuery', () => {
             expect(SimpleVertecQuery.cache).to.equal(fakeCache);
         });
 
-        it('sets cache instance', () => {
+        it('sets app cache key', () => {
             let appCacheKey = 'my-app';
             SimpleVertecQuery.setAppCacheKey(appCacheKey);
 
@@ -321,8 +321,57 @@ describe('SimpleVertecQuery', () => {
             });
 
             new SimpleVertecQuery().get().then(response => {
-                expect(response.cacheDateTime).to.be.undefined;
                 expect(response.data).to.deep.equal(returnObject);
+                done();
+            });
+        });
+
+        it('adds one transformer', (done) => {
+            let returnObject = {data: '123'};
+
+            sinon.stub(api, 'doRequest', () => {
+                return new q((resolve) => {
+                    resolve(returnObject);
+                });
+            });
+
+            let transformer = result => {
+                result.data = parseInt(result.data);
+
+                return result;
+            };
+
+            new SimpleVertecQuery().addTransformer(transformer).get().then(response => {
+                expect(response.data.data).to.equal(123);
+                done();
+            });
+        });
+
+        it('adds multiple transformers', (done) => {
+            let returnObject = {data1: '123'};
+
+            sinon.stub(api, 'doRequest', () => {
+                return new q((resolve) => {
+                    resolve(returnObject);
+                });
+            });
+
+            let transformer1 = result => {
+                result.data2 = parseInt(result.data1);
+
+                return result;
+            };
+
+            let transformer2 = result => {
+                result.data3 = result.data2 * 10;
+
+                return result;
+            };
+
+            new SimpleVertecQuery().addTransformer(transformer1).addTransformer(transformer2).get().then(response => {
+                expect(response.data.data1).to.equal('123');
+                expect(response.data.data2).to.equal(123);
+                expect(response.data.data3).to.equal(1230);
                 done();
             });
         });
