@@ -391,6 +391,7 @@ describe('SimpleVertecQuery', () => {
                 new SimpleVertecQuery().setCacheTTL(10).setCacheKey('test').get().then(response => {
                     expect(response.onGrace).to.be.false;
                     expect(response.data[0].it).to.equal('works');
+                    expect(response.refresh).to.be.false;
                     expect(cacheSetSpy.alwaysCalledWith('app-test')).to.be.true;
                     expect(cacheSetSpy.args.shift()[2]).to.equal(10);
                     done();
@@ -403,6 +404,7 @@ describe('SimpleVertecQuery', () => {
                 new SimpleVertecQuery().setCacheTTL(10).setCacheGraceTime(5).setCacheKey('test').get().then(response => {
                     expect(response.onGrace).to.be.false;
                     expect(response.data[0].it).to.equal('works');
+                    expect(response.refresh).to.be.false;
                     expect(cacheSetSpy.alwaysCalledWith('app-test')).to.be.true;
 
                     let setArgs = cacheSetSpy.args.shift();
@@ -418,6 +420,7 @@ describe('SimpleVertecQuery', () => {
                 new SimpleVertecQuery().setCacheTTL(10).setCacheKey('test').get().then(response => {
                     expect(response.onGrace).to.be.false;
                     expect(response.data[0].it).to.equal('works');
+                    expect(response.refresh).to.be.false;
                     expect(cacheSetSpy.alwaysCalledWith('app-test')).to.be.true;
                     done();
                 });
@@ -430,6 +433,7 @@ describe('SimpleVertecQuery', () => {
                 new SimpleVertecQuery().setCacheTTL(10).get().then(response => {
                     expect(response.onGrace).to.be.false;
                     expect(response.data[0].it).to.equal('works');
+                    expect(response.refresh).to.be.false;
 
                     let setArgs = cacheSetSpy.args.shift();
                     expect(setArgs[0]).to.match(/^app-\w{32}$/);
@@ -451,6 +455,7 @@ describe('SimpleVertecQuery', () => {
                 new SimpleVertecQuery().setCacheTTL(10).setCacheKey('test').get().then(response => {
                     expect(response.onGrace).to.be.false;
                     expect(response.data).to.deep.equal([]);
+                    expect(response.refresh).to.be.false;
                     expect(cacheSetSpy.neverCalledWith('app-test')).to.be.true;
                     done();
                 });
@@ -466,6 +471,7 @@ describe('SimpleVertecQuery', () => {
                 new SimpleVertecQuery().setCacheTTL(10).setCacheKey('test').get().then(response => {
                     expect(response.onGrace).to.be.false;
                     expect(response.data[0].it).to.equal('works');
+                    expect(response.refresh).to.be.false;
                     expect(cacheSetSpy.neverCalledWith('app-test')).to.be.true;
                     done();
                 });
@@ -481,6 +487,7 @@ describe('SimpleVertecQuery', () => {
                 new SimpleVertecQuery().setCacheTTL(10).setCacheGraceTime(5).setCacheKey('test').get().then(response => {
                     expect(response.onGrace).to.be.true;
                     expect(response.data[0].it).to.equal('works');
+                    expect(response.refresh).to.be.false;
                     expect(cacheSetSpy.alwaysCalledWith('app-test')).to.be.true;
                     done();
                 });
@@ -496,7 +503,24 @@ describe('SimpleVertecQuery', () => {
                 new SimpleVertecQuery().setCacheTTL(10).setCacheGraceTime(5).setCacheKey('test').get().then(response => {
                     expect(response.onGrace).to.be.false;
                     expect(response.data[0].it).to.equal('works');
+                    expect(response.refresh).to.be.false;
                     expect(cacheSetSpy.neverCalledWith('app-test')).to.be.true;
+                    done();
+                });
+            });
+
+            it('fires request if refresh = true even if item in cache found', (done) => {
+                let cacheItem = {
+                    softExpire: new Date().getTime() - 1000,
+                    data: [{it: 'works'}]
+                };
+                sinon.stub(fakeCacheInstance, 'get').yields(null, cacheItem);
+
+                new SimpleVertecQuery().setCacheTTL(10).setCacheGraceTime(5).setCacheKey('test').get(true).then(response => {
+                    expect(response.onGrace).to.be.false;
+                    expect(response.data[0].it).to.equal('works');
+                    expect(response.refresh).to.be.true;
+                    expect(cacheSetSpy.alwaysCalledWith('app-test')).to.be.true;
                     done();
                 });
             });
