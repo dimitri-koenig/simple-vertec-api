@@ -6,6 +6,9 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ### Removal
 * Removed Vertec request time from result object due to sideeffects (#96)
 
+### Bugfix
+* Fixed bug with running multiple transformers which all create new return values
+
 ## [3.0.0-rc.5][2016-08-21]
 ### Enhancement
 * addFields accepts one array argument with fields to add

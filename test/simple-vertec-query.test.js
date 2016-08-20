@@ -490,7 +490,7 @@ describe('SimpleVertecQuery', () => {
             });
         });
 
-        it('uses a property filter and multiple transformers', (done) => {
+        it('uses a property filter and multiple transformers all generating new return arrays', () => {
             let returnObject = {myKey: {it: 'works', data1: '123'}, should: {be: 'filtered'}};
 
             sinon.stub(api, 'select', () => {
@@ -500,25 +500,31 @@ describe('SimpleVertecQuery', () => {
             });
 
             let transformer1 = result => {
-                result[0].data2 = parseInt(result[0].data1);
+                let newResult = {
+                    it: result[0].it,
+                    data2: parseInt(result[0].data1)
+                };
 
-                return result;
+                return newResult;
             };
 
             let transformer2 = result => {
-                result[0].data3 = result[0].data2 * 10;
+                let newResult = [
+                    result,
+                    result.data2 * 10
+                ];
 
-                return result;
+                return newResult;
             };
 
-            new SimpleVertecQuery().filterProperty('myKey', true).addTransformer(transformer1).addTransformer(transformer2).get().then(response => {
-                expect(response.data).to.deep.equal([{
-                    it: 'works',
-                    data1: '123',
-                    data2: 123,
-                    data3: 1230
-                }]);
-                done();
+            return new SimpleVertecQuery().filterProperty('myKey', true).addTransformer(transformer1).addTransformer(transformer2).get().then(response => {
+                expect(response.data).to.deep.equal([
+                    {
+                        it: 'works',
+                        data2: 123
+                    },
+                    1230
+                ]);
             });
         });
     });
