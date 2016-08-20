@@ -375,6 +375,113 @@ describe('SimpleVertecQuery', () => {
                 done();
             });
         });
+
+        it('uses a property filter', (done) => {
+            let returnObject = {myKey: {it: 'works'}};
+
+            sinon.stub(api, 'select', () => {
+                return new q((resolve) => {
+                    resolve(returnObject);
+                });
+            });
+
+            new SimpleVertecQuery().filterProperty('myKey').get().then(response => {
+                expect(response.data).to.deep.equal({it: 'works'});
+                done();
+            });
+        });
+
+        it('uses a property filter with not existing property', (done) => {
+            let returnObject = {myKey: {it: 'works'}};
+
+            sinon.stub(api, 'select', () => {
+                return new q((resolve) => {
+                    resolve(returnObject);
+                });
+            });
+
+            new SimpleVertecQuery().filterProperty('myNotExistingKey').get().then(response => {
+                expect(response.data).to.deep.equal(undefined);
+                done();
+            });
+        });
+
+        it('uses a property filter with array transformation', (done) => {
+            let returnObject = {myKey: {it: 'works'}};
+
+            sinon.stub(api, 'select', () => {
+                return new q((resolve) => {
+                    resolve(returnObject);
+                });
+            });
+
+            new SimpleVertecQuery().filterProperty('myKey', true).get().then(response => {
+                expect(response.data).to.deep.equal([{it: 'works'}]);
+                done();
+            });
+        });
+
+        it('uses a property filter with array transformation on an array', (done) => {
+            let returnObject = {myKey: [{it: 'works'}]};
+
+            sinon.stub(api, 'select', () => {
+                return new q((resolve) => {
+                    resolve(returnObject);
+                });
+            });
+
+            new SimpleVertecQuery().filterProperty('myKey', true).get().then(response => {
+                expect(response.data).to.deep.equal([{it: 'works'}]);
+                done();
+            });
+        });
+
+        it('uses a property filter with array transformation on an not existing key', (done) => {
+            let returnObject = {myKey: {it: 'works'}};
+
+            sinon.stub(api, 'select', () => {
+                return new q((resolve) => {
+                    resolve(returnObject);
+                });
+            });
+
+            new SimpleVertecQuery().filterProperty('myNotExistingKey', true).get().then(response => {
+                expect(response.data).to.deep.equal([]);
+                done();
+            });
+        });
+
+        it('uses a property filter and multiple transformers', (done) => {
+            let returnObject = {myKey: {it: 'works', data1: '123'}, should: {be: 'filtered'}};
+
+            sinon.stub(api, 'select', () => {
+                return new q((resolve) => {
+                    resolve(returnObject);
+                });
+            });
+
+            let transformer1 = result => {
+                result[0].data2 = parseInt(result[0].data1);
+
+                return result;
+            };
+
+            let transformer2 = result => {
+                result[0].data3 = result[0].data2 * 10;
+
+                return result;
+            };
+
+            new SimpleVertecQuery().filterProperty('myKey', true).addTransformer(transformer1).addTransformer(transformer2).get().then(response => {
+                expect(response.data).to.deep.equal([{
+                    it: 'works',
+                    data1: '123',
+                    data2: 123,
+                    data3: 1230
+                }]);
+                done();
+            });
+        });
     });
 
     describe('cache testing', () => {
