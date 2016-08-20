@@ -405,10 +405,10 @@ describe('SimpleVertecQuery', () => {
                     expect(response.onGrace).to.be.false;
                     expect(response.data[0].it).to.equal('works');
                     expect(response.refresh).to.be.false;
-                    expect(cacheSetSpy.alwaysCalledWith('app-test')).to.be.true;
+                    expect(cacheSetSpy.alwaysCalledWith('app-test-10')).to.be.true;
 
                     let setArgs = cacheSetSpy.args.shift();
-                    expect(setArgs[1].softExpire).to.be.closeTo(new Date().getTime() + 5*1000, 500);
+                    expect(setArgs[1].softExpire).to.be.closeTo(new Date().getTime() + 10*1000, 500);
                     expect(setArgs[2]).to.equal(15);
                     done();
                 });
