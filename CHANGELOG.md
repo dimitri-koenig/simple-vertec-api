@@ -4,6 +4,13 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased][unreleased]
 
+## [3.0.0-rc.3][2016-08-20]
+### Bugfix
+* Fixed wrong calculation of softExpire timestamp
+
+### Enhancement
+* cacheKey includes cacheTTL just in case it should be lowered without flushing the whole cache
+
 ## [3.0.0-rc.2][2016-08-20]
 ### Bugfix
 * Removed empty cache item check due to missing business logic per use case
