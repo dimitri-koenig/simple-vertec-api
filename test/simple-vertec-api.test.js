@@ -30,7 +30,7 @@ describe('SimpleVertecApi', () => {
 
     describe('some basics', () => {
         it('logging will be called', () => {
-            sinon.stub(api, 'doRequest');
+            sinon.stub(api, 'request');
             api.verbose = true;
             let consoleMock = sinon.stub(console, 'log');
 
