@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased][unreleased]
+
+## [3.0.0-rc.5][2016-08-21]
 ### Enhancement
 * addFields accepts one array argument with fields to add
 
