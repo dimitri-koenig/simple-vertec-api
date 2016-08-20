@@ -392,7 +392,7 @@ describe('SimpleVertecQuery', () => {
                     expect(response.onGrace).to.be.false;
                     expect(response.data[0].it).to.equal('works');
                     expect(response.refresh).to.be.false;
-                    expect(cacheSetSpy.alwaysCalledWith('app-test')).to.be.true;
+                    expect(cacheSetSpy.alwaysCalledWith('app-test-10')).to.be.true;
                     expect(cacheSetSpy.args.shift()[2]).to.equal(10);
                     done();
                 });
@@ -421,7 +421,7 @@ describe('SimpleVertecQuery', () => {
                     expect(response.onGrace).to.be.false;
                     expect(response.data[0].it).to.equal('works');
                     expect(response.refresh).to.be.false;
-                    expect(cacheSetSpy.alwaysCalledWith('app-test')).to.be.true;
+                    expect(cacheSetSpy.alwaysCalledWith('app-test-10')).to.be.true;
                     done();
                 });
             });
@@ -436,7 +436,7 @@ describe('SimpleVertecQuery', () => {
                     expect(response.refresh).to.be.false;
 
                     let setArgs = cacheSetSpy.args.shift();
-                    expect(setArgs[0]).to.match(/^app-\w{32}$/);
+                    expect(setArgs[0]).to.match(/^app-\w{32}-10$/);
                     expect(buildSelectStringSpy.returnValues).to.have.lengthOf(2);
                     done();
                 });
@@ -453,7 +453,7 @@ describe('SimpleVertecQuery', () => {
                     expect(response.onGrace).to.be.false;
                     expect(response.data[0].it).to.equal('works');
                     expect(response.refresh).to.be.false;
-                    expect(cacheSetSpy.neverCalledWith('app-test')).to.be.true;
+                    expect(cacheSetSpy.neverCalledWith('app-test-10')).to.be.true;
                     done();
                 });
             });
@@ -469,7 +469,7 @@ describe('SimpleVertecQuery', () => {
                     expect(response.onGrace).to.be.true;
                     expect(response.data[0].it).to.equal('works');
                     expect(response.refresh).to.be.false;
-                    expect(cacheSetSpy.alwaysCalledWith('app-test')).to.be.true;
+                    expect(cacheSetSpy.alwaysCalledWith('app-test-10')).to.be.true;
                     done();
                 });
             });
@@ -485,7 +485,7 @@ describe('SimpleVertecQuery', () => {
                     expect(response.onGrace).to.be.false;
                     expect(response.data[0].it).to.equal('works');
                     expect(response.refresh).to.be.false;
-                    expect(cacheSetSpy.neverCalledWith('app-test')).to.be.true;
+                    expect(cacheSetSpy.neverCalledWith('app-test-10')).to.be.true;
                     done();
                 });
             });
@@ -501,7 +501,7 @@ describe('SimpleVertecQuery', () => {
                     expect(response.onGrace).to.be.false;
                     expect(response.data[0].it).to.equal('works');
                     expect(response.refresh).to.be.true;
-                    expect(cacheSetSpy.alwaysCalledWith('app-test')).to.be.true;
+                    expect(cacheSetSpy.alwaysCalledWith('app-test-10')).to.be.true;
                     done();
                 });
             });
