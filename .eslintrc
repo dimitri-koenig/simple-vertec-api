@@ -325,6 +325,7 @@
     "ecmaVersion": 6,
     "sourceType": "module",
     "ecmaFeatures": {
+      "impliedStrict": true,
       "arrowFunctions": true,
       "binaryLiterals": true,
       "blockBindings": true,
