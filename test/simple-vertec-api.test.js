@@ -137,7 +137,7 @@ describe('SimpleVertecApi', () => {
             let originalLevel = xmlDigesterLogger.level();
             xmlDigesterLogger.level(0.5);
 
-            return api.select('some select with fauly response').then(
+            api.select('some select with fauly response').then(
                 (result) => {
                     throw new Error('Promise was unexpectedly fulfilled. Result: ' + result);
                 },
