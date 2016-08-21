@@ -20,4 +20,4 @@ env:
   - NODE_ENV=test
 
 after_success:
-  - make publish-coverage
+  - 'if [ "${TRAVIS_NODE_VERSION}" = "node" ] ; then make publish-coverage ; fi'
