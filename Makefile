@@ -12,7 +12,9 @@ build: ; @echo 'Making build...'
 
 test: ; @echo 'Running tests...'
 	@NODE_ENV=test ./node_modules/.bin/babel-node ./node_modules/.bin/_mocha test
-	@NODE_ENV=test ./node_modules/.bin/babel-node ./node_modules/.bin/eslint lib test
+	@if [ -z "${TRAVIS_NODE_VERSION}" ] || [ "${TRAVIS_NODE_VERSION}" = "node" ]; then \
+		echo "Running eslint..."; NODE_ENV=test ./node_modules/.bin/babel-node ./node_modules/.bin/eslint lib test;\
+	fi
 
 install: ; @echo 'Installing packages...'
 	@npm install
