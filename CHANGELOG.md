@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased][unreleased]
+
+## [3.0.0-rc.7][2016-08-24]
 ### Feature
 * Added setRootKey method to enable setting a key other than "data"
 
