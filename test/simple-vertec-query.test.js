@@ -527,6 +527,22 @@ describe('SimpleVertecQuery', () => {
                 ]);
             });
         });
+
+        it('takes another root key using setRootKey', (done) => {
+            let returnObject = {it: 'works 15'};
+
+            sinon.stub(api, 'select', () => {
+                return new q((resolve) => {
+                    resolve(returnObject);
+                });
+            });
+
+            new SimpleVertecQuery().setRootKey('newRootKey').get().then(response => {
+                expect(response.data).to.be.undefined;
+                expect(response.newRootKey).to.deep.equal(returnObject);
+                done();
+            });
+        });
     });
 
     describe('cache testing', () => {
