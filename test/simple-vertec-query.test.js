@@ -528,6 +528,53 @@ describe('SimpleVertecQuery', () => {
             });
         });
 
+        it('uses correct order of added transformers', () => {
+            sinon.stub(api, 'select', () => {
+                return new q((resolve) => {
+                    resolve({myKey: {start: 3}});
+                });
+            });
+
+            return new SimpleVertecQuery()
+                .addTransformer(response => {
+                    let newResponse = {start: response.start *= 3};
+                    return newResponse;
+                })
+                .addTransformer(response => {
+                    let newResponse = {start: response.start += 3};
+                    return newResponse;
+                })
+                .addTransformer(response => {
+                    let newResponse = {start: response.start *= 3};
+                    return newResponse;
+                })
+                .addTransformer(response => {
+                    let newResponse = {start: response.start += 3};
+                    return newResponse;
+                })
+                .filterProperty('myKey')
+                .addTransformer(response => {
+                    let newResponse = {start: response.start += 3};
+                    return newResponse;
+                })
+                .addTransformer(response => {
+                    let newResponse = {start: response.start *= 3};
+                    return newResponse;
+                })
+                .addTransformer(response => {
+                    let newResponse = {start: response.start += 3};
+                    return newResponse;
+                })
+                .addTransformer(response => {
+                    let newResponse = {start: response.start *= 3};
+                    return newResponse;
+                })
+                .get()
+                .then(response => {
+                    expect(response.data.start).to.equal(387);
+                });
+        });
+
         it('takes another root key using setRootKey', (done) => {
             let returnObject = {it: 'works 15'};
 
