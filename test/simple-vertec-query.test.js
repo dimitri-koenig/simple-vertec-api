@@ -7,6 +7,14 @@ describe('SimpleVertecQuery', () => {
     let api;
     let buildSelectObjectSpy;
 
+    let apiResponse = obj => {
+        sinon.stub(api, 'doRequest', () => {
+            return new q((resolve) => {
+                resolve(obj);
+            });
+        });
+    };
+
     beforeEach('suite setup', () => {
         api = new SimpleVertecApi('http://localhost', 'my-username', 'my-password');
         buildSelectObjectSpy = sinon.spy(api, 'buildSelectObject');
@@ -36,11 +44,7 @@ describe('SimpleVertecQuery', () => {
 
     describe('query testing', () => {
         beforeEach('query setup', () => {
-            sinon.stub(api, 'doRequest', () => {
-                return new q((resolve) => {
-                    resolve({it: 'works'});
-                });
-            });
+            apiResponse({it: 'works'});
         });
 
         it('findById() sets objref as query param', () => {
@@ -353,11 +357,7 @@ describe('SimpleVertecQuery', () => {
         it('returns raw request result if no property filter defined', (done) => {
             let returnObject = {it: 'works 1'};
 
-            sinon.stub(api, 'select', () => {
-                return new q((resolve) => {
-                    resolve(returnObject);
-                });
-            });
+            apiResponse(returnObject);
 
             new SimpleVertecQuery().get().then(response => {
                 expect(response.data).to.deep.equal(returnObject);
@@ -368,11 +368,7 @@ describe('SimpleVertecQuery', () => {
         it('adds one transformer', (done) => {
             let returnObject = {data: '123'};
 
-            sinon.stub(api, 'select', () => {
-                return new q((resolve) => {
-                    resolve(returnObject);
-                });
-            });
+            apiResponse(returnObject);
 
             let transformer = result => {
                 result.data = parseInt(result.data);
@@ -389,11 +385,7 @@ describe('SimpleVertecQuery', () => {
         it('adds multiple transformers', (done) => {
             let returnObject = {data1: '123'};
 
-            sinon.stub(api, 'select', () => {
-                return new q((resolve) => {
-                    resolve(returnObject);
-                });
-            });
+            apiResponse(returnObject);
 
             let transformer1 = result => {
                 result.data2 = parseInt(result.data1);
@@ -418,11 +410,7 @@ describe('SimpleVertecQuery', () => {
         it('uses a property filter', (done) => {
             let returnObject = {myKey: {it: 'works'}};
 
-            sinon.stub(api, 'select', () => {
-                return new q((resolve) => {
-                    resolve(returnObject);
-                });
-            });
+            apiResponse(returnObject);
 
             new SimpleVertecQuery().filterProperty('myKey').get().then(response => {
                 expect(response.data).to.deep.equal({it: 'works'});
@@ -433,11 +421,7 @@ describe('SimpleVertecQuery', () => {
         it('uses a property filter with not existing property', (done) => {
             let returnObject = {myKey: {it: 'works'}};
 
-            sinon.stub(api, 'select', () => {
-                return new q((resolve) => {
-                    resolve(returnObject);
-                });
-            });
+            apiResponse(returnObject);
 
             new SimpleVertecQuery().filterProperty('myNotExistingKey').get().then(response => {
                 expect(response.data).to.deep.equal(undefined);
@@ -448,11 +432,7 @@ describe('SimpleVertecQuery', () => {
         it('uses a property filter with array transformation', (done) => {
             let returnObject = {myKey: {it: 'works'}};
 
-            sinon.stub(api, 'select', () => {
-                return new q((resolve) => {
-                    resolve(returnObject);
-                });
-            });
+            apiResponse(returnObject);
 
             new SimpleVertecQuery().filterProperty('myKey', true).get().then(response => {
                 expect(response.data).to.deep.equal([{it: 'works'}]);
@@ -463,11 +443,7 @@ describe('SimpleVertecQuery', () => {
         it('uses a property filter with array transformation on an array', (done) => {
             let returnObject = {myKey: [{it: 'works'}]};
 
-            sinon.stub(api, 'select', () => {
-                return new q((resolve) => {
-                    resolve(returnObject);
-                });
-            });
+            apiResponse(returnObject);
 
             new SimpleVertecQuery().filterProperty('myKey', true).get().then(response => {
                 expect(response.data).to.deep.equal([{it: 'works'}]);
@@ -478,11 +454,7 @@ describe('SimpleVertecQuery', () => {
         it('uses a property filter with array transformation on an not existing key', (done) => {
             let returnObject = {myKey: {it: 'works'}};
 
-            sinon.stub(api, 'select', () => {
-                return new q((resolve) => {
-                    resolve(returnObject);
-                });
-            });
+            apiResponse(returnObject);
 
             new SimpleVertecQuery().filterProperty('myNotExistingKey', true).get().then(response => {
                 expect(response.data).to.deep.equal([]);
@@ -493,11 +465,7 @@ describe('SimpleVertecQuery', () => {
         it('uses a property filter and multiple transformers all generating new return arrays', () => {
             let returnObject = {myKey: {it: 'works', data1: '123'}, should: {be: 'filtered'}};
 
-            sinon.stub(api, 'select', () => {
-                return new q((resolve) => {
-                    resolve(returnObject);
-                });
-            });
+            apiResponse(returnObject);
 
             let transformer1 = result => {
                 let newResult = {
@@ -529,11 +497,7 @@ describe('SimpleVertecQuery', () => {
         });
 
         it('uses correct order of added transformers', () => {
-            sinon.stub(api, 'select', () => {
-                return new q((resolve) => {
-                    resolve({myKey: {start: 3}});
-                });
-            });
+            apiResponse({myKey: {start: 3}});
 
             return new SimpleVertecQuery()
                 .addTransformer(response => {
@@ -578,16 +542,543 @@ describe('SimpleVertecQuery', () => {
         it('takes another root key using setRootKey', (done) => {
             let returnObject = {it: 'works 15'};
 
-            sinon.stub(api, 'select', () => {
-                return new q((resolve) => {
-                    resolve(returnObject);
-                });
-            });
+            apiResponse(returnObject);
 
             new SimpleVertecQuery().setRootKey('newRootKey').get().then(response => {
                 expect(response.data).to.be.undefined;
                 expect(response.newRootKey).to.deep.equal(returnObject);
                 done();
+            });
+        });
+
+        describe('zip field testing', () => {
+            it('zips a field with one entry and one key', () => {
+                let returnObject = {
+                    myKey: {
+                        id: 123
+                    }
+                };
+
+                apiResponse(returnObject);
+
+                return new SimpleVertecQuery().zip('myKey').get().then(response => {
+                    expect(response.data).to.deep.equal({
+                        myKey: [
+                            {
+                                id: 123
+                            }
+                        ]
+                    });
+                });
+            });
+
+            it('zips a field with two entries and each with one key', () => {
+                let returnObject = {
+                    myKey: {
+                        id: [123, 234]
+                    }
+                };
+
+                apiResponse(returnObject);
+
+                return new SimpleVertecQuery().zip('myKey').get().then(response => {
+                    expect(response.data).to.deep.equal({
+                        myKey: [
+                            {
+                                id: 123
+                            },
+                            {
+                                id: 234
+                            }
+                        ]
+                    });
+                });
+            });
+
+            it('zips a field with one entry and two keys', () => {
+                let returnObject = {
+                    myKey: {
+                        id: 123,
+                        text: 'it works'
+                    }
+                };
+
+                apiResponse(returnObject);
+
+                return new SimpleVertecQuery().zip('myKey').get().then(response => {
+                    expect(response.data).to.deep.equal({
+                        myKey: [
+                            {
+                                id: 123,
+                                text: 'it works'
+                            }
+                        ]
+                    });
+                });
+            });
+
+            it('zips a field with two entries and each with two keys', () => {
+                let returnObject = {
+                    myKey: {
+                        id: [123, 234],
+                        text: ['it', 'works']
+                    }
+                };
+
+                apiResponse(returnObject);
+
+                return new SimpleVertecQuery().zip('myKey').get().then(response => {
+                    expect(response.data).to.deep.equal({
+                        myKey: [
+                            {
+                                id: 123,
+                                text: 'it'
+                            },
+                            {
+                                id: 234,
+                                text: 'works'
+                            }
+                        ]
+                    });
+                });
+            });
+
+            it('zips field using a path', () => {
+                let returnObject = {
+                    my: {
+                        key: {
+                            id: [123, 234],
+                            text: ['it', 'works']
+                        },
+                        not: {
+                            my: 'key'
+                        }
+                    }
+                };
+
+                apiResponse(returnObject);
+
+                return new SimpleVertecQuery().zip('my.key').get().then(response => {
+                    expect(response.data).to.deep.equal({
+                        my: {
+                            key: [
+                                {
+                                    id: 123,
+                                    text: 'it'
+                                },
+                                {
+                                    id: 234,
+                                    text: 'works'
+                                }
+                            ],
+                            not: {
+                                my: 'key'
+                            }
+                        }
+                    });
+                });
+            });
+
+            it('zips field using a path beginning with an wildcard', () => {
+                let returnObject = {
+                    first: {
+                        myKey: {
+                            id: [123, 234],
+                            text: ['it', 'works']
+                        },
+                        not: {
+                            my: 'key'
+                        }
+                    },
+                    second: {
+                        myKey: {
+                            id: [345, 456],
+                            text: ['it really', 'works!']
+                        },
+                        also: {
+                            not: {
+                                my: 'key'
+                            }
+                        }
+                    }
+                };
+
+                apiResponse(returnObject);
+
+                return new SimpleVertecQuery().zip('*.myKey').get().then(response => {
+                    expect(response.data).to.deep.equal({
+                        first: {
+                            myKey: [
+                                {
+                                    id: 123,
+                                    text: 'it'
+                                },
+                                {
+                                    id: 234,
+                                    text: 'works'
+                                }
+                            ],
+                            not: {
+                                my: 'key'
+                            }
+                        },
+                        second: {
+                            myKey: [
+                                {
+                                    id: 345,
+                                    text: 'it really'
+                                },
+                                {
+                                    id: 456,
+                                    text: 'works!'
+                                }
+                            ],
+                            also: {
+                                not: {
+                                    my: 'key'
+                                }
+                            }
+                        }
+                    });
+                });
+            });
+
+            it('zips field using a path with one wildcard in the middle', () => {
+                let returnObject = {
+                    my: {
+                        first: {
+                            key: {
+                                id: [123, 234],
+                                text: ['it', 'works']
+                            },
+                            not: {
+                                my: 'key'
+                            }
+                        },
+                        second: {
+                            key: {
+                                id: [345, 456],
+                                text: ['it really', 'works!']
+                            },
+                            also: {
+                                not: {
+                                    my: 'key'
+                                }
+                            }
+                        }
+                    }
+                };
+
+                apiResponse(returnObject);
+
+                return new SimpleVertecQuery().zip('my.*.key').get().then(response => {
+                    expect(response.data).to.deep.equal({
+                        my: {
+                            first: {
+                                key: [
+                                    {
+                                        id: 123,
+                                        text: 'it'
+                                    },
+                                    {
+                                        id: 234,
+                                        text: 'works'
+                                    }
+                                ],
+                                not: {
+                                    my: 'key'
+                                }
+                            },
+                            second: {
+                                key: [
+                                    {
+                                        id: 345,
+                                        text: 'it really'
+                                    },
+                                    {
+                                        id: 456,
+                                        text: 'works!'
+                                    }
+                                ],
+                                also: {
+                                    not: {
+                                        my: 'key'
+                                    }
+                                }
+                            }
+                        }
+                    });
+                });
+            });
+
+            it('zips field using a path with two wildcards in the middle', () => {
+                let returnObject = {
+                    my: {
+                        first: {
+                            subFirst: {
+                                key: {
+                                    id: [123, 234],
+                                    text: ['it', 'works']
+                                },
+                                not: {
+                                    my: 'key'
+                                }
+                            },
+                            subSecond: {
+                                key: {
+                                    id: [345, 456],
+                                    text: ['it really', 'works!']
+                                },
+                                also: {
+                                    not: {
+                                        my: 'key'
+                                    }
+                                }
+                            }
+                        },
+                        second: {
+                            subFirst: {
+                                key: {
+                                    id: [567, 678],
+                                    text: ['it', 'works']
+                                },
+                                not: {
+                                    my: 'key'
+                                }
+                            },
+                            subSecond: {
+                                key: {
+                                    id: [789, 890],
+                                    text: ['it really', 'works!']
+                                },
+                                also: {
+                                    not: {
+                                        my: 'key'
+                                    }
+                                }
+                            }
+                        }
+                    }
+                };
+
+                apiResponse(returnObject);
+
+                return new SimpleVertecQuery().zip('my.*.*.key').get().then(response => {
+                    expect(response.data).to.deep.equal({
+                        my: {
+                            first: {
+                                subFirst: {
+                                    key: [
+                                        {
+                                            id: 123,
+                                            text: 'it'
+                                        },
+                                        {
+                                            id: 234,
+                                            text: 'works'
+                                        }
+                                    ],
+                                    not: {
+                                        my: 'key'
+                                    }
+                                },
+                                subSecond: {
+                                    key: [
+                                        {
+                                            id: 345,
+                                            text: 'it really'
+                                        },
+                                        {
+                                            id: 456,
+                                            text: 'works!'
+                                        }
+                                    ],
+                                    also: {
+                                        not: {
+                                            my: 'key'
+                                        }
+                                    }
+                                }
+                            },
+                            second: {
+                                subFirst: {
+                                    key: [
+                                        {
+                                            id: 567,
+                                            text: 'it'
+                                        },
+                                        {
+                                            id: 678,
+                                            text: 'works'
+                                        }
+                                    ],
+                                    not: {
+                                        my: 'key'
+                                    }
+                                },
+                                subSecond: {
+                                    key: [
+                                        {
+                                            id: 789,
+                                            text: 'it really'
+                                        },
+                                        {
+                                            id: 890,
+                                            text: 'works!'
+                                        }
+                                    ],
+                                    also: {
+                                        not: {
+                                            my: 'key'
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                });
+            });
+
+            it('zips field using a path ending with an wildcard', () => {
+                let returnObject = {
+                    myKey: {
+                        first: {
+                            id: [123, 234],
+                            text: ['it', 'works']
+                        },
+                        second: {
+                            id: [345, 456],
+                            text: ['it really', 'works!']
+                        }
+                    }
+                };
+
+                apiResponse(returnObject);
+
+                return new SimpleVertecQuery().zip('myKey.*').get().then(response => {
+                    expect(response.data).to.deep.equal({
+                        myKey: {
+                            first: [
+                                {
+                                    id: 123,
+                                    text: 'it'
+                                },
+                                {
+                                    id: 234,
+                                    text: 'works'
+                                }
+                            ],
+                            second: [
+                                {
+                                    id: 345,
+                                    text: 'it really'
+                                },
+                                {
+                                    id: 456,
+                                    text: 'works!'
+                                }
+                            ]
+                        }
+                    });
+                });
+            });
+
+            it('zips multiple fields', () => {
+                let returnObject = {
+                    my: {
+                        key: {
+                            id: [123, 234],
+                            text: ['it', 'works']
+                        }
+                    },
+                    key: {
+                        id: [123, 234],
+                        text: ['it', 'works']
+                    }
+                };
+
+                apiResponse(returnObject);
+
+                return new SimpleVertecQuery().zip('my.key').zip('key').get().then(response => {
+                    expect(response.data).to.deep.equal({
+                        my: {
+                            key: [
+                                {
+                                    id: 123,
+                                    text: 'it'
+                                },
+                                {
+                                    id: 234,
+                                    text: 'works'
+                                }
+                            ]
+                        },
+                        key: [
+                            {
+                                id: 123,
+                                text: 'it'
+                            },
+                            {
+                                id: 234,
+                                text: 'works'
+                            }
+                        ]
+                    });
+                });
+            });
+
+            it('does not zip a field using a path if the path does not exist', () => {
+                let returnObject = {
+                    my: {
+                        key: {
+                            id: [123, 234],
+                            text: ['it', 'works']
+                        }
+                    }
+                };
+
+                apiResponse(returnObject);
+
+                return new SimpleVertecQuery().zip('my.key').zip('my.field').get().then(response => {
+                    expect(response.data).to.deep.equal({
+                        my: {
+                            key: [
+                                {
+                                    id: 123,
+                                    text: 'it'
+                                },
+                                {
+                                    id: 234,
+                                    text: 'works'
+                                }
+                            ]
+                        }
+                    });
+                });
+            });
+
+            it('does not a touch a field if it has no keys', () => {
+                let returnObject = {
+                    myKey: 'it works'
+                };
+
+                apiResponse(returnObject);
+
+                return new SimpleVertecQuery().zip('myKey').get().then(response => {
+                    expect(response.data).to.deep.equal(returnObject);
+                });
+            });
+
+            it('does nothing if a field does not exist', () => {
+                let returnObject = {
+                    myKey: 'it works'
+                };
+
+                apiResponse(returnObject);
+
+                return new SimpleVertecQuery().zip('notMyKey').get().then(response => {
+                    expect(response.data).to.deep.equal(returnObject);
+                });
             });
         });
     });
@@ -597,11 +1088,7 @@ describe('SimpleVertecQuery', () => {
             it('returns raw output of api if no cache is set', (done) => {
                 SimpleVertecQuery.setMemcached(undefined);
 
-                sinon.stub(api, 'select', () => {
-                    return new q((resolve) => {
-                        resolve({it: 'works 2'});
-                    });
-                });
+                apiResponse({it: 'works 2'});
 
                 new SimpleVertecQuery().get().then(response => {
                     expect(response.cacheDateTime).to.be.undefined;
@@ -613,11 +1100,7 @@ describe('SimpleVertecQuery', () => {
             it('returns raw output of api if no cache ttl is set', (done) => {
                 SimpleVertecQuery.setMemcached({});
 
-                sinon.stub(api, 'select', () => {
-                    return new q((resolve) => {
-                        resolve({it: 'works 3'});
-                    });
-                });
+                apiResponse({it: 'works 3'});
 
                 new SimpleVertecQuery().get().then(response => {
                     expect(response.cacheDateTime).to.be.undefined;
@@ -627,7 +1110,7 @@ describe('SimpleVertecQuery', () => {
             });
 
             it('catches request errors', (done) => {
-                sinon.stub(api, 'select', () => {
+                sinon.stub(api, 'doRequest', () => {
                     return new q((resolve, reject) => {
                         reject({ Error1: 'Some error message' });
                     });
@@ -667,11 +1150,7 @@ describe('SimpleVertecQuery', () => {
 
                 sinon.stub(fakeCacheInstance, 'get').yields(null, false);
 
-                sinon.stub(api, 'select', () => {
-                    return new q((resolve) => {
-                        resolve({it: 'works 14'});
-                    });
-                });
+                apiResponse({it: 'works 14'});
 
                 new SimpleVertecQuery().setCacheTTL(10).setCacheKey('test10').get().then(response => {
                     expect(response.onGrace).to.be.false;
@@ -686,11 +1165,7 @@ describe('SimpleVertecQuery', () => {
             it('puts result into cache with ttl', (done) => {
                 sinon.stub(fakeCacheInstance, 'get').yields(null, false);
 
-                sinon.stub(api, 'select', () => {
-                    return new q((resolve) => {
-                        resolve({it: 'works 4'});
-                    });
-                });
+                apiResponse({it: 'works 4'});
 
                 new SimpleVertecQuery().setCacheTTL(10).setCacheKey('test2').get().then(response => {
                     expect(response.onGrace).to.be.false;
@@ -705,11 +1180,7 @@ describe('SimpleVertecQuery', () => {
             it('puts result into cache with ttl and grace time which saves soft expire date into cache item', (done) => {
                 sinon.stub(fakeCacheInstance, 'get').yields(null, false);
 
-                sinon.stub(api, 'select', () => {
-                    return new q((resolve) => {
-                        resolve({it: 'works 5'});
-                    });
-                });
+                apiResponse({it: 'works 5'});
 
                 new SimpleVertecQuery().setCacheTTL(10).setCacheGraceTime(5).setCacheKey('test3').get().then(response => {
                     expect(response.onGrace).to.be.false;
@@ -725,11 +1196,7 @@ describe('SimpleVertecQuery', () => {
             it('fires request if no item in cache found and puts it into cache', (done) => {
                 sinon.stub(fakeCacheInstance, 'get').yields(null, false);
 
-                sinon.stub(api, 'select', () => {
-                    return new q((resolve) => {
-                        resolve({it: 'works 6'});
-                    });
-                });
+                apiResponse({it: 'works 6'});
 
                 new SimpleVertecQuery().setCacheTTL(10).setCacheKey('test4').get().then(response => {
                     expect(response.onGrace).to.be.false;
@@ -744,11 +1211,7 @@ describe('SimpleVertecQuery', () => {
                 sinon.stub(fakeCacheInstance, 'get').yields(null, false);
                 let buildSelectStringSpy = sinon.spy(api, 'buildSelectString');
 
-                sinon.stub(api, 'doRequest', () => {
-                    return new q((resolve) => {
-                        resolve({it: 'works 7'});
-                    });
-                });
+                apiResponse({it: 'works 7'});
 
                 new SimpleVertecQuery().setCacheTTL(10).get().then(response => {
                     expect(response.onGrace).to.be.false;
@@ -767,11 +1230,7 @@ describe('SimpleVertecQuery', () => {
                 };
                 sinon.stub(fakeCacheInstance, 'get').yields(null, cacheItem);
 
-                sinon.stub(api, 'select', () => {
-                    return new q((resolve) => {
-                        resolve({it: 'works 12'});
-                    });
-                });
+                apiResponse({it: 'works 12'});
 
                 new SimpleVertecQuery().setCacheTTL(10).setCacheGraceTime(5).setCacheKey('test6').get().then(response => {
                     expect(response.onGrace).to.be.true;
@@ -825,11 +1284,7 @@ describe('SimpleVertecQuery', () => {
                 };
                 sinon.stub(fakeCacheInstance, 'get').yields(null, cacheItem);
 
-                sinon.stub(api, 'select', () => {
-                    return new q((resolve) => {
-                        resolve({it: 'works 13'});
-                    });
-                });
+                apiResponse({it: 'works 13'});
 
                 new SimpleVertecQuery().setCacheTTL(10).setCacheGraceTime(5).setCacheKey('test8').get(true).then(response => {
                     expect(response.onGrace).to.be.false;
@@ -857,7 +1312,7 @@ describe('SimpleVertecQuery', () => {
             it('catches request errors', (done) => {
                 sinon.stub(fakeCacheInstance, 'get').yields(null, null);
 
-                sinon.stub(api, 'select', () => {
+                sinon.stub(api, 'doRequest', () => {
                     return new q((resolve, reject) => {
                         reject({ Error3: 'Some error message' });
                     });
