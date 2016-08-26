@@ -13,10 +13,9 @@ examples
 .travis.yml
 Makefile
 coverage
-lib
 node_modules
-test
 Makefile
 docs 
 mkdocs.yml
 .codeclimate.yml
+v3-plan.md
