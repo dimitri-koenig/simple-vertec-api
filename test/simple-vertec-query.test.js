@@ -2,6 +2,7 @@ import {SimpleVertecApi, SimpleVertecQuery} from '../lib/index';
 import {expect} from 'chai';
 import sinon from 'sinon';
 import q from 'bluebird';
+import _ from 'lodash';
 
 describe('SimpleVertecQuery', () => {
     let api;
@@ -1025,6 +1026,76 @@ describe('SimpleVertecQuery', () => {
                         ]
                     });
                 });
+            });
+
+            it('adds zipping transformer at the end of the current transformer array to preserve user order', () => {
+                let returnObject = {
+                    my: {
+                        key: {
+                            text: ['it', 'works']
+                        }
+                    },
+                    oldKey: {
+                        id: [123, 234],
+                        text: ['it', 'works']
+                    }
+                };
+
+                apiResponse(returnObject);
+
+                return new SimpleVertecQuery()
+                    .addTransformer(response => {
+                        response.my.key.id = [123, 234];
+
+                        return response;
+                    })
+                    .zip('my.key')
+                    .addTransformer(response => {
+                        response.newKey = _.clone(response.oldKey);
+                        delete response.oldKey;
+
+                        return response;
+                    })
+                    .zip('newKey')
+                    .addTransformer(response => {
+                        response.newKey.push({
+                            id: 345,
+                            text: '!'
+                        });
+
+                        return response;
+                    })
+                    .get()
+                    .then(response => {
+                        expect(response.data).to.deep.equal({
+                            my: {
+                                key: [
+                                    {
+                                        id: 123,
+                                        text: 'it'
+                                    },
+                                    {
+                                        id: 234,
+                                        text: 'works'
+                                    }
+                                ]
+                            },
+                            newKey: [
+                                {
+                                    id: 123,
+                                    text: 'it'
+                                },
+                                {
+                                    id: 234,
+                                    text: 'works'
+                                },
+                                {
+                                    id: 345,
+                                    text: '!'
+                                }
+                            ]
+                        });
+                    });
             });
 
             it('does not zip a field using a path if the path does not exist', () => {
