@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased][unreleased]
+
+## [3.0.0-rc.9][2016-08-26]
 ### Bugfix
 * Fixed bug where zip transformation needs to be placed in correct order into transformers array
 
