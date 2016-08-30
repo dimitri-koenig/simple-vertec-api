@@ -287,25 +287,28 @@ describe('SimpleVertecQuery', () => {
 
         it('setCacheKey() sets cache key for cache objects', () => {
             let query = new SimpleVertecQuery().setCacheKey('test1');
-            expect(query.cacheKey).to.equal('test1');
+            expect(query.options.cacheKey).to.equal('test1');
         });
 
         it('setCacheTTL() sets ttl for cache objects', () => {
             let query = new SimpleVertecQuery().setCacheTTL(10);
-            expect(query.cacheTTL).to.equal(10);
+            expect(query.options.cacheTTL).to.equal(10);
         });
 
         it('setCacheGraceTime() sets grace time for cache objects', () => {
             let query = new SimpleVertecQuery().setCacheGraceTime(10);
-            expect(query.cacheGraceTime).to.equal(10);
+            expect(query.options.cacheGraceTime).to.equal(10);
         });
 
-        it('inParallel() activates parallel mode', () => {
+        it('inParallel() sets parallel mode', () => {
             let query = new SimpleVertecQuery();
-            expect(query.useParallelMode).to.equal(false);
+            expect(query.options.useParallelMode).to.equal(false);
 
             query.inParallel();
-            expect(query.useParallelMode).to.equal(true);
+            expect(query.options.useParallelMode).to.equal(true);
+
+            query.inParallel(false);
+            expect(query.options.useParallelMode).to.equal(false);
         });
 
         describe('get()', () => {
@@ -385,7 +388,7 @@ describe('SimpleVertecQuery', () => {
                 requestStub.onFirstCall().returns(q.resolve(firstReturnObject));
                 requestStub.onSecondCall().returns(q.resolve(secondReturnObject));
 
-                return new SimpleVertecQuery().findById([123, 234]).inParallel().get().then(response => {
+                return new SimpleVertecQuery().findById([123, 234]).addField('code').inParallel().get().then(response => {
                     expect(response[0].data).to.deep.equal(firstReturnObject);
                     expect(response[1].data).to.deep.equal(secondReturnObject);
 
@@ -393,7 +396,7 @@ describe('SimpleVertecQuery', () => {
                         Query: {
                             Resultdef: {
                                 expression: [],
-                                member: []
+                                member: ['code']
                             },
                             Selection: {
                                 objref: 123
@@ -405,7 +408,7 @@ describe('SimpleVertecQuery', () => {
                         Query: {
                             Resultdef: {
                                 expression: [],
-                                member: []
+                                member: ['code']
                             },
                             Selection: {
                                 objref: 234
@@ -413,6 +416,83 @@ describe('SimpleVertecQuery', () => {
                         }
                     });
                 });
+            });
+
+            it('makes multiple requests with multiple objrefs when using inParallel() and uses refresh', () => {
+                let firstReturnObject = {myFirstKey: {it: 'works'}};
+                let secondReturnObject = {mySecondKey: {it: 'works'}};
+
+                let requestStub = sinon.stub(api, 'select');
+                requestStub.onFirstCall().returns(q.resolve(firstReturnObject));
+                requestStub.onSecondCall().returns(q.resolve(secondReturnObject));
+
+                let cacheSetArguments = [];
+                let fakeCacheInstance = {
+                    get() {},
+                    set() {
+                        cacheSetArguments.push(arguments);
+                    }
+                };
+                SimpleVertecQuery.setMemcached(fakeCacheInstance);
+                sinon.stub(fakeCacheInstance, 'get').yields(null, false);
+
+                return new SimpleVertecQuery().findById([123, 234]).setCacheTTL(10).inParallel().get(true).then(response => {
+                    expect(response[0].data).to.deep.equal(firstReturnObject);
+                    expect(response[1].data).to.deep.equal(secondReturnObject);
+
+                    expect(response[0].refresh).to.be.true;
+                    expect(response[1].refresh).to.be.true;
+                });
+            });
+
+            it('returns same response structure like when using inParallel() even with only one id in an array', () => {
+                let returnObject = {myKey: {it: 'works'}};
+
+                api.doRequest.restore();
+                apiResponse(returnObject);
+
+                return new SimpleVertecQuery().findById([123]).inParallel().get().then(response => {
+                    expect(response).to.have.lengthOf(1);
+                    expect(response[0].data).to.deep.equal(returnObject);
+                });
+            });
+
+            it('returns same response structure like when using inParallel() even with only objref = id', () => {
+                let returnObject = {myKey: {it: 'works'}};
+
+                api.doRequest.restore();
+                apiResponse(returnObject);
+
+                return new SimpleVertecQuery().findById(123).inParallel().get().then(response => {
+                    expect(response).to.have.lengthOf(1);
+                    expect(response[0].data).to.deep.equal(returnObject);
+                });
+            });
+
+            it('uses same transformers on multiple requests', () => {
+                let firstReturnObject = {myKey: {it: 'works'}};
+                let secondReturnObject = {myKey: {it: 'really works'}};
+
+                let requestStub = sinon.stub(api, 'select');
+                requestStub.onFirstCall().returns(q.resolve(firstReturnObject));
+                requestStub.onSecondCall().returns(q.resolve(secondReturnObject));
+
+                return new SimpleVertecQuery()
+                    .findById([123, 234])
+                    .inParallel()
+                    .addTransformer(response => {
+                        return {
+                            myKey: {
+                                it: response.myKey.it + '!'
+                            }
+                        };
+                    })
+                    .get()
+                    .then(response => {
+                        expect(response).to.have.lengthOf(2);
+                        expect(response[0].data).to.deep.equal({myKey: {it: 'works!'}});
+                        expect(response[1].data).to.deep.equal({myKey: {it: 'really works!'}});
+                    });
             });
         });
     });
