@@ -469,29 +469,52 @@ describe('SimpleVertecQuery', () => {
                 });
             });
 
-            it('uses same transformers on multiple requests', () => {
-                let firstReturnObject = {myKey: {it: 'works'}};
-                let secondReturnObject = {myKey: {it: 'really works'}};
-
-                let requestStub = sinon.stub(api, 'select');
-                requestStub.onFirstCall().returns(q.resolve(firstReturnObject));
-                requestStub.onSecondCall().returns(q.resolve(secondReturnObject));
+            it('uses same transformers and fields and params on multiple requests', () => {
+                let i = 0;
 
                 return new SimpleVertecQuery()
                     .findById([123, 234])
+                    .addField(':dynamicField')
+                    .addParam({dynamicField: 'code'})
                     .inParallel()
                     .addTransformer(response => {
+                        i++;
+
                         return {
                             myKey: {
-                                it: response.myKey.it + '!'
+                                it: response.it + '!' + i
                             }
                         };
                     })
                     .get()
                     .then(response => {
                         expect(response).to.have.lengthOf(2);
-                        expect(response[0].data).to.deep.equal({myKey: {it: 'works!'}});
-                        expect(response[1].data).to.deep.equal({myKey: {it: 'really works!'}});
+                        expect(response[0].data).to.deep.equal({myKey: {it: 'works!1'}});
+                        expect(response[1].data).to.deep.equal({myKey: {it: 'works!2'}});
+
+                        expect(buildSelectObjectSpy.returnValues.shift()).to.deep.equal({
+                            Query: {
+                                Resultdef: {
+                                    expression: [],
+                                    member: ['code']
+                                },
+                                Selection: {
+                                    objref: 123
+                                }
+                            }
+                        });
+
+                        expect(buildSelectObjectSpy.returnValues.shift()).to.deep.equal({
+                            Query: {
+                                Resultdef: {
+                                    expression: [],
+                                    member: ['code']
+                                },
+                                Selection: {
+                                    objref: 234
+                                }
+                            }
+                        });
                     });
             });
         });
