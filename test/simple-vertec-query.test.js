@@ -64,6 +64,22 @@ describe('SimpleVertecQuery', () => {
             });
         });
 
+        it('findById() sets array of ids as one objref as query param', () => {
+            new SimpleVertecQuery().findById([123, 234]).get();
+
+            expect(buildSelectObjectSpy.returnValues.pop()).to.deep.equal({
+                Query: {
+                    Resultdef: {
+                        expression: [],
+                        member: []
+                    },
+                    Selection: {
+                        objref: [123, 234]
+                    }
+                }
+            });
+        });
+
         it('whereOcl() sets ocl as query param', () => {
             new SimpleVertecQuery().whereOcl('something').get();
 
@@ -284,6 +300,14 @@ describe('SimpleVertecQuery', () => {
             expect(query.cacheGraceTime).to.equal(10);
         });
 
+        it('inParallel() activates parallel mode', () => {
+            let query = new SimpleVertecQuery();
+            expect(query.useParallelMode).to.equal(false);
+
+            query.inParallel();
+            expect(query.useParallelMode).to.equal(true);
+        });
+
         describe('get()', () => {
             it('compiles an empty query when no options set', () => {
                 new SimpleVertecQuery().get();
@@ -349,6 +373,45 @@ describe('SimpleVertecQuery', () => {
                             sqlorder: 'date'
                         }
                     }
+                });
+            });
+
+            it('makes multiple requests with multiple objrefs when using inParallel()', () => {
+                let firstReturnObject = {myFirstKey: {it: 'works'}};
+                let secondReturnObject = {mySecondKey: {it: 'works'}};
+
+                api.doRequest.restore();
+                let requestStub = sinon.stub(api, 'doRequest');
+                requestStub.onFirstCall().returns(q.resolve(firstReturnObject));
+                requestStub.onSecondCall().returns(q.resolve(secondReturnObject));
+
+                return new SimpleVertecQuery().findById([123, 234]).inParallel().get().then(response => {
+                    expect(response[0].data).to.deep.equal(firstReturnObject);
+                    expect(response[1].data).to.deep.equal(secondReturnObject);
+
+                    expect(buildSelectObjectSpy.returnValues.shift()).to.deep.equal({
+                        Query: {
+                            Resultdef: {
+                                expression: [],
+                                member: []
+                            },
+                            Selection: {
+                                objref: 123
+                            }
+                        }
+                    });
+
+                    expect(buildSelectObjectSpy.returnValues.shift()).to.deep.equal({
+                        Query: {
+                            Resultdef: {
+                                expression: [],
+                                member: []
+                            },
+                            Selection: {
+                                objref: 234
+                            }
+                        }
+                    });
                 });
             });
         });
@@ -1210,7 +1273,7 @@ describe('SimpleVertecQuery', () => {
                 fakeCacheInstance = {
                     get() {},
                     set() {
-                        cacheSetArguments = arguments;
+                        cacheSetArguments.push(arguments);
                     }
                 };
                 SimpleVertecQuery.setMemcached(fakeCacheInstance);
@@ -1227,8 +1290,9 @@ describe('SimpleVertecQuery', () => {
                     expect(response.onGrace).to.be.false;
                     expect(response.data.it).to.equal('works 14');
                     expect(response.refresh).to.be.false;
-                    expect(cacheSetArguments[0]).to.equal('svq-test10-10');
-                    expect(cacheSetArguments[2]).to.equal(10);
+                    expect(cacheSetArguments).to.have.lengthOf(1);
+                    expect(cacheSetArguments[0][0]).to.equal('svq-test10-10');
+                    expect(cacheSetArguments[0][2]).to.equal(10);
                     done();
                 });
             });
@@ -1242,8 +1306,9 @@ describe('SimpleVertecQuery', () => {
                     expect(response.onGrace).to.be.false;
                     expect(response.data.it).to.equal('works 4');
                     expect(response.refresh).to.be.false;
-                    expect(cacheSetArguments[0]).to.equal('app-test2-10');
-                    expect(cacheSetArguments[2]).to.equal(10);
+                    expect(cacheSetArguments).to.have.lengthOf(1);
+                    expect(cacheSetArguments[0][0]).to.equal('app-test2-10');
+                    expect(cacheSetArguments[0][2]).to.equal(10);
                     done();
                 });
             });
@@ -1257,9 +1322,10 @@ describe('SimpleVertecQuery', () => {
                     expect(response.onGrace).to.be.false;
                     expect(response.data.it).to.equal('works 5');
                     expect(response.refresh).to.be.false;
-                    expect(cacheSetArguments[0]).to.equal('app-test3-10');
-                    expect(cacheSetArguments[1].softExpire).to.be.closeTo(new Date().getTime() + 10*1000, 500);
-                    expect(cacheSetArguments[2]).to.equal(15);
+                    expect(cacheSetArguments).to.have.lengthOf(1);
+                    expect(cacheSetArguments[0][0]).to.equal('app-test3-10');
+                    expect(cacheSetArguments[0][1].softExpire).to.be.closeTo(new Date().getTime() + 10*1000, 500);
+                    expect(cacheSetArguments[0][2]).to.equal(15);
                     done();
                 });
             });
@@ -1273,7 +1339,8 @@ describe('SimpleVertecQuery', () => {
                     expect(response.onGrace).to.be.false;
                     expect(response.data.it).to.equal('works 6');
                     expect(response.refresh).to.be.false;
-                    expect(cacheSetArguments[0]).to.equal('app-test4-10');
+                    expect(cacheSetArguments).to.have.lengthOf(1);
+                    expect(cacheSetArguments[0][0]).to.equal('app-test4-10');
                     done();
                 });
             });
@@ -1288,7 +1355,8 @@ describe('SimpleVertecQuery', () => {
                     expect(response.onGrace).to.be.false;
                     expect(response.data.it).to.equal('works 7');
                     expect(response.refresh).to.be.false;
-                    expect(cacheSetArguments[0]).to.match(/^app-\w{32}-10$/);
+                    expect(cacheSetArguments).to.have.lengthOf(1);
+                    expect(cacheSetArguments[0][0]).to.match(/^app-\w{32}-10$/);
                     expect(buildSelectStringSpy.returnValues).to.have.lengthOf(2);
                     done();
                 });
@@ -1309,8 +1377,9 @@ describe('SimpleVertecQuery', () => {
                     expect(response.refresh).to.be.false;
 
                     setTimeout(() => {
-                        expect(cacheSetArguments[0]).to.equal('app-test6-10');
-                        expect(cacheSetArguments[1].data.it).to.equal('works 12');
+                        expect(cacheSetArguments).to.have.lengthOf(1);
+                        expect(cacheSetArguments[0][0]).to.equal('app-test6-10');
+                        expect(cacheSetArguments[0][1].data.it).to.equal('works 12');
                         done();
                     }, 10);
                 });
@@ -1327,7 +1396,7 @@ describe('SimpleVertecQuery', () => {
                     expect(response.onGrace).to.be.false;
                     expect(response.data.it).to.equal('works 8');
                     expect(response.refresh).to.be.false;
-                    expect(cacheSetArguments[0]).to.be.undefined;
+                    expect(cacheSetArguments).to.have.lengthOf(0);
                     done();
                 });
             });
@@ -1343,7 +1412,7 @@ describe('SimpleVertecQuery', () => {
                     expect(response.onGrace).to.be.false;
                     expect(response.data.it).to.equal('works 10');
                     expect(response.refresh).to.be.false;
-                    expect(cacheSetArguments[0]).to.be.undefined;
+                    expect(cacheSetArguments).to.have.lengthOf(0);
                     done();
                 });
             });
@@ -1361,9 +1430,69 @@ describe('SimpleVertecQuery', () => {
                     expect(response.onGrace).to.be.false;
                     expect(response.data.it).to.equal('works 13');
                     expect(response.refresh).to.be.true;
-                    expect(cacheSetArguments[0]).to.equal('app-test8-10');
+                    expect(cacheSetArguments).to.have.lengthOf(1);
+                    expect(cacheSetArguments[0][0]).to.equal('app-test8-10');
                     done();
                 });
+            });
+
+            it('sets caching independently for every request', () => {
+                sinon.stub(fakeCacheInstance, 'get').yields(null, false);
+
+                let firstReturnObject = {myFirstKey: {it: 'works'}};
+                let secondReturnObject = {mySecondKey: {it: 'works'}};
+
+                let requestStub = sinon.stub(api, 'select');
+                requestStub.onFirstCall().returns(q.resolve(firstReturnObject));
+                requestStub.onSecondCall().returns(q.resolve(secondReturnObject));
+
+                return new SimpleVertecQuery()
+                    .findById([123, 234])
+                    .setCacheTTL(10)
+                    .setCacheGraceTime(5)
+                    .inParallel()
+                    .get()
+                    .then(response => {
+                        expect(response[0].data).to.deep.equal(firstReturnObject);
+                        expect(response[1].data).to.deep.equal(secondReturnObject);
+                        expect(response[0].softExpire).to.not.equal(response[1].softExpire);
+                        expect(cacheSetArguments).to.have.lengthOf(2);
+                        expect(cacheSetArguments[0][1].softExpire).to.be.closeTo(new Date().getTime() + 10*1000, 500);
+                        expect(cacheSetArguments[1][1].softExpire).to.be.closeTo(new Date().getTime() + 10*1000, 500);
+                    });
+            });
+
+            it('returns cached object and requests uncached object', () => {
+                let firstReturnObject = {
+                    data: {
+                        myFirstKey: {it: 'works'}
+                    },
+                    softExpire: new Date().getTime() + 1000
+                };
+                let secondReturnObject = {mySecondKey: {it: 'works'}};
+
+                let cacheStub = sinon.stub(fakeCacheInstance, 'get');
+                cacheStub.onFirstCall().yields(null, firstReturnObject);
+                cacheStub.onSecondCall().yields(null, false);
+
+                let requestStub = sinon.stub(api, 'doRequest');
+                requestStub.returns(q.resolve(secondReturnObject));
+
+                let selectSpy = sinon.spy(api, 'select');
+
+                return new SimpleVertecQuery()
+                    .findById([123, 234])
+                    .setCacheTTL(10)
+                    .setCacheGraceTime(5)
+                    .inParallel()
+                    .get()
+                    .then(response => {
+                        expect(response[0].data).to.deep.equal(firstReturnObject.data);
+                        expect(response[1].data).to.deep.equal(secondReturnObject);
+                        expect(cacheSetArguments).to.have.lengthOf(1);
+                        expect(cacheSetArguments[0][1].softExpire).to.be.closeTo(new Date().getTime() + 10*1000, 500);
+                        sinon.assert.calledOnce(selectSpy);
+                    });
             });
 
             it('catches cache fetching errors', (done) => {
