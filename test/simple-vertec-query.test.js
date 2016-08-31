@@ -4,6 +4,20 @@ import sinon from 'sinon';
 import q from 'bluebird';
 import _ from 'lodash';
 
+/**
+ * Checks actual string which gets filtered with new lines and intendation spaces against expected string
+ *
+ * @private
+ *
+ * @param {string} actual Actual string
+ * @param {string} expected Expected string
+ *
+ * @return {void}
+ */
+function compareFilteredString(actual, expected) {
+    expect(actual.replace(/\n */g, '')).to.equal(expected);
+}
+
 describe('SimpleVertecQuery', () => {
     let api;
     let buildSelectObjectSpy;
@@ -41,6 +55,37 @@ describe('SimpleVertecQuery', () => {
 
             expect(SimpleVertecQuery.appCacheKey).to.equal(appCacheKey);
         });
+
+        it('sets raw options via construtor', () => {
+            let newOptions = {
+                query: {
+                    objref: [123, 234]
+                },
+                params: {
+                    test: 123
+                },
+                fields: [
+                    {
+                        ocl: 'test-ocl',
+                        alias: 'test-alias'
+                    }
+                ],
+                transformers: [
+                    response => {
+                        return {
+                            newResponse: response + 'it works'
+                        };
+                    }
+                ]
+            };
+
+            let query = new SimpleVertecQuery(newOptions);
+
+            expect(query.options.query.objref).to.deep.equal(newOptions.query.objref);
+            expect(query.options.query.params).to.deep.equal(newOptions.query.params);
+            expect(query.options.query.fields).to.deep.equal(newOptions.query.fields);
+            expect(query.options.query.transformers).to.deep.equal(newOptions.query.transformers);
+        });        
     });
 
     describe('query testing', () => {
@@ -380,6 +425,8 @@ describe('SimpleVertecQuery', () => {
             });
 
             it('makes multiple requests with multiple objrefs when using inParallel()', () => {
+                let buildXmlSpy = sinon.spy(api, 'buildXml');
+
                 let firstReturnObject = {myFirstKey: {it: 'works'}};
                 let secondReturnObject = {mySecondKey: {it: 'works'}};
 
@@ -415,6 +462,9 @@ describe('SimpleVertecQuery', () => {
                             }
                         }
                     });
+
+                    compareFilteredString(buildXmlSpy.returnValues.shift(), '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><objref>123</objref></Selection><Resultdef><member>code</member></Resultdef></Query></Body></Envelope>');
+                    compareFilteredString(buildXmlSpy.returnValues.shift(), '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><objref>234</objref></Selection><Resultdef><member>code</member></Resultdef></Query></Body></Envelope>');
                 });
             });
 

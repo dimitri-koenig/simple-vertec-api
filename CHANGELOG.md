@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased][unreleased]
+### Bugfix
+* Fixed some more bugs with parallel mode
 
 ## [3.0.0-rc.12][2016-08-30]
 ### Bugfix
