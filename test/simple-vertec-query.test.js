@@ -860,6 +860,97 @@ describe('SimpleVertecQuery', () => {
                 });
             });
 
+            it('zips a field with two entries and each with two keys', () => {
+                let returnObject = {
+                    myKey: {
+                        id: [123, 234],
+                        text: ['it', 'works']
+                    }
+                };
+
+                apiResponse(returnObject);
+
+                return new SimpleVertecQuery().zip('myKey').get().then(response => {
+                    expect(response.data).to.deep.equal({
+                        myKey: [
+                            {
+                                id: 123,
+                                text: 'it'
+                            },
+                            {
+                                id: 234,
+                                text: 'works'
+                            }
+                        ]
+                    });
+                });
+            });
+
+            it('uses force option to return an array for zipping a not existing field', () => {
+                let returnObject = {
+                    myFirstKey: {
+                        id: [123, 234],
+                        text: ['it', 'works']
+                    }
+                };
+
+                apiResponse(returnObject);
+
+                return new SimpleVertecQuery().zip('myFirstKey').zip('mySecondKey', null, true).get().then(response => {
+                    expect(response.data).to.deep.equal({
+                        myFirstKey: [
+                            {
+                                id: 123,
+                                text: 'it'
+                            },
+                            {
+                                id: 234,
+                                text: 'works'
+                            }
+                        ],
+                        mySecondKey: []
+                    });
+                });
+            });
+
+            it('uses key check option to return only elements which have a first element key value neither null of undefined', () => {
+                let returnObject = {
+                    myFirstKey: {
+                        id: [null, 123],
+                        text: ['it', 'does not work']
+                    },
+                    mySecondKey: {
+                        id: [undefined, 234],
+                        text: ['it', 'does not work']
+                    },
+                    myThirdKey: {
+                        id: null,
+                        text: 'it does not work'
+                    },
+                    myForthKey: {
+                        id: undefined,
+                        text: 'it does not work'
+                    }
+                };
+
+                apiResponse(returnObject);
+
+                return new SimpleVertecQuery()
+                    .zip('myFirstKey', 'id')
+                    .zip('mySecondKey', 'id')
+                    .zip('myThirdKey', 'id')
+                    .zip('myForthKey', 'id')
+                    .get()
+                    .then(response => {
+                        expect(response.data).to.deep.equal({
+                            myFirstKey: [],
+                            mySecondKey: [],
+                            myThirdKey: [],
+                            myForthKey: []
+                        });
+                    });
+            });
+
             it('zips field using a path', () => {
                 let returnObject = {
                     my: {
@@ -1028,50 +1119,23 @@ describe('SimpleVertecQuery', () => {
                 });
             });
 
-            it('zips field using a path with two wildcards in the middle', () => {
+            it('zips field using a path with one wildcard in the middle, forcing to become an array', () => {
                 let returnObject = {
                     my: {
                         first: {
-                            subFirst: {
-                                key: {
-                                    id: [123, 234],
-                                    text: ['it', 'works']
-                                },
-                                not: {
-                                    my: 'key'
-                                }
+                            key: {
+                                id: 123,
+                                text: 'it works'
                             },
-                            subSecond: {
-                                key: {
-                                    id: [345, 456],
-                                    text: ['it really', 'works!']
-                                },
-                                also: {
-                                    not: {
-                                        my: 'key'
-                                    }
-                                }
+                            not: {
+                                my: 'key'
                             }
                         },
                         second: {
-                            subFirst: {
-                                key: {
-                                    id: [567, 678],
-                                    text: ['it', 'works']
-                                },
+                            key: null,
+                            also: {
                                 not: {
                                     my: 'key'
-                                }
-                            },
-                            subSecond: {
-                                key: {
-                                    id: [789, 890],
-                                    text: ['it really', 'works!']
-                                },
-                                also: {
-                                    not: {
-                                        my: 'key'
-                                    }
                                 }
                             }
                         }
@@ -1080,74 +1144,25 @@ describe('SimpleVertecQuery', () => {
 
                 apiResponse(returnObject);
 
-                return new SimpleVertecQuery().zip('my.*.*.key').get().then(response => {
+                return new SimpleVertecQuery().zip('my.*.key').get().then(response => {
                     expect(response.data).to.deep.equal({
                         my: {
                             first: {
-                                subFirst: {
-                                    key: [
-                                        {
-                                            id: 123,
-                                            text: 'it'
-                                        },
-                                        {
-                                            id: 234,
-                                            text: 'works'
-                                        }
-                                    ],
-                                    not: {
-                                        my: 'key'
+                                key: [
+                                    {
+                                        id: 123,
+                                        text: 'it works'
                                     }
-                                },
-                                subSecond: {
-                                    key: [
-                                        {
-                                            id: 345,
-                                            text: 'it really'
-                                        },
-                                        {
-                                            id: 456,
-                                            text: 'works!'
-                                        }
-                                    ],
-                                    also: {
-                                        not: {
-                                            my: 'key'
-                                        }
-                                    }
+                                ],
+                                not: {
+                                    my: 'key'
                                 }
                             },
                             second: {
-                                subFirst: {
-                                    key: [
-                                        {
-                                            id: 567,
-                                            text: 'it'
-                                        },
-                                        {
-                                            id: 678,
-                                            text: 'works'
-                                        }
-                                    ],
+                                key: [],
+                                also: {
                                     not: {
                                         my: 'key'
-                                    }
-                                },
-                                subSecond: {
-                                    key: [
-                                        {
-                                            id: 789,
-                                            text: 'it really'
-                                        },
-                                        {
-                                            id: 890,
-                                            text: 'works!'
-                                        }
-                                    ],
-                                    also: {
-                                        not: {
-                                            my: 'key'
-                                        }
                                     }
                                 }
                             }
@@ -1314,7 +1329,7 @@ describe('SimpleVertecQuery', () => {
                     });
             });
 
-            it('does not zip a field using a path if the path does not exist', () => {
+            it('does not zip a field using a path if the path does not exist, if force array option is false', () => {
                 let returnObject = {
                     my: {
                         key: {
@@ -1326,7 +1341,7 @@ describe('SimpleVertecQuery', () => {
 
                 apiResponse(returnObject);
 
-                return new SimpleVertecQuery().zip('my.key').zip('my.field').get().then(response => {
+                return new SimpleVertecQuery().zip('my.key').zip('my.field', null, false).get().then(response => {
                     expect(response.data).to.deep.equal({
                         my: {
                             key: [
