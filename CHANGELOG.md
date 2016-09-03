@@ -4,77 +4,33 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased][unreleased]
 
-## [3.0.0-rc.14][2016-09-03]
 ### Feature
 * Added more zip transformer options, added forceArray option to be default
-
-## [3.0.0-rc.13][2016-09-01]
-### Bugfix
-* Fixed some more bugs with parallel mode
-
-## [3.0.0-rc.12][2016-08-30]
-### Bugfix
-* Fixed bugs with parallel mode and performing param injection
-
-## [3.0.0-rc.11][2016-08-30]
-### Bugfix
-* Fixed bugs with parallel mode where providing only one id in an array did not result in correct parallel response return format
-
-## [3.0.0-rc.10][2016-08-30]
-### Feature
 * Added multiple requests in parallel mode
-
-## [3.0.0-rc.9][2016-08-26]
-### Bugfix
-* Fixed bug where zip transformation needs to be placed in correct order into transformers array
-
-## [3.0.0-rc.8][2016-08-26]
-### Feature
 * Added zip method to zip together properties of an object
-
-## [3.0.0-rc.7][2016-08-24]
-### Feature
 * Added setRootKey method to enable setting a key other than "data"
-
-## [3.0.0-rc.6][2016-08-21]
-### Removal
-* Removed Vertec request time from result object due to sideeffects (#96)
-
-### Bugfix
-* Fixed bug with running multiple transformers which all create new return values
-
-## [3.0.0-rc.5][2016-08-21]
-### Enhancement
-* addFields accepts one array argument with fields to add
-
-## [3.0.0-rc.4][2016-08-20]
-### Feature
 * Added transformer feature before putting into cache (#95)
 * Added feature to merge specific response properties into result, with optional array transformation (#97)
-
-### Enhancement
-* Added Vertec request time to result object (#96)
-
-## [3.0.0-rc.3][2016-08-20]
-### Bugfix
-* Fixed wrong calculation of softExpire timestamp
-
-### Enhancement
-* cacheKey includes cacheTTL just in case it should be lowered without flushing the whole cache
-
-## [3.0.0-rc.2][2016-08-20]
-### Bugfix
-* Removed empty cache item check due to missing business logic per use case
-
-### Enhancement
-* Logging of build xml string only when sending request
-
-## [3.0.0-rc.1][2016-08-20]
-### Feature
 * Added query class for select operations
 
 ### Bugfix
+* Fixed some more bugs with parallel mode
+* Fixed bugs with parallel mode and performing param injection
+* Fixed bugs with parallel mode where providing only one id in an array did not result in correct parallel response return format
+* Fixed bug where zip transformation needs to be placed in correct order into transformers array
+* Fixed bug with running multiple transformers which all create new return values
+* Fixed wrong calculation of softExpire timestamp
+* Removed empty cache item check due to missing business logic per use case
 * Updated simple-parameter-injector to 1.0.1 due to a nasty bug with parameters being modified
+
+### Removal
+* Removed Vertec request time from result object due to sideeffects (#96)
+
+### Enhancement
+* addFields accepts one array argument with fields to add
+* Added Vertec request time to result object (#96)
+* cacheKey includes cacheTTL just in case it should be lowered without flushing the whole cache
+* Logging of build xml string only when sending request
 
 ## [2.21.2][2016-05-09]
 ### Bugfix
