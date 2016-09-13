@@ -22,6 +22,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 * Fixed wrong calculation of softExpire timestamp
 * Removed empty cache item check due to missing business logic per use case
 * Updated simple-parameter-injector to 1.0.1 due to a nasty bug with parameters being modified
+* Cache key did not consider findById params (#98)
 
 ### Removal
 * Removed Vertec request time from result object due to sideeffects (#96)

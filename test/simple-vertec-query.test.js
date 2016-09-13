@@ -567,6 +567,58 @@ describe('SimpleVertecQuery', () => {
                         });
                     });
             });
+
+            it('uses different cache keys if setCacheKey is used with parallel mode', () => {
+                let cacheSetArguments = [];
+                let fakeCacheInstance = {
+                    get() {},
+                    set() {
+                        cacheSetArguments.push(arguments);
+                    }
+                };
+                SimpleVertecQuery.setMemcached(fakeCacheInstance);
+                sinon.stub(fakeCacheInstance, 'get').yields(null, false);
+
+                return new SimpleVertecQuery()
+                    .findById([123, 234])
+                    .addField(':dynamicField')
+                    .addParam({dynamicField: 'code'})
+                    .setCacheTTL(60)
+                    .setCacheKey('parallel-cache-key')
+                    .inParallel()
+                    .get()
+                    .then(() => {
+                        expect(cacheSetArguments).to.have.lengthOf(2);
+                        expect(cacheSetArguments[0][0]).to.equal('my-app-parallel-cache-key-60-123');
+                        expect(cacheSetArguments[0][2]).to.equal(60);
+                        expect(cacheSetArguments[1][0]).to.equal('my-app-parallel-cache-key-60-234');
+                        expect(cacheSetArguments[1][2]).to.equal(60);
+
+                        expect(buildSelectObjectSpy.returnValues.shift()).to.deep.equal({
+                            Query: {
+                                Resultdef: {
+                                    expression: [],
+                                    member: ['code']
+                                },
+                                Selection: {
+                                    objref: 123
+                                }
+                            }
+                        });
+
+                        expect(buildSelectObjectSpy.returnValues.shift()).to.deep.equal({
+                            Query: {
+                                Resultdef: {
+                                    expression: [],
+                                    member: ['code']
+                                },
+                                Selection: {
+                                    objref: 234
+                                }
+                            }
+                        });
+                    });
+            });
         });
     });
 
