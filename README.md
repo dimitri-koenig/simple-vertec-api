@@ -5,15 +5,16 @@
 [![Code Climate](https://codeclimate.com/github/dimitri-koenig/simple-vertec-api/badges/gpa.svg)](https://codeclimate.com/github/dimitri-koenig/simple-vertec-api)
 [![Dependency Status](https://david-dm.org/dimitri-koenig/simple-vertec-api.svg)](https://david-dm.org/dimitri-koenig/simple-vertec-api)
 
-Simple Vertec Api is an simple wrapper around www.vertec.com XML webservice for Node.JS/io.js. It features solid CRUD support for dealing with Vertec's data.
+Simple Vertec Api is an simple wrapper around www.vertec.com XML webservice for node.js. It features solid CRUD support for dealing with Vertec's data.
 
 [Documentation](http://simple-vertec-api.readthedocs.org/en/latest/)
 
 
 ## Delimination and Responsibility
 
-This XML wrapper will only give you a simpler way of making requests via Vertec's own XML interface. There won't be any validations done for data input (you have to do it or rely on Vertec's validation as it is their responsibility on server side), nor will there be any additional features which would go beyond wrapping just the XML request part in a simple manner.
+This XML wrapper will only give you a simpler way of making requests via Vertec's own XML interface. There won't be any validations done for data input (you have to do it or rely on Vertec's validation as it is their responsibility on server side).
 
+Version 3 offers additional query options for further transforming response data, included caching support, parallel request mode and many more. Take a look at the [documentation](http://simple-vertec-api.readthedocs.org/en/latest/).
 
 ## Installation
 
@@ -22,8 +23,29 @@ Run this command:
 $ npm install simple-vertec-api --save
 ```
 
+## Example for a simple query request
 
-## Example
+```javascript
+var SimpleVertecApi = require('simple-vertec-api').SimpleVertecApi;
+var SimpleVertecQuery = require('simple-vertec-api').SimpleVertecQuery;
+
+var api = new SimpleVertecApi('http://localhost', 'my-username', 'my-password', true);
+SimpleVertecQuery.setApi(api);
+
+new SimpleVertecQuery()
+    .whereOcl('Projektbearbeiter')
+    .whereSql('aktiv = 1')
+    .orderBy('name')
+    .addFields('name', 'kuerzel')
+    .get()
+    .then(function(response) {
+        // do something with the result
+        console.log(response);
+    });
+```
+
+
+## Example for a raw api request
 
 ```javascript
 var SimpleVertecApi = require('simple-vertec-api').SimpleVertecApi;
