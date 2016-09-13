@@ -10,7 +10,7 @@ Sets the api object for all the requests.
 * *SimpleVertecApi* `api`: An instance of SimpleVertecApi
 
 
-### Example
+__Example__
 
 ```javascript
 var SimpleVertecApi = require('simple-vertec-api').SimpleVertecApi;
@@ -28,7 +28,7 @@ Sets global cache instance of memcached for every instance.
 * *memcached* `cache`: An instance of memcached
 
 
-### Example
+__Example__
 
 ```javascript
 var SimpleVertecQuery = require('simple-vertec-api').SimpleVertecQuery;
@@ -46,7 +46,7 @@ Sets global app cache key for every instance.
 * *string* `appCacheKey`: App cache key
 
 
-### Example
+__Example__
 
 ```javascript
 var SimpleVertecQuery = require('simple-vertec-api').SimpleVertecQuery;
@@ -63,7 +63,7 @@ Finds one or many ids. Returns instance of itself for chaining.
 * *number[]* `ids`: One id or an array of ids
 
 
-### Example 1
+__Example 1__
 
 ```javascript
 new SimpleVertecQuery()
@@ -76,7 +76,7 @@ new SimpleVertecQuery()
     });
 ```
 
-### Example 2
+__Example 2__
 
 ```javascript
 new SimpleVertecQuery()
@@ -98,7 +98,7 @@ Adds ocl expression to select. Returns instance of itself for chaining.
 * *string* `ocl`: Ocl expression
 
 
-### Example
+__Example__
 
 ```javascript
 new SimpleVertecQuery()
@@ -119,7 +119,7 @@ Adds sql where expression to select. Returns instance of itself for chaining.
 * *string* `sql`: Sql where expression
 
 
-### Example
+__Example__
 
 ```javascript
 new SimpleVertecQuery()
@@ -142,7 +142,7 @@ Adds order expression. Returns instance of itself for chaining.
 * *string* `order`: Order expression
 
 
-### Example
+__Example__
 
 ```javascript
 new SimpleVertecQuery()
@@ -168,7 +168,7 @@ For more examples see api and params handling.
 * *mixed* `value`: Mixed value parameter
 
 
-### Example
+__Example__
 
 ```javascript
 var paramObject = {
@@ -198,7 +198,7 @@ Either the first argument is an array containing parameters or every every argum
 * *mixed* `values`: Mixed value parameters
 
 
-### Example
+__Example__
 
 ```javascript
 new SimpleVertecQuery()
@@ -223,7 +223,7 @@ Adds one field to field array. Returns instance of itself for chaining.
 * *string* `alias` *optional*: Optional alias string if value is a string containing an ocl expression
 
 
-### Example
+__Example__
 
 ```javascript
 new SimpleVertecQuery()
@@ -247,7 +247,7 @@ Either the first argument is an array containing fields or every every argument 
 * *mixed* `values`: Mixed value parameters
 
 
-### Example
+__Example__
 
 ```javascript
 new SimpleVertecQuery()
@@ -271,7 +271,7 @@ If no cacheKey is set, the hashed value of the request xml will be used as cache
 * *number* `seconds`: Seconds for item to be in cache
 
 
-### Example
+__Example__
 
 ```javascript
 new SimpleVertecQuery()
@@ -296,7 +296,7 @@ Response data will include onGrace flag.
 * *number* `seconds`: Seconds for item to be additionally in cache
 
 
-### Example
+__Example__
 
 ```javascript
 new SimpleVertecQuery()
@@ -322,7 +322,7 @@ Useful for caching a request which has changing parameters but still returns sim
 * *string* `value`: Item cache key
 
 
-### Example
+__Example__
 
 ```javascript
 new SimpleVertecQuery()
@@ -348,7 +348,7 @@ Each transformer closure should return the transformed value.
 * *function* `transformer`: Transformer function
 
 
-### Example 1
+__Example 1__
 
 ```javascript
 new SimpleVertecQuery()
@@ -366,7 +366,7 @@ new SimpleVertecQuery()
 ```
 
 
-### Example 2
+__Example 2__
 
 ```javascript
 new SimpleVertecQuery()
@@ -398,7 +398,7 @@ Sets a property filter which extracts the result for the specific property. Retu
 * *boolean* `toArray`: Optionally converts value to an array
 
 
-### Example
+__Example__
 
 ```javascript
 new SimpleVertecQuery()
@@ -422,7 +422,7 @@ Default property is `data`.
 * *string* `newKey`: New root key
 
 
-### Example
+__Example__
 
 ```javascript
 new SimpleVertecQuery()
@@ -448,7 +448,7 @@ Wildcards using '*' are allowed too.
 * *boolean* `forceArray`: Forces path to become an array
 
 
-### Example
+__Example__
 
 ```javascript
 new SimpleVertecQuery()
@@ -480,7 +480,7 @@ Toggles parallel fetching mode of multiple objrefs. Returns instance of itself f
 * *boolean* `value`: Sets parallel mode
 
 
-### Example
+__Example__
 
 ```javascript
 new SimpleVertecQuery()
@@ -502,7 +502,7 @@ Sends a request with all settings and returns response. Returns instance of itse
 * *boolean* `refresh`: Forces a new request, even if caching is on.
 
 
-### Example
+__Example__
 
 ```javascript
 new SimpleVertecQuery()

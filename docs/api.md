@@ -17,7 +17,7 @@ Does a query on the server with additional parameters for the select. Returns a 
 * `fields` *(optional)*: An array containing the fields which should be returned. Accepts a string as item, or an object with the fields `ocl` and `alias` to do further expressions.
 
 
-### Simple select example
+__Simple select example__
 
 ```javascript
 var SimpleVertecApi = require('simple-vertec-api').SimpleVertecApi;
@@ -38,7 +38,7 @@ api.select(select, fields).then(function(response) {
 });
 ```
 
-### Simple array with select parameters
+__Simple array with select parameters__
 
 ```javascript
 // fetches records of user 12345 ordered by their date
@@ -58,7 +58,7 @@ api.select(select, params, fields).then(function(response) {
 // rendered select: projektbearbeiter->select(boldid = 12345).offeneleistungen->orderby(datum)
 ```
 
-### Named parameters for select
+__Named parameters for select__
 
 ```javascript
 // fetches records between two dates
@@ -79,7 +79,7 @@ api.select(select, params, fields).then(function(response) {
 // rendered select: self.verrechneteleistungen->select( (datum >= encodeDate(2015,8,3)) and (datum <= encodeDate(2015,8,9)) )
 ```
 
-### Using a simple string/number for select parameter
+__Using a simple string/number for select parameter__
 
 ```javascript
 // fetches records between two dates
@@ -97,7 +97,7 @@ api.select(select, param, fields).then(function(response) {
 // rendered self.offeneleistungen->select(datum = encodeDate(2015,8,3))
 ```
 
-### Advanced sql select
+__Advanced sql select__
 
 ```javascript
 // searches for some records starting from day X
@@ -181,6 +181,6 @@ Or:
 If in the data array the field `objref` is found, an update operation will be made. If there isn't such a field, a create operation will be made.
 
 
-### Multiple identical & simultaneous requests
+__Multiple identical & simultaneous requests__
 
 Multiple identical & simultaneous requests will be temporarily stored and thus only one promise returned. Because every query is stateless and contains every information it needs there shouldn't be any issues even with different user data.
