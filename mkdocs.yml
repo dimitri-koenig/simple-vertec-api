@@ -9,4 +9,5 @@ extra_javascript:
 - //cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/highlight.min.js
 pages:
 - Home: 'index.md'
+- Query: 'query.md'
 - Api: 'api.md'

@@ -32,6 +32,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 * Added Vertec request time to result object (#96)
 * cacheKey includes cacheTTL just in case it should be lowered without flushing the whole cache
 * Logging of build xml string only when sending request
+* Added documentation for v3 query feature (#91)
 
 ## [2.21.2][2016-05-09]
 ### Bugfix
