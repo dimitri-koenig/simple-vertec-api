@@ -4,6 +4,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased][unreleased]
 
+## [3.0.0][2016-09-13]
 ### Feature
 * Added more zip transformer options, added forceArray option to be default
 * Added multiple requests in parallel mode
