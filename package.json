@@ -1,7 +1,7 @@
 {
   "name": "simple-vertec-api",
-  "description": "Simple Vertec Api for Node.JS/io.js",
-  "version": "3.0.0",
+  "description": "Simple Vertec Api for node.js",
+  "version": "4.0.0-beta1",
   "author": "Dimitri König <dimitri@dimitrikoenig.net>",
   "contributors": [
     {
