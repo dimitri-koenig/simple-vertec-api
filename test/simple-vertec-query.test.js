@@ -18,6 +18,10 @@ function compareFilteredString(actual, expected) {
     expect(actual.replace(/\n */g, '')).to.equal(expected);
 }
 
+function newDate() {
+    return new Date().getTime() / 1000|0;
+}
+
 describe('SimpleVertecQuery', () => {
     let api;
     let buildSelectObjectSpy;
@@ -1544,7 +1548,7 @@ describe('SimpleVertecQuery', () => {
                     expect(response.meta.refresh).to.be.false;
                     expect(cacheSetArguments).to.have.lengthOf(1);
                     expect(cacheSetArguments[0][0]).to.equal('app-test3-10');
-                    expect(cacheSetArguments[0][1].meta.softExpire).to.be.closeTo(new Date().getTime() + 10*1000, 500);
+                    expect(cacheSetArguments[0][1].meta.softExpire).to.be.closeTo(newDate() + 10, 5);
                     expect(cacheSetArguments[0][2]).to.equal(15);
                     done();
                 });
@@ -1585,7 +1589,7 @@ describe('SimpleVertecQuery', () => {
             it('fires request if item in cache is on grace', (done) => {
                 let cacheItem = {
                     meta: {
-                        softExpire: new Date().getTime() - 1000
+                        softExpire: newDate() - 1
                     },
                     data: {it: 'works 9'}
                 };
@@ -1628,7 +1632,7 @@ describe('SimpleVertecQuery', () => {
             it('does not fire request if item in cache found which could be on grace but is not', (done) => {
                 let cacheItem = {
                     meta: {
-                        softExpire: new Date().getTime() + 1000
+                        softExpire: newDate() + 1
                     },
                     data: {it: 'works 10'}
                 };
@@ -1646,7 +1650,7 @@ describe('SimpleVertecQuery', () => {
             it('fires request if refresh = true even if item in cache found', (done) => {
                 let cacheItem = {
                     meta: {
-                        softExpire: new Date().getTime() - 1000
+                        softExpire: newDate() - 1
                     },
                     data: {it: 'works 11'}
                 };
@@ -1685,8 +1689,8 @@ describe('SimpleVertecQuery', () => {
                         expect(response[1].data).to.deep.equal(secondReturnObject);
                         expect(response[0].meta.softExpire).to.not.equal(response[1].softExpire);
                         expect(cacheSetArguments).to.have.lengthOf(2);
-                        expect(cacheSetArguments[0][1].meta.softExpire).to.be.closeTo(new Date().getTime() + 10*1000, 500);
-                        expect(cacheSetArguments[1][1].meta.softExpire).to.be.closeTo(new Date().getTime() + 10*1000, 500);
+                        expect(cacheSetArguments[0][1].meta.softExpire).to.be.closeTo(newDate() + 10, 3);
+                        expect(cacheSetArguments[1][1].meta.softExpire).to.be.closeTo(newDate() + 10, 3);
                     });
             });
 
@@ -1696,7 +1700,7 @@ describe('SimpleVertecQuery', () => {
                         myFirstKey: {it: 'works'}
                     },
                     meta: {
-                        softExpire: new Date().getTime() + 1000
+                        softExpire: newDate() + 1
                     }
                 };
                 let secondReturnObject = {mySecondKey: {it: 'works'}};
@@ -1720,7 +1724,7 @@ describe('SimpleVertecQuery', () => {
                         expect(response[0].data).to.deep.equal(firstReturnObject.data);
                         expect(response[1].data).to.deep.equal(secondReturnObject);
                         expect(cacheSetArguments).to.have.lengthOf(1);
-                        expect(cacheSetArguments[0][1].meta.softExpire).to.be.closeTo(new Date().getTime() + 10*1000, 500);
+                        expect(cacheSetArguments[0][1].meta.softExpire).to.be.closeTo(newDate() + 10, 3);
                         sinon.assert.calledOnce(selectSpy);
                     });
             });
