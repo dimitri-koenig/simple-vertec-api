@@ -35,8 +35,14 @@ describe('SimpleVertecQuery', () => {
     };
 
     beforeEach('suite setup', () => {
-        api = new SimpleVertecApi('http://localhost', 'my-username', 'my-password');
+        api = new SimpleVertecApi('http://localhost', 'http://localhost', 'my-username', 'my-password');
         buildSelectObjectSpy = sinon.spy(api, 'buildSelectObject');
+
+        sinon.stub(api, 'getAuthToken', () => {
+            return new q((resolve) => {
+                resolve('my-token');
+            });
+        });
 
         SimpleVertecQuery.setApi(api);
     });
@@ -467,8 +473,8 @@ describe('SimpleVertecQuery', () => {
                         }
                     });
 
-                    compareFilteredString(buildXmlSpy.returnValues.shift(), '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><objref>123</objref></Selection><Resultdef><member>code</member></Resultdef></Query></Body></Envelope>');
-                    compareFilteredString(buildXmlSpy.returnValues.shift(), '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Name>my-username</Name><Password>my-password</Password></BasicAuth></Header><Body><Query><Selection><objref>234</objref></Selection><Resultdef><member>code</member></Resultdef></Query></Body></Envelope>');
+                    buildXmlSpy.returnValues.shift().then(xml => compareFilteredString(xml, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Token>my-token</Token></BasicAuth></Header><Body><Query><Selection><objref>123</objref></Selection><Resultdef><member>code</member></Resultdef></Query></Body></Envelope>'));
+                    buildXmlSpy.returnValues.shift().then(xml => compareFilteredString(xml, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Token>my-token</Token></BasicAuth></Header><Body><Query><Selection><objref>234</objref></Selection><Resultdef><member>code</member></Resultdef></Query></Body></Envelope>'));
                 });
             });
 

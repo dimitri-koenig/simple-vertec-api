@@ -224,7 +224,7 @@
     ],
     "max-nested-callbacks": [
       2,
-      4
+      5
     ],
     "max-params": [
       2,
