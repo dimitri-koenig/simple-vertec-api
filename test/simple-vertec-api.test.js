@@ -167,6 +167,64 @@ describe('SimpleVertecApi', () => {
             expect(api.requestRetryStrategy(null, {body: '<xml><fault>something</fault></xml>'})).to.be.true;
             expect(api.requestRetryStrategy(null, {body: '<DOCTYPE><HTML><BODY>SOMETHING</BODY></HTML>'})).to.be.true;
         });
+
+        it('requests and resets auth token', (done) => {
+            api = new SimpleVertecApi('http://localhost', 'http://localhost', 'my-username', 'my-password');
+            buildXmlSpy = sinon.spy(api, 'buildXml');
+
+            let requestStub = sinon.stub(api, 'request');
+            requestStub.onFirstCall().yields(null, {statusCode: 200}, 'my-new-token');
+            requestStub.onSecondCall().yields(null, null, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><QueryResponse><something>test</something></QueryResponse></Body></Envelope>');
+
+            expect(api.authTokenPromise).to.equal(null);
+            api.select('something');
+            expect(api.authTokenPromise).to.not.equal(null);
+
+            buildXmlSpy.returnValues.shift().then(xml => compareFilteredString(xml, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Token>my-new-token</Token></BasicAuth></Header><Body><Query><Selection><ocl>something</ocl></Selection></Query></Body></Envelope>'));
+
+            api.getAuthToken().then(token => {
+                expect(token).to.equal('my-new-token');
+
+                api.resetAuthToken();
+                expect(api.authTokenPromise).to.equal(null);
+
+                done();
+            });
+        });
+
+        it('returns server content if auth token request does not return a 200 statuscode', (done) => {
+            api = new SimpleVertecApi('http://localhost', 'http://localhost', 'my-username', 'my-password');
+
+            let requestStub = sinon.stub(api, 'request');
+            requestStub.yields(null, {statusCode: 400}, 'Invalid token');
+
+            api.getAuthToken().then(
+                (result) => {
+                    throw new Error('Promise was unexpectedly fulfilled. Result: ' + JSON.stringify(result));
+                },
+                (error) => {
+                    expect(error).to.equal('Invalid token');
+                    done();
+                }
+            );
+        });
+
+        it('returns server content if auth token request faily entirely', (done) => {
+            api = new SimpleVertecApi('http://localhost', 'http://localhost', 'my-username', 'my-password');
+
+            let requestStub = sinon.stub(api, 'request');
+            requestStub.yields('Some error', null, null);
+
+            api.getAuthToken().then(
+                (result) => {
+                    throw new Error('Promise was unexpectedly fulfilled. Result: ' + JSON.stringify(result));
+                },
+                (error) => {
+                    expect(error).to.equal('Some error');
+                    done();
+                }
+            );
+        });
     });
 
     describe('select()', () => {

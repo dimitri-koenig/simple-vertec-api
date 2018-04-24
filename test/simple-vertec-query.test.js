@@ -1577,7 +1577,7 @@ describe('SimpleVertecQuery', () => {
 
             it('puts result it into cache with request hash as cache key if no cacheKey defined', (done) => {
                 sinon.stub(fakeCacheInstance, 'get').yields(null, false);
-                let buildSelectStringSpy = sinon.spy(api, 'buildSelectString');
+                let buildXmlStringFromObjectSpy = sinon.spy(api, 'buildXmlStringFromObject');
 
                 apiResponse({it: 'works 7'});
 
@@ -1587,7 +1587,7 @@ describe('SimpleVertecQuery', () => {
                     expect(response.meta.refresh).to.be.false;
                     expect(cacheSetArguments).to.have.lengthOf(1);
                     expect(cacheSetArguments[0][0]).to.match(/^app-\w{32}-10$/);
-                    expect(buildSelectStringSpy.returnValues).to.have.lengthOf(2);
+                    expect(buildXmlStringFromObjectSpy.returnValues).to.have.lengthOf(2);
                     done();
                 });
             });
