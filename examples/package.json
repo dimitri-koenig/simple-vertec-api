@@ -16,7 +16,7 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "lodash": "^3.10.1",
+    "lodash": "^4.17.5",
     "moment": "^2.10.6",
     "restify": "^4.1.0",
     "simple-vertec-api": "^2.0.0"
