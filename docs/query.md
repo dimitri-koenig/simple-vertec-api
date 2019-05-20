@@ -16,7 +16,7 @@ __Example__
 var SimpleVertecApi = require('simple-vertec-api').SimpleVertecApi;
 var SimpleVertecQuery = require('simple-vertec-api').SimpleVertecQuery;
 
-var api = new SimpleVertecApi('http://localhost', 'my-username', 'my-password', true);
+var api = new SimpleVertecApi('http://localhost/xml', 'http://localhost/auth/xml', 'my-username', 'my-password', true);
 SimpleVertecQuery.setApi(api);
 ```
 

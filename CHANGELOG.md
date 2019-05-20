@@ -4,6 +4,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased][unreleased]
 
+## [4.0.0][2019-05-20]
+### Feature
+* Changed auth method and included usage of a token according to latest changes of Vertec >=6.2 (#100)
+
 ## [3.0.0][2016-09-13]
 ### Feature
 * Added more zip transformer options, added forceArray option to be default

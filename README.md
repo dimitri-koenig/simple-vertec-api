@@ -12,9 +12,11 @@ Simple Vertec Api is an simple wrapper around www.vertec.com XML webservice for 
 
 ## Delimination and Responsibility
 
-This XML wrapper will only give you a simpler way of making requests via Vertec's own XML interface. There won't be any validations done for data input (you have to do it or rely on Vertec's validation as it is their responsibility on server side).
+This XML wrapper will only give you a simpler way of making requests via Vertec's own XML interface. There won't be any validations done for data input (you have to do it yourself or rely on Vertec's validation as it is their responsibility on server side).
 
 Version 3 offers additional query options for further transforming response data, included caching support, parallel request mode and many more. Take a look at the [documentation](http://simple-vertec-api.readthedocs.org/en/latest/).
+
+Version 4 supports Vertec's new token based authorization.
 
 ## Installation
 
@@ -76,7 +78,7 @@ api.select(select, params, fields).then(function(response) {
 
 ## Versioning
 
-From 2.0.0 and up `Simple Vertec Api` will follow SEMVER.
+From 2.0.0 and up `Simple Vertec Api` follows SEMVER.
 
 
 ## Resources
