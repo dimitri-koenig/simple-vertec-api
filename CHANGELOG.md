@@ -4,9 +4,13 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased][unreleased]
 
+## [4.0.2][2019-05-24]
+### Bugfix
+* Requests with an invalid token will be retried instead of simply returned (#103)
+
 ## [4.0.1][2019-05-24]
 ### Bugfix
-* Response parsing fails if Server (Vertec 6.3) simply returns "Internal Server Error" #102
+* Response parsing fails if Server (Vertec 6.3) simply returns "Internal Server Error" (#102)
 
 ## [4.0.0][2019-05-20]
 ### Feature
