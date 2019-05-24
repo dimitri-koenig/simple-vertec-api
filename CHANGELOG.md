@@ -4,6 +4,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased][unreleased]
 
+## [4.0.1][2019-05-24]
+### Bugfix
+* Response parsing fails if Server (Vertec 6.3) simply returns "Internal Server Error" #102
+
 ## [4.0.0][2019-05-20]
 ### Feature
 * Changed auth method and included usage of a token according to latest changes of Vertec >=6.2 (#100)

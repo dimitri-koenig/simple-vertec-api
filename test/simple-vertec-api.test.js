@@ -98,6 +98,19 @@ describe('SimpleVertecApi', () => {
                 });
         });
 
+        it('converts non xml messages server', () => {
+            sinon.stub(api, 'request').yields(null, null, 'Internal Server Error');
+
+            return api.select('some faulty select').then(
+                (result) => {
+                    throw new Error('Promise was unexpectedly fulfilled. Result: ' + result);
+                },
+                (result) => {
+                    expect(result).to.include.keys('Error');
+                }
+            );
+        });
+
         it('converts fault messages from server', () => {
             sinon.stub(api, 'request').yields(null, null, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><Fault><faultcode>Client</faultcode></Fault></Body></Envelope>');
 
@@ -166,6 +179,7 @@ describe('SimpleVertecApi', () => {
             expect(api.requestRetryStrategy(null, {body: '<xml><something /></xml>'})).to.be.false;
             expect(api.requestRetryStrategy(null, {body: '<xml><fault>something</fault></xml>'})).to.be.true;
             expect(api.requestRetryStrategy(null, {body: '<DOCTYPE><HTML><BODY>SOMETHING</BODY></HTML>'})).to.be.true;
+            expect(api.requestRetryStrategy(null, {body: 'Internal Server Error'})).to.be.true;
         });
 
         it('requests and resets auth token', (done) => {
