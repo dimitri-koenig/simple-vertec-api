@@ -4,6 +4,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased][unreleased]
 
+## [4.0.3][2019-05-29]
+### Bugfix
+* Expired token is not handled properly (#104)
+
 ## [4.0.2][2019-05-24]
 ### Bugfix
 * Requests with an invalid token will be retried instead of simply returned (#103)
