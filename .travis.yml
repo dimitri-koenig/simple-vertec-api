@@ -9,5 +9,7 @@ sudo: false
 env:
   - NODE_ENV=test
 
-after_success:
-  - 'if [ "${TRAVIS_NODE_VERSION}" = "node" ] ; then make publish-coverage ; fi'
+matrix:
+  fast_finish: true
+  allow_failures:
+  - node_js: "node"
