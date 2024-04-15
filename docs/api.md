@@ -2,10 +2,8 @@
 
 Returns a new SimpleVertecApi object.
 
-* `xmlUrl`: A string containing the url the your vertec server, e.g. `https://vertec.company.com:8090/xml`
-* `authUrl`: A string containing the auth url the your vertec server, e.g. `https://vertec.company.com:8090/auth/xml`
-* `username`: A string with your vertec username
-* `password`: A string with your vertec username
+* `xmlUrl`: A string containing the url the your vertec server, e.g. `https://vertec.company.com/xml`
+* `apiKey`: A string with your vertec api key
 * `verbose` *(optional)*: A boolean which set on true will output additional log data
 * `defaultRequestOptions` *(optional)*: An object with addition request default options which can override standard options
 
@@ -22,7 +20,7 @@ __Simple select example__
 
 ```javascript
 var SimpleVertecApi = require('simple-vertec-api').SimpleVertecApi;
-var api = new SimpleVertecApi('http://my-vertec-domain/xml', 'http://my-vertec-domain/auth/xml', 'my-username', 'my-password', true);
+var api = new SimpleVertecApi('https://my-vertec-domain/xml', 'my-api-key', true);
 
 // fetches all active users ordered by their name
 var select = 'projektbearbeiter->select(aktiv)->orderby(name)';

@@ -1,8 +1,5 @@
 # Simple Vertec Api [![Build Status](https://travis-ci.org/dimitri-koenig/simple-vertec-api.svg?branch=master)](https://travis-ci.org/dimitri-koenig/simple-vertec-api)
 
-[![npm version](https://badge.fury.io/js/simple-vertec-api.svg)](http://badge.fury.io/js/simple-vertec-api)
-[![Dependency Status](https://david-dm.org/dimitri-koenig/simple-vertec-api.svg)](https://david-dm.org/dimitri-koenig/simple-vertec-api)
-
 Simple Vertec Api is an simple wrapper around www.vertec.com XML webservice for node.js. It features solid CRUD support for dealing with Vertec's data.
 
 [Documentation](http://simple-vertec-api.readthedocs.org/en/latest/)
@@ -16,6 +13,8 @@ Version 3 offers additional query options for further transforming response data
 
 Version 4 supports Vertec's new token based authorization.
 
+Version 5 supports Vertec's new API key based authorization.
+
 ## Installation
 
 Run this command:
@@ -23,13 +22,13 @@ Run this command:
 $ npm install simple-vertec-api --save
 ```
 
-## Example for a simple query request
+## Example for a simple query request fetching all active users
 
 ```javascript
 var SimpleVertecApi = require('simple-vertec-api').SimpleVertecApi;
 var SimpleVertecQuery = require('simple-vertec-api').SimpleVertecQuery;
 
-var api = new SimpleVertecApi('http://localhost', 'my-username', 'my-password', true);
+var api = new SimpleVertecApi('http://localhost', 'my-api-key', true);
 SimpleVertecQuery.setApi(api);
 
 new SimpleVertecQuery()
@@ -49,7 +48,7 @@ new SimpleVertecQuery()
 
 ```javascript
 var SimpleVertecApi = require('simple-vertec-api').SimpleVertecApi;
-var api = new SimpleVertecApi('http://localhost', 'my-username', 'my-password', true);
+var api = new SimpleVertecApi('http://localhost', 'my-api-key', true);
 
 // searches for some records starting from day X
 var select = {

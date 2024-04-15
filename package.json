@@ -1,7 +1,8 @@
 {
   "name": "simple-vertec-api",
   "description": "Simple Vertec Api for node.js",
-  "version": "4.0.3",
+  "version": "5.0.0",
+  "type": "module",
   "author": "Dimitri König <dimitri@dimitrikoenig.net>",
   "contributors": [
     {
@@ -17,29 +18,28 @@
     "url": "https://github.com/dimitri-koenig/simple-vertec-api/issues"
   },
   "dependencies": {
-    "bluebird": "^3.0.2",
-    "bunyan": "^1.5.1",
-    "lodash": "^4.2.0",
-    "md5": "^2.0.0",
-    "requestretry": "^1.5.0",
-    "simple-parameter-injector": "^1.0.1",
-    "simple-xml-converter": "^1.1.3",
-    "traverse": "^0.6.6",
+    "axios": "1.6.8",
+    "axios-retry": "4.1.0",
+    "bluebird": "3.7.2",
+    "bunyan": "1.8.15",
+    "lodash": "4.17.21",
+    "md5": "2.3.0",
+    "simple-parameter-injector": "github:dimitri-koenig/simple-parameter-injector#develop",
+    "simple-xml-converter": "github:dimitri-koenig/simple-xml-converter#develop",
+    "traverse": "0.6.8",
     "xml-digester": "0.0.5"
   },
   "devDependencies": {
-    "babel-cli": "^6.0.14",
-    "babel-core": "^6.0.14",
-    "babel-preset-es2015": "^6.0.14",
-    "chai": "^3.2.0",
-    "mocha": "^3.0.2",
-    "sinon": "^1.16.1"
+    "chai": "5.1.0",
+    "mocha": "10.4.0",
+    "sinon": "17.0.1"
   },
   "keywords": [
     "vertec",
     "nodejs"
   ],
-  "main": "./node/index",
+  "main": "./lib/index.js",
+  "exports": "./lib/index.js",
   "scripts": {
     "test": "make test"
   },

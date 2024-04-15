@@ -4,6 +4,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased][unreleased]
 
+## [5.0.0][2024-03-07]
+### Feature
+* Switched to API Key authorization. Username + password usage is no longer supported as of Vertec 6.7 anyway.
+
 ## [4.0.3][2019-05-29]
 ### Bugfix
 * Expired token is not handled properly (#104)

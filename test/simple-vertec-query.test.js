@@ -1,4 +1,4 @@
-import {SimpleVertecApi, SimpleVertecQuery} from '../lib/index';
+import {SimpleVertecApi, SimpleVertecQuery} from '../lib/index.js';
 import {expect} from 'chai';
 import sinon from 'sinon';
 import q from 'bluebird';
@@ -27,7 +27,7 @@ describe('SimpleVertecQuery', () => {
     let buildSelectObjectSpy;
 
     let apiResponse = obj => {
-        sinon.stub(api, 'doRequest', () => {
+        sinon.stub(api, 'doRequest').callsFake(() => {
             return new q((resolve) => {
                 resolve(obj);
             });
@@ -35,14 +35,8 @@ describe('SimpleVertecQuery', () => {
     };
 
     beforeEach('suite setup', () => {
-        api = new SimpleVertecApi('http://localhost', 'http://localhost', 'my-username', 'my-password');
+        api = new SimpleVertecApi('http://localhost', 'my-api-key');
         buildSelectObjectSpy = sinon.spy(api, 'buildSelectObject');
-
-        sinon.stub(api, 'getAuthToken', () => {
-            return new q((resolve) => {
-                resolve('my-token');
-            });
-        });
 
         SimpleVertecQuery.setApi(api);
     });
@@ -473,8 +467,8 @@ describe('SimpleVertecQuery', () => {
                         }
                     });
 
-                    buildXmlSpy.returnValues.shift().then(xml => compareFilteredString(xml, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Token>my-token</Token></BasicAuth></Header><Body><Query><Selection><objref>123</objref></Selection><Resultdef><member>code</member></Resultdef></Query></Body></Envelope>'));
-                    buildXmlSpy.returnValues.shift().then(xml => compareFilteredString(xml, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Token>my-token</Token></BasicAuth></Header><Body><Query><Selection><objref>234</objref></Selection><Resultdef><member>code</member></Resultdef></Query></Body></Envelope>'));
+                    buildXmlSpy.returnValues.shift().then(xml => compareFilteredString(xml, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><Query><Selection><objref>123</objref></Selection><Resultdef><member>code</member></Resultdef></Query></Body></Envelope>'));
+                    buildXmlSpy.returnValues.shift().then(xml => compareFilteredString(xml, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><Query><Selection><objref>234</objref></Selection><Resultdef><member>code</member></Resultdef></Query></Body></Envelope>'));
                 });
             });
 
@@ -1474,7 +1468,7 @@ describe('SimpleVertecQuery', () => {
             });
 
             it('catches request errors', (done) => {
-                sinon.stub(api, 'doRequest', () => {
+                sinon.stub(api, 'doRequest').callsFake(() => {
                     return new q((resolve, reject) => {
                         reject({ Error1: 'Some error message' });
                     });
@@ -1752,7 +1746,7 @@ describe('SimpleVertecQuery', () => {
             it('catches request errors', (done) => {
                 sinon.stub(fakeCacheInstance, 'get').yields(null, null);
 
-                sinon.stub(api, 'doRequest', () => {
+                sinon.stub(api, 'doRequest').callsFake(() => {
                     return new q((resolve, reject) => {
                         reject({ Error3: 'Some error message' });
                     });

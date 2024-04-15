@@ -2,7 +2,7 @@
 
 var config = require('./config');
 var SimpleVertecApi = require('simple-vertec-api').SimpleVertecApi;
-var api = new SimpleVertecApi(config.vertec.url, config.vertec.username, config.vertec.password);
+var api = new SimpleVertecApi(config.vertec.url, config.vertec.apiKey);
 var restify = require('restify');
 var server = restify.createServer();
 var moment = require('moment');
