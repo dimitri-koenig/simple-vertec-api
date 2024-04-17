@@ -21,7 +21,7 @@ SimpleVertecQuery.setApi(api);
 ```
 
 
-# setMemcached(cache) -> void
+# setCache(cache) -> void
 
 Sets global cache instance of memcached for every instance.
 
@@ -35,7 +35,7 @@ var SimpleVertecQuery = require('simple-vertec-api').SimpleVertecQuery;
 
 var memcached = require('memcached');
 let _cache = new memcached('localhost:11211', {maxValue: 1024*1024*15});
-SimpleVertecQuery.setMemcached(_cache);
+SimpleVertecQuery.setCache(_cache);
 ```
 
 
