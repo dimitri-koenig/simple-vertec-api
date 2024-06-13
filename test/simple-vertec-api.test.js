@@ -48,7 +48,7 @@ describe('SimpleVertecApi', () => {
         });
 
         it('converts response to json and extracts useful content', () => {
-            sinon.stub(api, 'request').resolves('<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><QueryResponse><Kontakt><objid>12345</objid><sprache>DE</sprache></Kontakt><Kontakt><objid>23456</objid><sprache>EN</sprache></Kontakt></QueryResponse></Body></Envelope>');
+            sinon.stub(api, 'request').resolves({data: '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><QueryResponse><Kontakt><objid>12345</objid><sprache>DE</sprache></Kontakt><Kontakt><objid>23456</objid><sprache>EN</sprache></Kontakt></QueryResponse></Body></Envelope>'});
 
             return api.select('something').then(
                 (content) => {
@@ -61,7 +61,7 @@ describe('SimpleVertecApi', () => {
         });
 
         it('creates object if an alias contains one dot', () => {
-            sinon.stub(api, 'request').resolves('<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><QueryResponse><List><Person.Kontakt><objid>12345</objid><sprache>DE</sprache></Person.Kontakt><Person.Kontakt><objid>23456</objid><sprache>EN</sprache></Person.Kontakt><Person.Addresse><objid>12345</objid></Person.Addresse><Person.Addresse><objid>23456</objid></Person.Addresse></List></QueryResponse></Body></Envelope>');
+            sinon.stub(api, 'request').resolves({data: '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><QueryResponse><List><Person.Kontakt><objid>12345</objid><sprache>DE</sprache></Person.Kontakt><Person.Kontakt><objid>23456</objid><sprache>EN</sprache></Person.Kontakt><Person.Addresse><objid>12345</objid></Person.Addresse><Person.Addresse><objid>23456</objid></Person.Addresse></List></QueryResponse></Body></Envelope>'});
 
             return api.select('something').then(
                 (content) => {
@@ -77,7 +77,7 @@ describe('SimpleVertecApi', () => {
         });
 
         it('creates object if an alias contains multiple dots', () => {
-            sinon.stub(api, 'request').resolves('<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><QueryResponse><List><Person.Kontakt.Details><objid>12345</objid><sprache>DE</sprache></Person.Kontakt.Details><Person.Kontakt.Details><objid>23456</objid><sprache>EN</sprache></Person.Kontakt.Details><Person.Addresse.Details><objid>12345</objid></Person.Addresse.Details><Person.Addresse.Details><objid>23456</objid></Person.Addresse.Details></List></QueryResponse></Body></Envelope>');
+            sinon.stub(api, 'request').resolves({data: '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><QueryResponse><List><Person.Kontakt.Details><objid>12345</objid><sprache>DE</sprache></Person.Kontakt.Details><Person.Kontakt.Details><objid>23456</objid><sprache>EN</sprache></Person.Kontakt.Details><Person.Addresse.Details><objid>12345</objid></Person.Addresse.Details><Person.Addresse.Details><objid>23456</objid></Person.Addresse.Details></List></QueryResponse></Body></Envelope>'});
 
             return api.select('something').then(
                 (content) => {
@@ -93,20 +93,20 @@ describe('SimpleVertecApi', () => {
         });
 
         it('converts non xml messages server', () => {
-            sinon.stub(api, 'request').resolves('Internal Server Error');
+            sinon.stub(api, 'request').resolves({data: 'Internal Server Error'});
 
             return api.select('some faulty select').then(
                 (result) => {
                     throw new Error('Promise was unexpectedly fulfilled. Result: ' + result);
                 },
                 (result) => {
-                    expect(result).to.include.keys('Error');
+                    expect(result).to.eql(new Error('Internal Server Error'));
                 }
             );
         });
 
         it('converts fault messages from server', () => {
-            sinon.stub(api, 'request').resolves('<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><Fault><faultcode>Client</faultcode></Fault></Body></Envelope>');
+            sinon.stub(api, 'request').resolves({data: '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><Fault><faultcode>Client</faultcode></Fault></Body></Envelope>'});
 
             return api.select('some faulty select').then(
                 (result) => {
@@ -119,21 +119,20 @@ describe('SimpleVertecApi', () => {
         });
 
         it('converts html error messages from server', () => {
-            sinon.stub(api, 'request').resolves('<HTML><BODY><P>Error message with missing closing p tag!</BODY></HTML>');
+            sinon.stub(api, 'request').resolves({data: '<HTML><BODY><P>Error message with missing closing p tag!</BODY></HTML>'});
 
             return api.select('some select with fauly response').then(
                 (result) => {
                     throw new Error('Promise was unexpectedly fulfilled. Result: ' + result);
                 },
                 (result) => {
-                    expect(result).to.include.keys('Error');
-                    expect(result.Error.faultstring).to.equal('Error message with missing closing p tag!');
+                    expect(result).to.eql(new Error('Error message with missing closing p tag!'));
                 }
             );
         });
 
         it('catches xml to json conversion errors', (done) => {
-            sinon.stub(api, 'request').resolves('<container><firstElement><onlyFirstTag>Missing closing tag!</firstElement></container>');
+            sinon.stub(api, 'request').resolves({data: '<container><firstElement><onlyFirstTag>Missing closing tag!</firstElement></container>'});
 
             let xmlDigesterLogger = xmlDigester._logger;
             let originalLevel = xmlDigesterLogger.level();
@@ -166,21 +165,21 @@ describe('SimpleVertecApi', () => {
 
         it('determines correct retry strategy', () => {
             expect(api.requestRetryStrategy({})).to.be.true;
-            
+
             expect(api.requestRetryStrategy({status: 200, response: {}})).to.be.true;
-            
+
             expect(api.requestRetryStrategy({status: 400, response: {}})).to.be.true;
-            
+
             expect(api.requestRetryStrategy({status: 400, response: {data: 'This token is invalid'}})).to.be.false;
-            
+
             expect(api.requestRetryStrategy({status: 500, response: {}})).to.be.true;
-            
+
             expect(api.requestRetryStrategy({status: 200, response: {data: '<xml><something /></xml>'}})).to.be.false;
-            
+
             expect(api.requestRetryStrategy({status: 200, response: {data: '<xml><fault>something</fault></xml>'}})).to.be.true;
-            
+
             expect(api.requestRetryStrategy({status: 200, response: {data: '<DOCTYPE><HTML><BODY>SOMETHING</BODY></HTML>'}})).to.be.true;
-            
+
             expect(api.requestRetryStrategy({status: 200, response: {data: 'Internal Server Error'}})).to.be.true;
         });
     });
@@ -491,8 +490,8 @@ describe('SimpleVertecApi', () => {
             ];
 
             let requestStub = sinon.stub(api, 'request');
-            requestStub.onFirstCall().resolves('<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><QueryResponse><Kontakt><objid>12345</objid><sprache>DE</sprache></Kontakt><Kontakt><objid>23456</objid><sprache>EN</sprache></Kontakt></QueryResponse></Body></Envelope>');
-            requestStub.onSecondCall().resolves('<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><QueryResponse><Adresse><objid>12345</objid><sprache>DE</sprache></Adresse><Adresse><objid>23456</objid><sprache>EN</sprache></Adresse></QueryResponse></Body></Envelope>');
+            requestStub.onFirstCall().resolves({data: '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><QueryResponse><Kontakt><objid>12345</objid><sprache>DE</sprache></Kontakt><Kontakt><objid>23456</objid><sprache>EN</sprache></Kontakt></QueryResponse></Body></Envelope>'});
+            requestStub.onSecondCall().resolves({data: '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><QueryResponse><Adresse><objid>12345</objid><sprache>DE</sprache></Adresse><Adresse><objid>23456</objid><sprache>EN</sprache></Adresse></QueryResponse></Body></Envelope>'});
 
             api.multiSelect([
                 firstQuery,
@@ -599,8 +598,8 @@ describe('SimpleVertecApi', () => {
     describe('multiFindById()', () => {
         it('makes multiple requests in parallel', done => {
             let requestStub = sinon.stub(api, 'request');
-            requestStub.onFirstCall().resolves('<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><QueryResponse><Kontakt><objid>12345</objid><sprache>DE</sprache></Kontakt><Kontakt><objid>23456</objid><sprache>EN</sprache></Kontakt></QueryResponse></Body></Envelope>');
-            requestStub.onSecondCall().resolves('<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><QueryResponse><Adresse><objid>12345</objid><sprache>DE</sprache></Adresse><Adresse><objid>23456</objid><sprache>EN</sprache></Adresse></QueryResponse></Body></Envelope>');
+            requestStub.onFirstCall().resolves({data: '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><QueryResponse><Kontakt><objid>12345</objid><sprache>DE</sprache></Kontakt><Kontakt><objid>23456</objid><sprache>EN</sprache></Kontakt></QueryResponse></Body></Envelope>'});
+            requestStub.onSecondCall().resolves({data: '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><QueryResponse><Adresse><objid>12345</objid><sprache>DE</sprache></Adresse><Adresse><objid>23456</objid><sprache>EN</sprache></Adresse></QueryResponse></Body></Envelope>'});
 
             api.multiFindById([
                 '123',

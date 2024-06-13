@@ -19,7 +19,7 @@ function compareFilteredString(actual, expected) {
 }
 
 function newDate() {
-    return new Date().getTime() / 1000|0;
+    return new Date().getTime() / 1000 | 0;
 }
 
 describe('SimpleVertecQuery', () => {
@@ -48,7 +48,7 @@ describe('SimpleVertecQuery', () => {
 
         it('sets cache instance', () => {
             let fakeCache = {};
-            SimpleVertecQuery.setMemcached(fakeCache);
+            SimpleVertecQuery.setCache(fakeCache);
 
             expect(SimpleVertecQuery.cache).to.equal(fakeCache);
         });
@@ -89,7 +89,7 @@ describe('SimpleVertecQuery', () => {
             expect(query.options.query.params).to.deep.equal(newOptions.query.params);
             expect(query.options.query.fields).to.deep.equal(newOptions.query.fields);
             expect(query.options.query.transformers).to.deep.equal(newOptions.query.transformers);
-        });        
+        });
     });
 
     describe('query testing', () => {
@@ -349,17 +349,6 @@ describe('SimpleVertecQuery', () => {
             expect(query.options.cacheGraceTime).to.equal(10);
         });
 
-        it('inParallel() sets parallel mode', () => {
-            let query = new SimpleVertecQuery();
-            expect(query.options.useParallelMode).to.equal(false);
-
-            query.inParallel();
-            expect(query.options.useParallelMode).to.equal(true);
-
-            query.inParallel(false);
-            expect(query.options.useParallelMode).to.equal(false);
-        });
-
         describe('get()', () => {
             it('compiles an empty query when no options set', () => {
                 new SimpleVertecQuery().get();
@@ -426,202 +415,6 @@ describe('SimpleVertecQuery', () => {
                         }
                     }
                 });
-            });
-
-            it('makes multiple requests with multiple objrefs when using inParallel()', () => {
-                let buildXmlSpy = sinon.spy(api, 'buildXml');
-
-                let firstReturnObject = {myFirstKey: {it: 'works'}};
-                let secondReturnObject = {mySecondKey: {it: 'works'}};
-
-                api.doRequest.restore();
-                let requestStub = sinon.stub(api, 'doRequest');
-                requestStub.onFirstCall().returns(q.resolve(firstReturnObject));
-                requestStub.onSecondCall().returns(q.resolve(secondReturnObject));
-
-                return new SimpleVertecQuery().findById([123, 234]).addField('code').inParallel().get().then(response => {
-                    expect(response[0].data).to.deep.equal(firstReturnObject);
-                    expect(response[1].data).to.deep.equal(secondReturnObject);
-
-                    expect(buildSelectObjectSpy.returnValues.shift()).to.deep.equal({
-                        Query: {
-                            Resultdef: {
-                                expression: [],
-                                member: ['code']
-                            },
-                            Selection: {
-                                objref: 123
-                            }
-                        }
-                    });
-
-                    expect(buildSelectObjectSpy.returnValues.shift()).to.deep.equal({
-                        Query: {
-                            Resultdef: {
-                                expression: [],
-                                member: ['code']
-                            },
-                            Selection: {
-                                objref: 234
-                            }
-                        }
-                    });
-
-                    buildXmlSpy.returnValues.shift().then(xml => compareFilteredString(xml, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><Query><Selection><objref>123</objref></Selection><Resultdef><member>code</member></Resultdef></Query></Body></Envelope>'));
-                    buildXmlSpy.returnValues.shift().then(xml => compareFilteredString(xml, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><Query><Selection><objref>234</objref></Selection><Resultdef><member>code</member></Resultdef></Query></Body></Envelope>'));
-                });
-            });
-
-            it('makes multiple requests with multiple objrefs when using inParallel() and uses refresh', () => {
-                let firstReturnObject = {myFirstKey: {it: 'works'}};
-                let secondReturnObject = {mySecondKey: {it: 'works'}};
-
-                let requestStub = sinon.stub(api, 'select');
-                requestStub.onFirstCall().returns(q.resolve(firstReturnObject));
-                requestStub.onSecondCall().returns(q.resolve(secondReturnObject));
-
-                let cacheSetArguments = [];
-                let fakeCacheInstance = {
-                    get() {},
-                    set() {
-                        cacheSetArguments.push(arguments);
-                    }
-                };
-                SimpleVertecQuery.setMemcached(fakeCacheInstance);
-                sinon.stub(fakeCacheInstance, 'get').yields(null, false);
-
-                return new SimpleVertecQuery().findById([123, 234]).setCacheTTL(10).inParallel().get(true).then(response => {
-                    expect(response[0].data).to.deep.equal(firstReturnObject);
-                    expect(response[1].data).to.deep.equal(secondReturnObject);
-
-                    expect(response[0].meta.refresh).to.be.true;
-                    expect(response[1].meta.refresh).to.be.true;
-                });
-            });
-
-            it('returns same response structure like when using inParallel() even with only one id in an array', () => {
-                let returnObject = {myKey: {it: 'works'}};
-
-                api.doRequest.restore();
-                apiResponse(returnObject);
-
-                return new SimpleVertecQuery().findById([123]).inParallel().get().then(response => {
-                    expect(response).to.have.lengthOf(1);
-                    expect(response[0].data).to.deep.equal(returnObject);
-                });
-            });
-
-            it('returns same response structure like when using inParallel() even with only objref = id', () => {
-                let returnObject = {myKey: {it: 'works'}};
-
-                api.doRequest.restore();
-                apiResponse(returnObject);
-
-                return new SimpleVertecQuery().findById(123).inParallel().get().then(response => {
-                    expect(response).to.have.lengthOf(1);
-                    expect(response[0].data).to.deep.equal(returnObject);
-                });
-            });
-
-            it('uses same transformers and fields and params on multiple requests', () => {
-                let i = 0;
-
-                return new SimpleVertecQuery()
-                    .findById([123, 234])
-                    .addField(':dynamicField')
-                    .addParam({dynamicField: 'code'})
-                    .inParallel()
-                    .addTransformer(response => {
-                        i++;
-
-                        return {
-                            myKey: {
-                                it: response.it + '!' + i
-                            }
-                        };
-                    })
-                    .get()
-                    .then(response => {
-                        expect(response).to.have.lengthOf(2);
-                        expect(response[0].data).to.deep.equal({myKey: {it: 'works!1'}});
-                        expect(response[1].data).to.deep.equal({myKey: {it: 'works!2'}});
-
-                        expect(buildSelectObjectSpy.returnValues.shift()).to.deep.equal({
-                            Query: {
-                                Resultdef: {
-                                    expression: [],
-                                    member: ['code']
-                                },
-                                Selection: {
-                                    objref: 123
-                                }
-                            }
-                        });
-
-                        expect(buildSelectObjectSpy.returnValues.shift()).to.deep.equal({
-                            Query: {
-                                Resultdef: {
-                                    expression: [],
-                                    member: ['code']
-                                },
-                                Selection: {
-                                    objref: 234
-                                }
-                            }
-                        });
-                    });
-            });
-
-            it('uses different cache keys if setCacheKey is used with parallel mode', () => {
-                let cacheSetArguments = [];
-                let fakeCacheInstance = {
-                    get() {},
-                    set() {
-                        cacheSetArguments.push(arguments);
-                    }
-                };
-                SimpleVertecQuery.setMemcached(fakeCacheInstance);
-                sinon.stub(fakeCacheInstance, 'get').yields(null, false);
-
-                return new SimpleVertecQuery()
-                    .findById([123, 234])
-                    .addField(':dynamicField')
-                    .addParam({dynamicField: 'code'})
-                    .setCacheTTL(60)
-                    .setCacheKey('parallel-cache-key')
-                    .inParallel()
-                    .get()
-                    .then(() => {
-                        expect(cacheSetArguments).to.have.lengthOf(2);
-                        expect(cacheSetArguments[0][0]).to.equal('my-app-parallel-cache-key-60-123');
-                        expect(cacheSetArguments[0][2]).to.equal(60);
-                        expect(cacheSetArguments[1][0]).to.equal('my-app-parallel-cache-key-60-234');
-                        expect(cacheSetArguments[1][2]).to.equal(60);
-
-                        expect(buildSelectObjectSpy.returnValues.shift()).to.deep.equal({
-                            Query: {
-                                Resultdef: {
-                                    expression: [],
-                                    member: ['code']
-                                },
-                                Selection: {
-                                    objref: 123
-                                }
-                            }
-                        });
-
-                        expect(buildSelectObjectSpy.returnValues.shift()).to.deep.equal({
-                            Query: {
-                                Resultdef: {
-                                    expression: [],
-                                    member: ['code']
-                                },
-                                Selection: {
-                                    objref: 234
-                                }
-                            }
-                        });
-                    });
             });
         });
     });
@@ -697,7 +490,7 @@ describe('SimpleVertecQuery', () => {
             apiResponse(returnObject);
 
             new SimpleVertecQuery().filterProperty('myNotExistingKey').get().then(response => {
-                expect(response.data).to.deep.equal(undefined);
+                expect(response).to.deep.equal(undefined);
                 done();
             });
         });
@@ -1444,7 +1237,7 @@ describe('SimpleVertecQuery', () => {
     describe('cache testing', () => {
         describe('without cache access', () => {
             it('returns raw output of api if no cache is set', (done) => {
-                SimpleVertecQuery.setMemcached(undefined);
+                SimpleVertecQuery.setCache(undefined);
 
                 apiResponse({it: 'works 2'});
 
@@ -1456,7 +1249,7 @@ describe('SimpleVertecQuery', () => {
             });
 
             it('returns raw output of api if no cache ttl is set', (done) => {
-                SimpleVertecQuery.setMemcached({});
+                SimpleVertecQuery.setCache({});
 
                 apiResponse({it: 'works 3'});
 
@@ -1470,7 +1263,7 @@ describe('SimpleVertecQuery', () => {
             it('catches request errors', (done) => {
                 sinon.stub(api, 'doRequest').callsFake(() => {
                     return new q((resolve, reject) => {
-                        reject({ Error1: 'Some error message' });
+                        reject({Error1: 'Some error message'});
                     });
                 });
 
@@ -1495,12 +1288,13 @@ describe('SimpleVertecQuery', () => {
 
                 cacheSetArguments = [];
                 fakeCacheInstance = {
-                    get() {},
+                    get() {
+                    },
                     set() {
                         cacheSetArguments.push(arguments);
                     }
                 };
-                SimpleVertecQuery.setMemcached(fakeCacheInstance);
+                SimpleVertecQuery.setCache(fakeCacheInstance);
             });
 
             it('uses general app cache key if no app cache key defined', (done) => {
@@ -1668,69 +1462,8 @@ describe('SimpleVertecQuery', () => {
                 });
             });
 
-            it('sets caching independently for every request', () => {
-                sinon.stub(fakeCacheInstance, 'get').yields(null, false);
-
-                let firstReturnObject = {myFirstKey: {it: 'works'}};
-                let secondReturnObject = {mySecondKey: {it: 'works'}};
-
-                let requestStub = sinon.stub(api, 'select');
-                requestStub.onFirstCall().returns(q.resolve(firstReturnObject));
-                requestStub.onSecondCall().returns(q.resolve(secondReturnObject));
-
-                return new SimpleVertecQuery()
-                    .findById([123, 234])
-                    .setCacheTTL(10)
-                    .setCacheGraceTime(5)
-                    .inParallel()
-                    .get()
-                    .then(response => {
-                        expect(response[0].data).to.deep.equal(firstReturnObject);
-                        expect(response[1].data).to.deep.equal(secondReturnObject);
-                        expect(response[0].meta.softExpire).to.not.equal(response[1].softExpire);
-                        expect(cacheSetArguments).to.have.lengthOf(2);
-                        expect(cacheSetArguments[0][1].meta.softExpire).to.be.closeTo(newDate() + 10, 3);
-                        expect(cacheSetArguments[1][1].meta.softExpire).to.be.closeTo(newDate() + 10, 3);
-                    });
-            });
-
-            it('returns cached object and requests uncached object', () => {
-                let firstReturnObject = {
-                    data: {
-                        myFirstKey: {it: 'works'}
-                    },
-                    meta: {
-                        softExpire: newDate() + 1
-                    }
-                };
-                let secondReturnObject = {mySecondKey: {it: 'works'}};
-
-                let cacheStub = sinon.stub(fakeCacheInstance, 'get');
-                cacheStub.onFirstCall().yields(null, firstReturnObject);
-                cacheStub.onSecondCall().yields(null, false);
-
-                let requestStub = sinon.stub(api, 'doRequest');
-                requestStub.returns(q.resolve(secondReturnObject));
-
-                let selectSpy = sinon.spy(api, 'select');
-
-                return new SimpleVertecQuery()
-                    .findById([123, 234])
-                    .setCacheTTL(10)
-                    .setCacheGraceTime(5)
-                    .inParallel()
-                    .get()
-                    .then(response => {
-                        expect(response[0].data).to.deep.equal(firstReturnObject.data);
-                        expect(response[1].data).to.deep.equal(secondReturnObject);
-                        expect(cacheSetArguments).to.have.lengthOf(1);
-                        expect(cacheSetArguments[0][1].meta.softExpire).to.be.closeTo(newDate() + 10, 3);
-                        sinon.assert.calledOnce(selectSpy);
-                    });
-            });
-
             it('catches cache fetching errors', (done) => {
-                sinon.stub(fakeCacheInstance, 'get').yields({ Error2: 'Some error message' }, null);
+                sinon.stub(fakeCacheInstance, 'get').yields({Error2: 'Some error message'}, null);
 
                 new SimpleVertecQuery().setCacheTTL(10).get().then(
                     (result) => {
@@ -1748,7 +1481,7 @@ describe('SimpleVertecQuery', () => {
 
                 sinon.stub(api, 'doRequest').callsFake(() => {
                     return new q((resolve, reject) => {
-                        reject({ Error3: 'Some error message' });
+                        reject({Error3: 'Some error message'});
                     });
                 });
 
