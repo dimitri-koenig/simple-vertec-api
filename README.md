@@ -1,4 +1,4 @@
-# Simple Vertec Api [![Build Status](https://travis-ci.org/dimitri-koenig/simple-vertec-api.svg?branch=master)](https://travis-ci.org/dimitri-koenig/simple-vertec-api)
+# Simple Vertec Api
 
 Simple Vertec Api is an simple wrapper around www.vertec.com XML webservice for node.js. It features solid CRUD support for dealing with Vertec's data.
 

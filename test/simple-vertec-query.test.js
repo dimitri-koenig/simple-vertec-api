@@ -339,6 +339,11 @@ describe('SimpleVertecQuery', () => {
             expect(query.options.cacheKey).to.equal('test1');
         });
 
+        it('setCacheName() sets cache key for cache objects', () => {
+            let query = new SimpleVertecQuery().setCacheName('test1');
+            expect(query.options.cacheName).to.equal('test1');
+        });
+
         it('setCacheTTL() sets ttl for cache objects', () => {
             let query = new SimpleVertecQuery().setCacheTTL(10);
             expect(query.options.cacheTTL).to.equal(10);
@@ -1311,13 +1316,13 @@ describe('SimpleVertecQuery', () => {
 
                 apiResponse({it: 'works 14'});
 
-                new SimpleVertecQuery().setCacheTTL(10).setCacheKey('test10').get().then(response => {
+                new SimpleVertecQuery().setCacheTTL(30).setCacheName('test10').setCacheKey('test20').get().then(response => {
                     expect(response.meta.onGrace).to.be.false;
                     expect(response.data.it).to.equal('works 14');
                     expect(response.meta.refresh).to.be.false;
                     expect(cacheSetArguments).to.have.lengthOf(1);
-                    expect(cacheSetArguments[0][0]).to.equal('svq-test10-10');
-                    expect(cacheSetArguments[0][2]).to.equal(10000);
+                    expect(cacheSetArguments[0][0]).to.equal('svq-test10-test20-30');
+                    expect(cacheSetArguments[0][2]).to.equal(30000);
                     done();
                 }).catch(err => done(err));
             });
@@ -1382,6 +1387,23 @@ describe('SimpleVertecQuery', () => {
                     expect(response.meta.refresh).to.be.false;
                     expect(cacheSetArguments).to.have.lengthOf(1);
                     expect(cacheSetArguments[0][0]).to.match(/^app-\w{32}-10$/);
+                    expect(buildXmlStringFromObjectSpy.returnValues).to.have.lengthOf(2);
+                    done();
+                }).catch(err => done(err));
+            });
+
+            it('puts result it into cache with cacheName, and request hash as cache key if no cacheKey defined', (done) => {
+                sinon.stub(fakeCacheInstance, 'get').resolves(null);
+                let buildXmlStringFromObjectSpy = sinon.spy(api, 'buildXmlStringFromObject');
+
+                apiResponse({it: 'works 7'});
+
+                new SimpleVertecQuery().setCacheTTL(10).setCacheName('test10').get().then(response => {
+                    expect(response.meta.onGrace).to.be.false;
+                    expect(response.data.it).to.equal('works 7');
+                    expect(response.meta.refresh).to.be.false;
+                    expect(cacheSetArguments).to.have.lengthOf(1);
+                    expect(cacheSetArguments[0][0]).to.match(/^app-test10-\w{32}-10$/);
                     expect(buildXmlStringFromObjectSpy.returnValues).to.have.lengthOf(2);
                     done();
                 }).catch(err => done(err));
