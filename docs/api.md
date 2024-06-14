@@ -19,12 +19,12 @@ Does a query on the server with additional parameters for the select. Returns a 
 __Simple select example__
 
 ```javascript
-var SimpleVertecApi = require('simple-vertec-api').SimpleVertecApi;
-var api = new SimpleVertecApi('https://my-vertec-domain/xml', 'my-api-key', true);
+import {SimpleVertecApi} from 'simple-vertec-api';
+const api = new SimpleVertecApi('https://my-vertec-domain/xml', 'my-api-key', true);
 
 // fetches all active users ordered by their name
-var select = 'projektbearbeiter->select(aktiv)->orderby(name)';
-var fields = [
+const select = 'projektbearbeiter->select(aktiv)->orderby(name)';
+const fields = [
     'name', // normal field name
     { // special expression for additional data conversion, same like in sql: select 'briefemail' as 'email'
         alias: 'email',
@@ -41,11 +41,11 @@ __Simple array with select parameters__
 
 ```javascript
 // fetches records of user 12345 ordered by their date
-var select = 'projektbearbeiter->select(boldid = ?).offeneleistungen->orderby(datum)';
-var params = [
+const select = 'projektbearbeiter->select(boldid = ?).offeneleistungen->orderby(datum)';
+const params = [
     12345
 ];
-var fields = [
+const fields = [
     'minutenInt',
     'minutenExt',
     'datum'
@@ -61,12 +61,12 @@ __Named parameters for select__
 
 ```javascript
 // fetches records between two dates
-var select = 'self.verrechneteleistungen->select( (datum >= encodeDate(:startDate) and (datum <= encodeDate(:endDate)) )';
-var params = [
+const select = 'self.verrechneteleistungen->select( (datum >= encodeDate(:startDate) and (datum <= encodeDate(:endDate)) )';
+const params = [
     startDate: '2015,08,03',
     endDate: '2015,08,09'
 ];
-var fields = [
+const fields = [
     'minutenInt',
     'minutenExt',
     'datum'
@@ -82,9 +82,9 @@ __Using a simple string/number for select parameter__
 
 ```javascript
 // fetches records between two dates
-var select = 'self.offeneleistungen->select(datum = encodeDate(?))';
-var param = '2015-08-03';
-var fields = [
+const select = 'self.offeneleistungen->select(datum = encodeDate(?))';
+const param = '2015-08-03';
+const fields = [
     'minutenInt',
     'minutenExt',
     'datum'
@@ -100,16 +100,16 @@ __Advanced sql select__
 
 ```javascript
 // searches for some records starting from day X
-var select = {
+const select = {
 	ocl: 'Leistung',
 	sqlwhere: "(text like '%?%') and (CreationDateTime >= {ts '? 00:00:00'})",
 	sqlorder: 'datum'
 };
-var params = [
+const params = [
     'search text',
     '2015-08-05'
 ];
-var fields = [
+const fields = [
     'minutenInt',
     'minutenExt',
     'datum',
@@ -123,16 +123,16 @@ api.select(select, params, fields).then(function(response) {
 
 ```javascript
 // searches for some records starting from day X, using params object
-var select = {
+const select = {
     ocl: 'Leistung',
     sqlwhere: "(text like '%:searchText%') and (CreationDateTime >= {ts ':date 00:00:00'})",
     sqlorder: 'datum'
 };
-var params = {
+const params = {
     searchText: 'search text',
     date: '2015-08-05'
 };
-var fields = [
+const fields = [
     'minutenInt',
     'minutenExt',
     'datum',

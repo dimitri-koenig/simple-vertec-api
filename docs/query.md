@@ -13,10 +13,9 @@ Sets the api object for all the requests.
 __Example__
 
 ```javascript
-var SimpleVertecApi = require('simple-vertec-api').SimpleVertecApi;
-var SimpleVertecQuery = require('simple-vertec-api').SimpleVertecQuery;
+import {SimpleVertecApi, SimpleVertecQuery} from 'simple-vertec-api';
 
-var api = new SimpleVertecApi('https://my-vertec-domain/xml', 'my-api-key', true);
+const api = new SimpleVertecApi('https://my-vertec-domain/xml', 'my-api-key', true);
 SimpleVertecQuery.setApi(api);
 ```
 
@@ -31,11 +30,13 @@ Sets global cache instance of memcached for every instance.
 __Example__
 
 ```javascript
-var SimpleVertecQuery = require('simple-vertec-api').SimpleVertecQuery;
+import {SimpleVertecQuery} from 'simple-vertec-api';
+import Cache from '@momsfriendlydevco/cache';
 
-var memcached = require('memcached');
-let _cache = new memcached('localhost:11211', {maxValue: 1024*1024*15});
-SimpleVertecQuery.setCache(_cache);
+const cache = new Cache();
+await cache.init();
+
+SimpleVertecQuery.setCache(cache);
 ```
 
 
@@ -49,21 +50,21 @@ Sets global app cache key for every instance.
 __Example__
 
 ```javascript
-var SimpleVertecQuery = require('simple-vertec-api').SimpleVertecQuery;
+import {SimpleVertecQuery} from 'simple-vertec-api';
 
 SimpleVertecQuery.setAppCacheKey('my-vertec-app-v1');
 ```
 
 
 
-# findById(ids) -> SimpleVertecQuery
+# findById(id) -> SimpleVertecQuery
 
-Finds one or many ids. Returns instance of itself for chaining.
+Finds one object by its id. Returns instance of itself for chaining.
 
-* *number[]* `ids`: One id or an array of ids
+* *number* `id`: One id
 
 
-__Example 1__
+__Example__
 
 ```javascript
 new SimpleVertecQuery()
@@ -75,20 +76,6 @@ new SimpleVertecQuery()
         console.log(response);
     });
 ```
-
-__Example 2__
-
-```javascript
-new SimpleVertecQuery()
-    .findById([123, 234])
-    .addFields('name', 'kuerzel')
-    .get()
-    .then(function(response) {
-        // do something with the result
-        console.log(response);
-    });
-```
-
 
 
 # whereOcl(ocl) -> SimpleVertecQuery
@@ -171,7 +158,7 @@ For more examples see api and params handling.
 __Example__
 
 ```javascript
-var paramObject = {
+const paramObject = {
     field1: 'name',
     field2: 'kuerzel'
 };
@@ -402,7 +389,7 @@ __Example__
 
 ```javascript
 new SimpleVertecQuery()
-    .findById([123, 234])
+    .findById(123)
     .filterProperty('Projektbearbeiter', true)
     .get()
     .then(function(response) {
@@ -426,7 +413,7 @@ __Example__
 
 ```javascript
 new SimpleVertecQuery()
-    .findById([123, 234])
+    .findById(123)
     .setRootKey('users')
     .get()
     .then(function(response) {
@@ -484,7 +471,7 @@ __Example__
 
 ```javascript
 new SimpleVertecQuery()
-    .findById([123, 234])
+    .findById(123)
     .inParallel()
     .get()
     .then(function(response) {
@@ -506,7 +493,7 @@ __Example__
 
 ```javascript
 new SimpleVertecQuery()
-    .findById([123, 234])
+    .findById(123)
     .get(true)
     .then(function(response) {
         // do something with the result

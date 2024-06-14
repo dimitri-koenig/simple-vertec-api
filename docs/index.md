@@ -22,10 +22,9 @@ $ npm install simple-vertec-api --save
 ## Example for a simple query request
 
 ```javascript
-var SimpleVertecApi = require('simple-vertec-api').SimpleVertecApi;
-var SimpleVertecQuery = require('simple-vertec-api').SimpleVertecQuery;
+import {SimpleVertecApi, SimpleVertecQuery} from 'simple-vertec-api';
 
-var api = new SimpleVertecApi('https://my-vertec-domain/xml', 'my-api-key', true);
+const api = new SimpleVertecApi('https://my-vertec-domain/xml', 'my-api-key', true);
 SimpleVertecQuery.setApi(api);
 
 new SimpleVertecQuery()
@@ -44,20 +43,20 @@ new SimpleVertecQuery()
 ## Example for a raw api request
 
 ```javascript
-var SimpleVertecApi = require('simple-vertec-api').SimpleVertecApi;
-var api = new SimpleVertecApi('https://my-vertec-domain/xml', 'my-api-key', true);
+import {SimpleVertecApi} from 'simple-vertec-api';
+const api = new SimpleVertecApi('https://my-vertec-domain/xml', 'my-api-key', true);
 
 // searches for some records starting from day X
-var select = {
+const select = {
 	ocl: 'Leistung',
 	sqlwhere: "(text like '%?%') and (CreationDateTime >= {ts '? 00:00:00'})",
 	sqlorder: 'datum'
 };
-var params = [
+const params = [
     'search text',
     '2015-08-12'
 ];
-var fields = [
+const fields = [
     'minutenInt',
     'minutenExt',
     'datum',
