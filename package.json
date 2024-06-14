@@ -24,8 +24,8 @@
     "bunyan": "1.8.15",
     "lodash": "4.17.21",
     "md5": "2.3.0",
-    "simple-parameter-injector": "github:dimitri-koenig/simple-parameter-injector#develop",
-    "simple-xml-converter": "github:dimitri-koenig/simple-xml-converter#develop",
+    "simple-parameter-injector": "2.0.0",
+    "simple-xml-converter": "2.0.0",
     "traverse": "0.6.8",
     "xml-digester": "0.0.5"
   },
