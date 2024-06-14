@@ -1288,19 +1288,26 @@ describe('SimpleVertecQuery', () => {
 
                 cacheSetArguments = [];
                 fakeCacheInstance = {
-                    get() {
+                    get(cacheKey) {
+                        return new q((resolve) => {
+                            resolve(null);
+                        });
                     },
-                    set() {
+                    set(cacheKey, cacheData, cacheDuration) {
                         cacheSetArguments.push(arguments);
+
+                        return new q((resolve) => {
+                            resolve();
+                        });
                     }
                 };
                 SimpleVertecQuery.setCache(fakeCacheInstance);
             });
 
-            it('uses general app cache key if no app cache key defined', (done) => {
+            it('uses general app cache key if no app cache key defined', (done, fail) => {
                 SimpleVertecQuery.setAppCacheKey(undefined);
 
-                sinon.stub(fakeCacheInstance, 'get').yields(null, false);
+                sinon.stub(fakeCacheInstance, 'get').resolves('asd');
 
                 apiResponse({it: 'works 14'});
 
@@ -1310,13 +1317,13 @@ describe('SimpleVertecQuery', () => {
                     expect(response.meta.refresh).to.be.false;
                     expect(cacheSetArguments).to.have.lengthOf(1);
                     expect(cacheSetArguments[0][0]).to.equal('svq-test10-10');
-                    expect(cacheSetArguments[0][2]).to.equal(10);
+                    expect(cacheSetArguments[0][2]).to.equal(10000);
                     done();
-                });
+                }).catch(err => done(err));
             });
 
             it('puts result into cache with ttl', (done) => {
-                sinon.stub(fakeCacheInstance, 'get').yields(null, false);
+                sinon.stub(fakeCacheInstance, 'get').resolves(null);
 
                 apiResponse({it: 'works 4'});
 
@@ -1326,13 +1333,13 @@ describe('SimpleVertecQuery', () => {
                     expect(response.meta.refresh).to.be.false;
                     expect(cacheSetArguments).to.have.lengthOf(1);
                     expect(cacheSetArguments[0][0]).to.equal('app-test2-10');
-                    expect(cacheSetArguments[0][2]).to.equal(10);
+                    expect(cacheSetArguments[0][2]).to.equal(10000);
                     done();
-                });
+                }).catch(err => done(err));
             });
 
             it('puts result into cache with ttl and grace time which saves soft expire date into cache item', (done) => {
-                sinon.stub(fakeCacheInstance, 'get').yields(null, false);
+                sinon.stub(fakeCacheInstance, 'get').resolves(null);
 
                 apiResponse({it: 'works 5'});
 
@@ -1343,13 +1350,13 @@ describe('SimpleVertecQuery', () => {
                     expect(cacheSetArguments).to.have.lengthOf(1);
                     expect(cacheSetArguments[0][0]).to.equal('app-test3-10');
                     expect(cacheSetArguments[0][1].meta.softExpire).to.be.closeTo(newDate() + 10, 5);
-                    expect(cacheSetArguments[0][2]).to.equal(15);
+                    expect(cacheSetArguments[0][2]).to.equal(15000);
                     done();
-                });
+                }).catch(err => done(err));
             });
 
             it('fires request if no item in cache found and puts it into cache', (done) => {
-                sinon.stub(fakeCacheInstance, 'get').yields(null, false);
+                sinon.stub(fakeCacheInstance, 'get').resolves(null);
 
                 apiResponse({it: 'works 6'});
 
@@ -1360,11 +1367,11 @@ describe('SimpleVertecQuery', () => {
                     expect(cacheSetArguments).to.have.lengthOf(1);
                     expect(cacheSetArguments[0][0]).to.equal('app-test4-10');
                     done();
-                });
+                }).catch(err => done(err));
             });
 
             it('puts result it into cache with request hash as cache key if no cacheKey defined', (done) => {
-                sinon.stub(fakeCacheInstance, 'get').yields(null, false);
+                sinon.stub(fakeCacheInstance, 'get').resolves(null);
                 let buildXmlStringFromObjectSpy = sinon.spy(api, 'buildXmlStringFromObject');
 
                 apiResponse({it: 'works 7'});
@@ -1377,7 +1384,7 @@ describe('SimpleVertecQuery', () => {
                     expect(cacheSetArguments[0][0]).to.match(/^app-\w{32}-10$/);
                     expect(buildXmlStringFromObjectSpy.returnValues).to.have.lengthOf(2);
                     done();
-                });
+                }).catch(err => done(err));
             });
 
             it('fires request if item in cache is on grace', (done) => {
@@ -1387,7 +1394,7 @@ describe('SimpleVertecQuery', () => {
                     },
                     data: {it: 'works 9'}
                 };
-                sinon.stub(fakeCacheInstance, 'get').yields(null, cacheItem);
+                sinon.stub(fakeCacheInstance, 'get').resolves(cacheItem);
 
                 apiResponse({it: 'works 12'});
 
@@ -1402,7 +1409,7 @@ describe('SimpleVertecQuery', () => {
                         expect(cacheSetArguments[0][1].data.it).to.equal('works 12');
                         done();
                     }, 10);
-                });
+                }).catch(err => done(err));
             });
 
             it('does not fire request if item in cache found without grace', (done) => {
@@ -1412,7 +1419,7 @@ describe('SimpleVertecQuery', () => {
                     },
                     data: {it: 'works 8'}
                 };
-                sinon.stub(fakeCacheInstance, 'get').yields(null, cacheItem);
+                sinon.stub(fakeCacheInstance, 'get').resolves(cacheItem);
 
                 new SimpleVertecQuery().setCacheTTL(10).setCacheKey('test5').get().then(response => {
                     expect(response.meta.onGrace).to.be.false;
@@ -1420,7 +1427,7 @@ describe('SimpleVertecQuery', () => {
                     expect(response.meta.refresh).to.be.false;
                     expect(cacheSetArguments).to.have.lengthOf(0);
                     done();
-                });
+                }).catch(err => done(err));
             });
 
             it('does not fire request if item in cache found which could be on grace but is not', (done) => {
@@ -1430,7 +1437,7 @@ describe('SimpleVertecQuery', () => {
                     },
                     data: {it: 'works 10'}
                 };
-                sinon.stub(fakeCacheInstance, 'get').yields(null, cacheItem);
+                sinon.stub(fakeCacheInstance, 'get').resolves(cacheItem);
 
                 new SimpleVertecQuery().setCacheTTL(10).setCacheGraceTime(5).setCacheKey('test7').get().then(response => {
                     expect(response.meta.onGrace).to.be.false;
@@ -1438,7 +1445,7 @@ describe('SimpleVertecQuery', () => {
                     expect(response.meta.refresh).to.be.false;
                     expect(cacheSetArguments).to.have.lengthOf(0);
                     done();
-                });
+                }).catch(err => done(err));
             });
 
             it('fires request if refresh = true even if item in cache found', (done) => {
@@ -1448,7 +1455,7 @@ describe('SimpleVertecQuery', () => {
                     },
                     data: {it: 'works 11'}
                 };
-                sinon.stub(fakeCacheInstance, 'get').yields(null, cacheItem);
+                sinon.stub(fakeCacheInstance, 'get').resolves(cacheItem);
 
                 apiResponse({it: 'works 13'});
 
@@ -1459,25 +1466,22 @@ describe('SimpleVertecQuery', () => {
                     expect(cacheSetArguments).to.have.lengthOf(1);
                     expect(cacheSetArguments[0][0]).to.equal('app-test8-10');
                     done();
-                });
+                }).catch(err => done(err));
             });
 
             it('catches cache fetching errors', (done) => {
-                sinon.stub(fakeCacheInstance, 'get').yields({Error2: 'Some error message'}, null);
+                sinon.stub(fakeCacheInstance, 'get').rejects({Error2: 'Some error message'});
 
-                new SimpleVertecQuery().setCacheTTL(10).get().then(
-                    (result) => {
-                        throw new Error('Promise was unexpectedly fulfilled. Result: ' + JSON.stringify(result));
-                    },
-                    (error) => {
-                        expect(error).to.include.keys('Error2');
-                        done();
-                    }
-                );
+                new SimpleVertecQuery().setCacheTTL(10).get().then(result => {
+                    done('Promise was unexpectedly fulfilled. Result: ' + JSON.stringify(result));
+                }).catch(error => {
+                    expect(error).to.include.keys('Error2');
+                    done();
+                });
             });
 
             it('catches request errors', (done) => {
-                sinon.stub(fakeCacheInstance, 'get').yields(null, null);
+                sinon.stub(fakeCacheInstance, 'get').resolves(null);
 
                 sinon.stub(api, 'doRequest').callsFake(() => {
                     return new q((resolve, reject) => {
@@ -1485,15 +1489,12 @@ describe('SimpleVertecQuery', () => {
                     });
                 });
 
-                new SimpleVertecQuery().setCacheTTL(10).setCacheKey('test9').get().then(
-                    (result) => {
-                        throw new Error('Promise was unexpectedly fulfilled. Result: ' + JSON.stringify(result));
-                    },
-                    (error) => {
-                        expect(error).to.include.keys('Error3');
-                        done();
-                    }
-                );
+                new SimpleVertecQuery().setCacheTTL(10).setCacheKey('test9').get().then(result => {
+                    done('Promise was unexpectedly fulfilled. Result: ' + JSON.stringify(result));
+                }).catch(error => {
+                    expect(error).to.include.keys('Error3');
+                    done();
+                });
             });
         });
     });
