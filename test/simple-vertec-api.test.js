@@ -1,4 +1,4 @@
-import {SimpleVertecApi} from '../lib/index';
+import {SimpleVertecApi} from '../lib/index.js';
 import {expect} from 'chai';
 import sinon from 'sinon';
 import xmlDigester from 'xml-digester';
@@ -24,13 +24,7 @@ describe('SimpleVertecApi', () => {
     let buildXmlSpy;
 
     beforeEach('setup', () => {
-        api = new SimpleVertecApi('http://localhost', 'http://localhost', 'my-username', 'my-password');
-
-        sinon.stub(api, 'getAuthToken', () => {
-            return new q((resolve) => {
-                resolve('my-token');
-            });
-        });
+        api = new SimpleVertecApi('http://localhost', 'my-api-key');
 
         buildXmlSpy = sinon.spy(api, 'buildXml');
     });
@@ -40,21 +34,21 @@ describe('SimpleVertecApi', () => {
             sinon.stub(api, 'doRequest');
 
             api.select('something');
-            buildXmlSpy.returnValues.shift().then(xml => compareFilteredString(xml, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Token>my-token</Token></BasicAuth></Header><Body><Query><Selection><ocl>something</ocl></Selection></Query></Body></Envelope>'));
+            compareFilteredString(buildXmlSpy.returnValues.shift(), '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><Query><Selection><ocl>something</ocl></Selection></Query></Body></Envelope>');
         });
 
         it('does two requests with same auth data', () => {
             sinon.stub(api, 'doRequest');
 
             api.select('something');
-            buildXmlSpy.returnValues.shift().then(xml => compareFilteredString(xml, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Token>my-token</Token></BasicAuth></Header><Body><Query><Selection><ocl>something</ocl></Selection></Query></Body></Envelope>'));
+            compareFilteredString(buildXmlSpy.returnValues.shift(), '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><Query><Selection><ocl>something</ocl></Selection></Query></Body></Envelope>');
 
             api.select('something else');
-            buildXmlSpy.returnValues.shift().then(xml => compareFilteredString(xml, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Token>my-token</Token></BasicAuth></Header><Body><Query><Selection><ocl>something else</ocl></Selection></Query></Body></Envelope>'));
+            compareFilteredString(buildXmlSpy.returnValues.shift(), '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><Query><Selection><ocl>something else</ocl></Selection></Query></Body></Envelope>');
         });
 
         it('converts response to json and extracts useful content', () => {
-            sinon.stub(api, 'request').yields(null, null, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><QueryResponse><Kontakt><objid>12345</objid><sprache>DE</sprache></Kontakt><Kontakt><objid>23456</objid><sprache>EN</sprache></Kontakt></QueryResponse></Body></Envelope>');
+            sinon.stub(api, 'request').resolves({data: '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><QueryResponse><Kontakt><objid>12345</objid><sprache>DE</sprache></Kontakt><Kontakt><objid>23456</objid><sprache>EN</sprache></Kontakt></QueryResponse></Body></Envelope>'});
 
             return api.select('something').then(
                 (content) => {
@@ -67,7 +61,7 @@ describe('SimpleVertecApi', () => {
         });
 
         it('creates object if an alias contains one dot', () => {
-            sinon.stub(api, 'request').yields(null, null, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><QueryResponse><List><Person.Kontakt><objid>12345</objid><sprache>DE</sprache></Person.Kontakt><Person.Kontakt><objid>23456</objid><sprache>EN</sprache></Person.Kontakt><Person.Addresse><objid>12345</objid></Person.Addresse><Person.Addresse><objid>23456</objid></Person.Addresse></List></QueryResponse></Body></Envelope>');
+            sinon.stub(api, 'request').resolves({data: '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><QueryResponse><List><Person.Kontakt><objid>12345</objid><sprache>DE</sprache></Person.Kontakt><Person.Kontakt><objid>23456</objid><sprache>EN</sprache></Person.Kontakt><Person.Addresse><objid>12345</objid></Person.Addresse><Person.Addresse><objid>23456</objid></Person.Addresse></List></QueryResponse></Body></Envelope>'});
 
             return api.select('something').then(
                 (content) => {
@@ -83,7 +77,7 @@ describe('SimpleVertecApi', () => {
         });
 
         it('creates object if an alias contains multiple dots', () => {
-            sinon.stub(api, 'request').yields(null, null, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><QueryResponse><List><Person.Kontakt.Details><objid>12345</objid><sprache>DE</sprache></Person.Kontakt.Details><Person.Kontakt.Details><objid>23456</objid><sprache>EN</sprache></Person.Kontakt.Details><Person.Addresse.Details><objid>12345</objid></Person.Addresse.Details><Person.Addresse.Details><objid>23456</objid></Person.Addresse.Details></List></QueryResponse></Body></Envelope>');
+            sinon.stub(api, 'request').resolves({data: '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><QueryResponse><List><Person.Kontakt.Details><objid>12345</objid><sprache>DE</sprache></Person.Kontakt.Details><Person.Kontakt.Details><objid>23456</objid><sprache>EN</sprache></Person.Kontakt.Details><Person.Addresse.Details><objid>12345</objid></Person.Addresse.Details><Person.Addresse.Details><objid>23456</objid></Person.Addresse.Details></List></QueryResponse></Body></Envelope>'});
 
             return api.select('something').then(
                 (content) => {
@@ -99,20 +93,20 @@ describe('SimpleVertecApi', () => {
         });
 
         it('converts non xml messages server', () => {
-            sinon.stub(api, 'request').yields(null, null, 'Internal Server Error');
+            sinon.stub(api, 'request').resolves({data: 'Internal Server Error'});
 
             return api.select('some faulty select').then(
                 (result) => {
                     throw new Error('Promise was unexpectedly fulfilled. Result: ' + result);
                 },
                 (result) => {
-                    expect(result).to.include.keys('Error');
+                    expect(result).to.eql(new Error('Internal Server Error'));
                 }
             );
         });
 
         it('converts fault messages from server', () => {
-            sinon.stub(api, 'request').yields(null, null, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><Fault><faultcode>Client</faultcode></Fault></Body></Envelope>');
+            sinon.stub(api, 'request').resolves({data: '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><Fault><faultcode>Client</faultcode></Fault></Body></Envelope>'});
 
             return api.select('some faulty select').then(
                 (result) => {
@@ -125,21 +119,20 @@ describe('SimpleVertecApi', () => {
         });
 
         it('converts html error messages from server', () => {
-            sinon.stub(api, 'request').yields(null, null, '<HTML><BODY><P>Error message with missing closing p tag!</BODY></HTML>');
+            sinon.stub(api, 'request').resolves({data: '<HTML><BODY><P>Error message with missing closing p tag!</BODY></HTML>'});
 
             return api.select('some select with fauly response').then(
                 (result) => {
                     throw new Error('Promise was unexpectedly fulfilled. Result: ' + result);
                 },
                 (result) => {
-                    expect(result).to.include.keys('Error');
-                    expect(result.Error.faultstring).to.equal('Error message with missing closing p tag!');
+                    expect(result).to.eql(new Error('Error message with missing closing p tag!'));
                 }
             );
         });
 
         it('catches xml to json conversion errors', (done) => {
-            sinon.stub(api, 'request').yields(null, null, '<container><firstElement><onlyFirstTag>Missing closing tag!</firstElement></container>');
+            sinon.stub(api, 'request').resolves({data: '<container><firstElement><onlyFirstTag>Missing closing tag!</firstElement></container>'});
 
             let xmlDigesterLogger = xmlDigester._logger;
             let originalLevel = xmlDigesterLogger.level();
@@ -157,8 +150,8 @@ describe('SimpleVertecApi', () => {
             });
         });
 
-        it('catches request errors', () => {
-            sinon.stub(api, 'request').yields({ Error: 'Some error message' }, null, null);
+        it('catches default request errors', () => {
+            sinon.stub(api, 'request').rejects({ Error: 'Some error message' });
 
             return api.select('some faulty select').then(
                 (result) => {
@@ -171,74 +164,23 @@ describe('SimpleVertecApi', () => {
         });
 
         it('determines correct retry strategy', () => {
-            expect(api.requestRetryStrategy(null, {})).to.be.false;
-            expect(api.requestRetryStrategy({}, {})).to.be.true;
-            expect(api.requestRetryStrategy(null, {statusCode: 300})).to.be.false;
-            expect(api.requestRetryStrategy(null, {statusCode: 400})).to.be.true;
-            expect(api.requestRetryStrategy(null, {statusCode: 400, body: 'This token is invalid'})).to.be.false;
-            expect(api.requestRetryStrategy(null, {statusCode: 500})).to.be.true;
-            expect(api.requestRetryStrategy(null, {body: '<xml><something /></xml>'})).to.be.false;
-            expect(api.requestRetryStrategy(null, {body: '<xml><fault>something</fault></xml>'})).to.be.true;
-            expect(api.requestRetryStrategy(null, {body: '<DOCTYPE><HTML><BODY>SOMETHING</BODY></HTML>'})).to.be.true;
-            expect(api.requestRetryStrategy(null, {body: 'Internal Server Error'})).to.be.true;
-        });
+            expect(api.requestRetryStrategy({})).to.be.true;
 
-        it('requests and resets auth token', (done) => {
-            api = new SimpleVertecApi('http://localhost', 'http://localhost', 'my-username', 'my-password');
-            buildXmlSpy = sinon.spy(api, 'buildXml');
+            expect(api.requestRetryStrategy({status: 200, response: {}})).to.be.true;
 
-            let requestStub = sinon.stub(api, 'request');
-            requestStub.onFirstCall().yields(null, {statusCode: 200}, 'my-new-token');
-            requestStub.onSecondCall().yields(null, null, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><QueryResponse><something>test</something></QueryResponse></Body></Envelope>');
+            expect(api.requestRetryStrategy({status: 400, response: {}})).to.be.true;
 
-            expect(api.authTokenPromise).to.equal(null);
-            api.select('something');
-            expect(api.authTokenPromise).to.not.equal(null);
+            expect(api.requestRetryStrategy({status: 400, response: {data: 'This token is invalid'}})).to.be.false;
 
-            buildXmlSpy.returnValues.shift().then(xml => compareFilteredString(xml, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Token>my-new-token</Token></BasicAuth></Header><Body><Query><Selection><ocl>something</ocl></Selection></Query></Body></Envelope>'));
+            expect(api.requestRetryStrategy({status: 500, response: {}})).to.be.true;
 
-            api.getAuthToken().then(token => {
-                expect(token).to.equal('my-new-token');
+            expect(api.requestRetryStrategy({status: 200, response: {data: '<xml><something /></xml>'}})).to.be.false;
 
-                api.resetAuthToken();
-                expect(api.authTokenPromise).to.equal(null);
+            expect(api.requestRetryStrategy({status: 200, response: {data: '<xml><fault>something</fault></xml>'}})).to.be.true;
 
-                done();
-            });
-        });
+            expect(api.requestRetryStrategy({status: 200, response: {data: '<DOCTYPE><HTML><BODY>SOMETHING</BODY></HTML>'}})).to.be.true;
 
-        it('returns server content if auth token request does not return a 200 statuscode', (done) => {
-            api = new SimpleVertecApi('http://localhost', 'http://localhost', 'my-username', 'my-password');
-
-            let requestStub = sinon.stub(api, 'request');
-            requestStub.yields(null, {statusCode: 400}, 'Invalid token');
-
-            api.getAuthToken().then(
-                (result) => {
-                    throw new Error('Promise was unexpectedly fulfilled. Result: ' + JSON.stringify(result));
-                },
-                (error) => {
-                    expect(error).to.equal('Invalid token');
-                    done();
-                }
-            );
-        });
-
-        it('returns server content if auth token request faily entirely', (done) => {
-            api = new SimpleVertecApi('http://localhost', 'http://localhost', 'my-username', 'my-password');
-
-            let requestStub = sinon.stub(api, 'request');
-            requestStub.yields('Some error', null, null);
-
-            api.getAuthToken().then(
-                (result) => {
-                    throw new Error('Promise was unexpectedly fulfilled. Result: ' + JSON.stringify(result));
-                },
-                (error) => {
-                    expect(error).to.equal('Some error');
-                    done();
-                }
-            );
+            expect(api.requestRetryStrategy({status: 200, response: {data: 'Internal Server Error'}})).to.be.true;
         });
     });
 
@@ -253,7 +195,7 @@ describe('SimpleVertecApi', () => {
                     ocl:   'object.field'
                 }
             ]);
-            buildXmlSpy.returnValues.shift().then(xml => compareFilteredString(xml, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Token>my-token</Token></BasicAuth></Header><Body><Query><Selection><ocl>something</ocl></Selection><Resultdef><member>normal-field</member><expression><alias>foobar</alias><ocl>object.field</ocl></expression></Resultdef></Query></Body></Envelope>'));
+            compareFilteredString(buildXmlSpy.returnValues.shift(), '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><Query><Selection><ocl>something</ocl></Selection><Resultdef><member>normal-field</member><expression><alias>foobar</alias><ocl>object.field</ocl></expression></Resultdef></Query></Body></Envelope>');
         });
 
         it('throws an error if no valid select query given', () => {
@@ -325,7 +267,7 @@ describe('SimpleVertecApi', () => {
                     }
                 ]
             );
-            buildXmlSpy.returnValues.shift().then(xml => compareFilteredString(xml, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Token>my-token</Token></BasicAuth></Header><Body><Query><Selection><ocl>where-expression = 123</ocl></Selection><Resultdef><member>normal-field</member><expression><alias>foobar</alias><ocl>object.field</ocl></expression></Resultdef></Query></Body></Envelope>'));
+            compareFilteredString(buildXmlSpy.returnValues.shift(), '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><Query><Selection><ocl>where-expression = 123</ocl></Selection><Resultdef><member>normal-field</member><expression><alias>foobar</alias><ocl>object.field</ocl></expression></Resultdef></Query></Body></Envelope>');
         });
 
         it('accepts object as params argument in query', () => {
@@ -344,7 +286,7 @@ describe('SimpleVertecApi', () => {
                     }
                 ]
             );
-            buildXmlSpy.returnValues.shift().then(xml => compareFilteredString(xml, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Token>my-token</Token></BasicAuth></Header><Body><Query><Selection><ocl>where-x-expression = 123 and where-y-expression = 123</ocl></Selection><Resultdef><member>normal-field</member><expression><alias>foobar</alias><ocl>object.field</ocl></expression></Resultdef></Query></Body></Envelope>'));
+            compareFilteredString(buildXmlSpy.returnValues.shift(), '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><Query><Selection><ocl>where-x-expression = 123 and where-y-expression = 123</ocl></Selection><Resultdef><member>normal-field</member><expression><alias>foobar</alias><ocl>object.field</ocl></expression></Resultdef></Query></Body></Envelope>');
         });
 
         it('accepts a string/number as param argument in query', () => {
@@ -355,11 +297,11 @@ describe('SimpleVertecApi', () => {
 
             let param = 123;
             api.select(select, param, fields);
-            buildXmlSpy.returnValues.shift().then(xml => compareFilteredString(xml, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Token>my-token</Token></BasicAuth></Header><Body><Query><Selection><ocl>where-x-expression = 123</ocl></Selection></Query></Body></Envelope>'));
+            compareFilteredString(buildXmlSpy.returnValues.shift(), '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><Query><Selection><ocl>where-x-expression = 123</ocl></Selection></Query></Body></Envelope>');
 
             param = 'foobar';
             api.select(select, param, fields);
-            buildXmlSpy.returnValues.shift().then(xml => compareFilteredString(xml, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Token>my-token</Token></BasicAuth></Header><Body><Query><Selection><ocl>where-x-expression = foobar</ocl></Selection></Query></Body></Envelope>'));
+            compareFilteredString(buildXmlSpy.returnValues.shift(), '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><Query><Selection><ocl>where-x-expression = foobar</ocl></Selection></Query></Body></Envelope>');
         });
 
         it('accepts object as select argument in query', () => {
@@ -386,7 +328,7 @@ describe('SimpleVertecApi', () => {
                 ]
             );
 
-            buildXmlSpy.returnValues.shift().then(xml => compareFilteredString(xml, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Token>my-token</Token></BasicAuth></Header><Body><Query><Selection><objref>987</objref><ocl>something 123</ocl><sqlwhere>something else 234</sqlwhere><sqlorder>foobar 345</sqlorder></Selection><Resultdef><member>normal-field</member><expression><alias>foobar</alias><ocl>object.field</ocl></expression></Resultdef></Query></Body></Envelope>'));
+            compareFilteredString(buildXmlSpy.returnValues.shift(), '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><Query><Selection><objref>987</objref><ocl>something 123</ocl><sqlwhere>something else 234</sqlwhere><sqlorder>foobar 345</sqlorder></Selection><Resultdef><member>normal-field</member><expression><alias>foobar</alias><ocl>object.field</ocl></expression></Resultdef></Query></Body></Envelope>');
         });
 
         it('accepts select object with multiple objref references', () => {
@@ -416,7 +358,7 @@ describe('SimpleVertecApi', () => {
                 ]
             );
 
-            buildXmlSpy.returnValues.shift().then(xml => compareFilteredString(xml, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Token>my-token</Token></BasicAuth></Header><Body><Query><Selection><objref>987</objref><objref>876</objref><ocl>something 123</ocl><sqlwhere>something else 234</sqlwhere><sqlorder>foobar 345</sqlorder></Selection><Resultdef><member>normal-field</member><expression><alias>foobar</alias><ocl>object.field</ocl></expression></Resultdef></Query></Body></Envelope>'));
+            compareFilteredString(buildXmlSpy.returnValues.shift(), '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><Query><Selection><objref>987</objref><objref>876</objref><ocl>something 123</ocl><sqlwhere>something else 234</sqlwhere><sqlorder>foobar 345</sqlorder></Selection><Resultdef><member>normal-field</member><expression><alias>foobar</alias><ocl>object.field</ocl></expression></Resultdef></Query></Body></Envelope>');
         });
 
         it('escapes select object properties', () => {
@@ -442,7 +384,7 @@ describe('SimpleVertecApi', () => {
                 ]
             );
 
-            buildXmlSpy.returnValues.shift().then(xml => compareFilteredString(xml, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Token>my-token</Token></BasicAuth></Header><Body><Query><Selection><ocl>&apos;123&apos;</ocl><sqlwhere>something &lt; else &gt; 234 &amp; foobar</sqlwhere><sqlorder>foobar &apos;345&apos;</sqlorder></Selection><Resultdef><member>normal-field</member><expression><alias>foobar</alias><ocl>object.field</ocl></expression></Resultdef></Query></Body></Envelope>'));
+            compareFilteredString(buildXmlSpy.returnValues.shift(), '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><Query><Selection><ocl>&apos;123&apos;</ocl><sqlwhere>something &lt; else &gt; 234 &amp; foobar</sqlwhere><sqlorder>foobar &apos;345&apos;</sqlorder></Selection><Resultdef><member>normal-field</member><expression><alias>foobar</alias><ocl>object.field</ocl></expression></Resultdef></Query></Body></Envelope>');
         });
 
         it('replaces placeholders both in query and fields', () => {
@@ -462,13 +404,13 @@ describe('SimpleVertecApi', () => {
                     }
                 ]
             );
-            buildXmlSpy.returnValues.shift().then(xml => compareFilteredString(xml, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Token>my-token</Token></BasicAuth></Header><Body><Query><Selection><ocl>where-x-expression = 123 and where-y-expression = &apos;2015-09-21&apos;</ocl></Selection><Resultdef><member>normal-field 123</member><expression><alias>foobar-123</alias><ocl>object.field-2015-09-21</ocl></expression></Resultdef></Query></Body></Envelope>'));
+            compareFilteredString(buildXmlSpy.returnValues.shift(), '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><Query><Selection><ocl>where-x-expression = 123 and where-y-expression = &apos;2015-09-21&apos;</ocl></Selection><Resultdef><member>normal-field 123</member><expression><alias>foobar-123</alias><ocl>object.field-2015-09-21</ocl></expression></Resultdef></Query></Body></Envelope>');
         });
 
         it('catches multiple equal requests and returns one promise', (done) => {
             let resolveCount = 0;
 
-            sinon.stub(api, 'doRequest', () => {
+            sinon.stub(api, 'doRequest').callsFake(() => {
                 return new q((resolve) => {
                     setTimeout(() => { // eslint-disable-line max-nested-callbacks
                         resolveCount++;
@@ -492,7 +434,7 @@ describe('SimpleVertecApi', () => {
         });
 
         it('has a working garbage collector', (done) => {
-            sinon.stub(api, 'doRequest', () => {
+            sinon.stub(api, 'doRequest').callsFake(() => {
                 return new q((resolve) => {
                     setTimeout(() => { // eslint-disable-line max-nested-callbacks
                         resolve({it: 'works'});
@@ -548,16 +490,16 @@ describe('SimpleVertecApi', () => {
             ];
 
             let requestStub = sinon.stub(api, 'request');
-            requestStub.onFirstCall().yields(null, null, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><QueryResponse><Kontakt><objid>12345</objid><sprache>DE</sprache></Kontakt><Kontakt><objid>23456</objid><sprache>EN</sprache></Kontakt></QueryResponse></Body></Envelope>');
-            requestStub.onSecondCall().yields(null, null, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><QueryResponse><Adresse><objid>12345</objid><sprache>DE</sprache></Adresse><Adresse><objid>23456</objid><sprache>EN</sprache></Adresse></QueryResponse></Body></Envelope>');
+            requestStub.onFirstCall().resolves({data: '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><QueryResponse><Kontakt><objid>12345</objid><sprache>DE</sprache></Kontakt><Kontakt><objid>23456</objid><sprache>EN</sprache></Kontakt></QueryResponse></Body></Envelope>'});
+            requestStub.onSecondCall().resolves({data: '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><QueryResponse><Adresse><objid>12345</objid><sprache>DE</sprache></Adresse><Adresse><objid>23456</objid><sprache>EN</sprache></Adresse></QueryResponse></Body></Envelope>'});
 
             api.multiSelect([
                 firstQuery,
                 secondQuery
             ]).then(returnData => {
                 expect(buildXmlSpy.returnValues.length).to.equal(2);
-                buildXmlSpy.returnValues.shift().then(xml => compareFilteredString(xml, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Token>my-token</Token></BasicAuth></Header><Body><Query><Selection><ocl>where-x-expression = 123 and where-y-expression = &apos;2015-09-21&apos;</ocl></Selection><Resultdef><member>normal-field 123</member><expression><alias>foobar-123</alias><ocl>object.field-2015-09-21</ocl></expression></Resultdef></Query></Body></Envelope>'));
-                buildXmlSpy.returnValues.shift().then(xml => compareFilteredString(xml, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Token>my-token</Token></BasicAuth></Header><Body><Query><Selection><objref>12345</objref><objref>23456</objref></Selection><Resultdef><member>first-field</member><member>second-field</member></Resultdef></Query></Body></Envelope>'));
+                compareFilteredString(buildXmlSpy.returnValues.shift(), '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><Query><Selection><ocl>where-x-expression = 123 and where-y-expression = &apos;2015-09-21&apos;</ocl></Selection><Resultdef><member>normal-field 123</member><expression><alias>foobar-123</alias><ocl>object.field-2015-09-21</ocl></expression></Resultdef></Query></Body></Envelope>');
+                compareFilteredString(buildXmlSpy.returnValues.shift(), '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><Query><Selection><objref>12345</objref><objref>23456</objref></Selection><Resultdef><member>first-field</member><member>second-field</member></Resultdef></Query></Body></Envelope>');
 
                 expect(returnData.length).to.equal(2);
                 expect(returnData[0].Kontakt.length).to.equal(2);
@@ -613,10 +555,10 @@ describe('SimpleVertecApi', () => {
             sinon.stub(api, 'doRequest');
 
             api.findById('123', ['foo']);
-            buildXmlSpy.returnValues.shift().then(xml => compareFilteredString(xml, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Token>my-token</Token></BasicAuth></Header><Body><Query><Selection><objref>123</objref></Selection><Resultdef><member>foo</member></Resultdef></Query></Body></Envelope>'));
+            compareFilteredString(buildXmlSpy.returnValues.shift(), '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><Query><Selection><objref>123</objref></Selection><Resultdef><member>foo</member></Resultdef></Query></Body></Envelope>');
 
             api.findById(123, ['bar']);
-            buildXmlSpy.returnValues.shift().then(xml => compareFilteredString(xml, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Token>my-token</Token></BasicAuth></Header><Body><Query><Selection><objref>123</objref></Selection><Resultdef><member>bar</member></Resultdef></Query></Body></Envelope>'));
+            compareFilteredString(buildXmlSpy.returnValues.shift(), '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><Query><Selection><objref>123</objref></Selection><Resultdef><member>bar</member></Resultdef></Query></Body></Envelope>');
         });
 
         it('accepts an array of ids', () => {
@@ -629,7 +571,7 @@ describe('SimpleVertecApi', () => {
                 'foo',
                 'bar'
             ]);
-            buildXmlSpy.returnValues.shift().then(xml => compareFilteredString(xml, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Token>my-token</Token></BasicAuth></Header><Body><Query><Selection><objref>123</objref><objref>234</objref></Selection><Resultdef><member>foo</member><member>bar</member></Resultdef></Query></Body></Envelope>'));
+            compareFilteredString(buildXmlSpy.returnValues.shift(), '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><Query><Selection><objref>123</objref><objref>234</objref></Selection><Resultdef><member>foo</member><member>bar</member></Resultdef></Query></Body></Envelope>');
         });
 
         it('replaces placeholders in fields', () => {
@@ -649,15 +591,15 @@ describe('SimpleVertecApi', () => {
                     }
                 ]
             );
-            buildXmlSpy.returnValues.shift().then(xml => compareFilteredString(xml, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Token>my-token</Token></BasicAuth></Header><Body><Query><Selection><objref>123456</objref></Selection><Resultdef><member>normal-field 123</member><expression><alias>foobar-123</alias><ocl>object.field-2015-09-21</ocl></expression></Resultdef></Query></Body></Envelope>'));
+            compareFilteredString(buildXmlSpy.returnValues.shift(), '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><Query><Selection><objref>123456</objref></Selection><Resultdef><member>normal-field 123</member><expression><alias>foobar-123</alias><ocl>object.field-2015-09-21</ocl></expression></Resultdef></Query></Body></Envelope>');
         });
     });
 
     describe('multiFindById()', () => {
         it('makes multiple requests in parallel', done => {
             let requestStub = sinon.stub(api, 'request');
-            requestStub.onFirstCall().yields(null, null, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><QueryResponse><Kontakt><objid>12345</objid><sprache>DE</sprache></Kontakt><Kontakt><objid>23456</objid><sprache>EN</sprache></Kontakt></QueryResponse></Body></Envelope>');
-            requestStub.onSecondCall().yields(null, null, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><QueryResponse><Adresse><objid>12345</objid><sprache>DE</sprache></Adresse><Adresse><objid>23456</objid><sprache>EN</sprache></Adresse></QueryResponse></Body></Envelope>');
+            requestStub.onFirstCall().resolves({data: '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><QueryResponse><Kontakt><objid>12345</objid><sprache>DE</sprache></Kontakt><Kontakt><objid>23456</objid><sprache>EN</sprache></Kontakt></QueryResponse></Body></Envelope>'});
+            requestStub.onSecondCall().resolves({data: '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><QueryResponse><Adresse><objid>12345</objid><sprache>DE</sprache></Adresse><Adresse><objid>23456</objid><sprache>EN</sprache></Adresse></QueryResponse></Body></Envelope>'});
 
             api.multiFindById([
                 '123',
@@ -669,8 +611,8 @@ describe('SimpleVertecApi', () => {
                 expect(returnData.length).to.equal(2);
 
                 expect(buildXmlSpy.returnValues.length).to.equal(2);
-                buildXmlSpy.returnValues.shift().then(xml => compareFilteredString(xml, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Token>my-token</Token></BasicAuth></Header><Body><Query><Selection><objref>123</objref></Selection><Resultdef><member>foo</member><member>bar</member></Resultdef></Query></Body></Envelope>'));
-                buildXmlSpy.returnValues.shift().then(xml => compareFilteredString(xml, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Token>my-token</Token></BasicAuth></Header><Body><Query><Selection><objref>234</objref></Selection><Resultdef><member>foo</member><member>bar</member></Resultdef></Query></Body></Envelope>'));
+                compareFilteredString(buildXmlSpy.returnValues.shift(), '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><Query><Selection><objref>123</objref></Selection><Resultdef><member>foo</member><member>bar</member></Resultdef></Query></Body></Envelope>');
+                compareFilteredString(buildXmlSpy.returnValues.shift(), '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><Query><Selection><objref>234</objref></Selection><Resultdef><member>foo</member><member>bar</member></Resultdef></Query></Body></Envelope>');
 
                 done();
             });
@@ -682,10 +624,10 @@ describe('SimpleVertecApi', () => {
             sinon.stub(api, 'doRequest');
 
             api.delete('123');
-            buildXmlSpy.returnValues.shift().then(xml => compareFilteredString(xml, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Token>my-token</Token></BasicAuth></Header><Body><Delete><objref>123</objref></Delete></Body></Envelope>'));
+            compareFilteredString(buildXmlSpy.returnValues.shift(), '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><Delete><objref>123</objref></Delete></Body></Envelope>');
 
             api.delete(123);
-            buildXmlSpy.returnValues.shift().then(xml => compareFilteredString(xml, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Token>my-token</Token></BasicAuth></Header><Body><Delete><objref>123</objref></Delete></Body></Envelope>'));
+            compareFilteredString(buildXmlSpy.returnValues.shift(), '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><Delete><objref>123</objref></Delete></Body></Envelope>');
         });
 
         it('accepts an array of ids', () => {
@@ -695,7 +637,7 @@ describe('SimpleVertecApi', () => {
                 '123',
                 234
             ]);
-            buildXmlSpy.returnValues.shift().then(xml => compareFilteredString(xml, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Token>my-token</Token></BasicAuth></Header><Body><Delete><objref>123</objref><objref>234</objref></Delete></Body></Envelope>'));
+            compareFilteredString(buildXmlSpy.returnValues.shift(), '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><Delete><objref>123</objref><objref>234</objref></Delete></Body></Envelope>');
         });
     });
 
@@ -712,7 +654,7 @@ describe('SimpleVertecApi', () => {
                 },
                 minutenint: 60
             });
-            buildXmlSpy.returnValues.shift().then(xml => compareFilteredString(xml, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Token>my-token</Token></BasicAuth></Header><Body><Create><OffeneLeistung><bearbeiter><objref>123</objref></bearbeiter><projekt><objref>234</objref></projekt><minutenint>60</minutenint></OffeneLeistung></Create></Body></Envelope>'));
+            compareFilteredString(buildXmlSpy.returnValues.shift(), '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><Create><OffeneLeistung><bearbeiter><objref>123</objref></bearbeiter><projekt><objref>234</objref></projekt><minutenint>60</minutenint></OffeneLeistung></Create></Body></Envelope>');
         });
 
         it('accepts an array of new objects-data', () => {
@@ -741,7 +683,7 @@ describe('SimpleVertecApi', () => {
                     }
                 }
             ]);
-            buildXmlSpy.returnValues.shift().then(xml => compareFilteredString(xml, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Token>my-token</Token></BasicAuth></Header><Body><Create><OffeneLeistung><bearbeiter><objref>123</objref></bearbeiter><projekt><objref>234</objref></projekt><minutenint>60</minutenint></OffeneLeistung><SonstigeLeistung><phase><objref>345</objref></phase><minutenExt>30</minutenExt></SonstigeLeistung></Create></Body></Envelope>'));
+            compareFilteredString(buildXmlSpy.returnValues.shift(), '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><Create><OffeneLeistung><bearbeiter><objref>123</objref></bearbeiter><projekt><objref>234</objref></projekt><minutenint>60</minutenint></OffeneLeistung><SonstigeLeistung><phase><objref>345</objref></phase><minutenExt>30</minutenExt></SonstigeLeistung></Create></Body></Envelope>');
         });
 
         it('uses update cmd if object already exists', () => {
@@ -771,7 +713,7 @@ describe('SimpleVertecApi', () => {
                     }
                 }
             ]);
-            buildXmlSpy.returnValues.shift().then(xml => compareFilteredString(xml, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Token>my-token</Token></BasicAuth></Header><Body><Create><OffeneLeistung><bearbeiter><objref>123</objref></bearbeiter><projekt><objref>234</objref></projekt><minutenint>60</minutenint></OffeneLeistung></Create><Update><VerrechneteLeistung><objref>987</objref><phase><objref>345</objref></phase><minutenExt>30</minutenExt></VerrechneteLeistung></Update></Body></Envelope>'));
+            compareFilteredString(buildXmlSpy.returnValues.shift(), '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><Create><OffeneLeistung><bearbeiter><objref>123</objref></bearbeiter><projekt><objref>234</objref></projekt><minutenint>60</minutenint></OffeneLeistung></Create><Update><VerrechneteLeistung><objref>987</objref><phase><objref>345</objref></phase><minutenExt>30</minutenExt></VerrechneteLeistung></Update></Body></Envelope>');
         });
 
         it('create multiple objects with same class', () => {
@@ -803,7 +745,7 @@ describe('SimpleVertecApi', () => {
                     }
                 }
             ]);
-            buildXmlSpy.returnValues.shift().then(xml => compareFilteredString(xml, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Token>my-token</Token></BasicAuth></Header><Body><Create><OffeneLeistung><bearbeiter><objref>123</objref></bearbeiter><projekt><objref>234</objref></projekt><minutenint>60</minutenint></OffeneLeistung><OffeneLeistung><bearbeiter><objref>234</objref></bearbeiter><projekt><objref>345</objref></projekt><minutenint>120</minutenint></OffeneLeistung></Create></Body></Envelope>'));
+            compareFilteredString(buildXmlSpy.returnValues.shift(), '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><Create><OffeneLeistung><bearbeiter><objref>123</objref></bearbeiter><projekt><objref>234</objref></projekt><minutenint>60</minutenint></OffeneLeistung><OffeneLeistung><bearbeiter><objref>234</objref></bearbeiter><projekt><objref>345</objref></projekt><minutenint>120</minutenint></OffeneLeistung></Create></Body></Envelope>');
         });
 
         it('updates multiple objects with same class', () => {
@@ -831,7 +773,7 @@ describe('SimpleVertecApi', () => {
                     }
                 }
             ]);
-            buildXmlSpy.returnValues.shift().then(xml => compareFilteredString(xml, '<?xml version="1.0" encoding="UTF-8"?><Envelope><Header><BasicAuth><Token>my-token</Token></BasicAuth></Header><Body><Update><VerrechneteLeistung><objref>987</objref><phase><objref>345</objref></phase><minutenExt>30</minutenExt></VerrechneteLeistung><VerrechneteLeistung><objref>988</objref><phase><objref>345</objref></phase><minutenExt>30</minutenExt></VerrechneteLeistung></Update></Body></Envelope>'));
+            compareFilteredString(buildXmlSpy.returnValues.shift(), '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><Update><VerrechneteLeistung><objref>987</objref><phase><objref>345</objref></phase><minutenExt>30</minutenExt></VerrechneteLeistung><VerrechneteLeistung><objref>988</objref><phase><objref>345</objref></phase><minutenExt>30</minutenExt></VerrechneteLeistung></Update></Body></Envelope>');
         });
 
         it('throws an error if className or data fields not present or not valid', () => {

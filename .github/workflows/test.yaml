@@ -1,0 +1,38 @@
+name: Run tests
+
+on:
+    push:
+    pull_request:
+    workflow_dispatch:
+
+concurrency:
+    group: ${{ github.ref }}-run-tests
+    cancel-in-progress: true
+
+permissions: read-all
+
+jobs:
+    run-tests:
+        name: Run tests
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+
+        strategy:
+            matrix:
+                node-version: [ 16, 18, 20, 21, 22, latest ]
+
+        steps:
+            -   name: Checkout code
+                uses: actions/checkout@v4 # Step 1: Check out the source code from the repository.
+
+            -   name: Use Node.js ${{ matrix.node-version }}
+                uses: actions/setup-node@v4
+                with:
+                    node-version: ${{ matrix.node-version }}
+                    cache: 'npm' # Step 2: Use npm caching for faster dependency installs.
+
+            -   name: Install Node.js dependencies
+                run: npm ci # Step 3: Perform a clean install of Node.js dependencies.
+
+            -   name: Run tests
+                run: npm test # Step 4: Run tests using the specified Node.js version.
