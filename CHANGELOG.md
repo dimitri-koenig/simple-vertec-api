@@ -4,10 +4,13 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased][unreleased]
 
-## [5.0.0][2024-07-14]
+## [5.0.0][2024-06-28]
 ### Feature
 * Switched to API Key authorization. Username + password usage is no longer supported as of Vertec 6.7 anyway.
 * Replaced memcached with general caching api solution (e.x. @momsfriendlydevco/cache)
+
+### Chores
+* Updated all dependencies
 
 ## [4.0.3][2019-05-29]
 ### Bugfix
