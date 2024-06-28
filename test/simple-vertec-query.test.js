@@ -1377,7 +1377,7 @@ describe('SimpleVertecQuery', () => {
 
             it('puts result it into cache with request hash as cache key if no cacheKey defined', (done) => {
                 sinon.stub(fakeCacheInstance, 'get').resolves(null);
-                let buildXmlStringFromObjectSpy = sinon.spy(api, 'buildXmlStringFromObject');
+                let buildXmlSpy = sinon.spy(api, 'buildXml');
 
                 apiResponse({it: 'works 7'});
 
@@ -1387,14 +1387,14 @@ describe('SimpleVertecQuery', () => {
                     expect(response.meta.refresh).to.be.false;
                     expect(cacheSetArguments).to.have.lengthOf(1);
                     expect(cacheSetArguments[0][0]).to.match(/^app-\w{32}-10$/);
-                    expect(buildXmlStringFromObjectSpy.returnValues).to.have.lengthOf(2);
+                    expect(buildXmlSpy.returnValues).to.have.lengthOf(2);
                     done();
                 }).catch(err => done(err));
             });
 
             it('puts result it into cache with cacheName, and request hash as cache key if no cacheKey defined', (done) => {
                 sinon.stub(fakeCacheInstance, 'get').resolves(null);
-                let buildXmlStringFromObjectSpy = sinon.spy(api, 'buildXmlStringFromObject');
+                let buildXmlSpy = sinon.spy(api, 'buildXml');
 
                 apiResponse({it: 'works 7'});
 
@@ -1404,7 +1404,7 @@ describe('SimpleVertecQuery', () => {
                     expect(response.meta.refresh).to.be.false;
                     expect(cacheSetArguments).to.have.lengthOf(1);
                     expect(cacheSetArguments[0][0]).to.match(/^app-test10-\w{32}-10$/);
-                    expect(buildXmlStringFromObjectSpy.returnValues).to.have.lengthOf(2);
+                    expect(buildXmlSpy.returnValues).to.have.lengthOf(2);
                     done();
                 }).catch(err => done(err));
             });
