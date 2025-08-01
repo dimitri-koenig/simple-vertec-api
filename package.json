@@ -1,7 +1,7 @@
 {
   "name": "simple-vertec-api",
   "description": "Simple Vertec Api for node.js",
-  "version": "5.0.1",
+  "version": "5.0.2",
   "type": "module",
   "author": "Dimitri König <dimitri@dimitrikoenig.net>",
   "contributors": [
