@@ -4,6 +4,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased][unreleased]
 
+## [5.0.3][2025-10-01]
+### Chores
+* Updated dependencies due to security issues
+
 ## [5.0.2][2025-08-01]
 ### Chores
 * Updated dependencies due to security issues

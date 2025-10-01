@@ -1,7 +1,7 @@
 {
   "name": "simple-vertec-api",
   "description": "Simple Vertec Api for node.js",
-  "version": "5.0.2",
+  "version": "5.0.3",
   "type": "module",
   "author": "Dimitri König <dimitri@dimitrikoenig.net>",
   "contributors": [
@@ -18,21 +18,21 @@
     "url": "https://github.com/dimitri-koenig/simple-vertec-api/issues"
   },
   "dependencies": {
-    "axios": "1.7.4",
-    "axios-retry": "4.5.0",
-    "bluebird": "3.7.2",
-    "bunyan": "1.8.15",
-    "lodash": "4.17.21",
-    "md5": "2.3.0",
-    "simple-parameter-injector": "2.0.0",
-    "simple-xml-converter": "2.0.0",
-    "traverse": "0.6.9",
-    "xml-digester": "0.0.5"
+    "axios": "^1.7.4",
+    "axios-retry": "^4.5.0",
+    "bluebird": "^3.7.2",
+    "bunyan": "^1.8.15",
+    "lodash": "^4.17.21",
+    "md5": "^2.3.0",
+    "simple-parameter-injector": "^2.0.0",
+    "simple-xml-converter": "^2.0.0",
+    "traverse": "^0.6.9",
+    "xml-digester": "^0.0.5"
   },
   "devDependencies": {
-    "chai": "5.1.1",
-    "mocha": "10.7.3",
-    "sinon": "18.0.0"
+    "chai": "^5.1.1",
+    "mocha": "^10.7.3",
+    "sinon": "^18.0.0"
   },
   "keywords": [
     "vertec",
