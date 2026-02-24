@@ -1,11 +1,15 @@
-# new SimpleVertecApi(xmlUrl, authUrl, username, password, [verbose, defaultRequestOptions])
+# new SimpleVertecApi(xmlUrl, apiKey, [verbose, defaultRequestOptions])
 
 Returns a new SimpleVertecApi object.
 
 * `xmlUrl`: A string containing the url the your vertec server, e.g. `https://vertec.company.com/xml`
 * `apiKey`: A string with your vertec api key
 * `verbose` *(optional)*: A boolean which set on true will output additional log data
-* `defaultRequestOptions` *(optional)*: An object with addition request default options which can override standard options
+* `defaultRequestOptions` *(optional)*: An object with additional request default options which can override standard options
+    * `timeout`: Request timeout in milliseconds (default: `10000`)
+    * `maxAttempts`: Maximum number of retry attempts (default: `5`)
+    * `retryDelay`: Delay between retries in milliseconds (default: `2000`)
+    * `fixedSessionTag`: When set to a number, the `VertecSessionTag` header will use this fixed value for every request instead of rotating through sessions
 
 # select(select, [params], fields) -> Promise
 

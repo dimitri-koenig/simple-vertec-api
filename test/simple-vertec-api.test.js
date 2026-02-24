@@ -2,6 +2,7 @@ import {SimpleVertecApi} from '../lib/index.js';
 import {expect} from 'chai';
 import sinon from 'sinon';
 import xmlDigester from 'xml-digester';
+import axios from 'axios';
 import q from 'bluebird';
 import _ from 'lodash';
 
@@ -828,6 +829,55 @@ describe('SimpleVertecApi', () => {
                 expect(createSpy.exceptions).to.have.length(1);
                 expect(createSpy.exceptions.shift().message).to.have.string('1439114369');
             }
+        });
+    });
+
+    describe('fixedSessionTag option', () => {
+        let createStub;
+
+        function mockAxiosCreate() {
+            const mockClient = {
+                post: sinon.stub().resolves({ data: '<xml/>' }),
+                interceptors: {
+                    request: { use: sinon.stub() },
+                    response: { use: sinon.stub() },
+                },
+            };
+            return sinon.stub(axios, 'create').returns(mockClient);
+        }
+
+        afterEach(() => {
+            if (createStub) {
+                createStub.restore();
+                createStub = null;
+            }
+        });
+
+        it('uses fixed session tag when configured', () => {
+            const fixedApi = new SimpleVertecApi('http://localhost', 'my-api-key', false, { fixedSessionTag: 5 });
+            createStub = mockAxiosCreate();
+
+            fixedApi.request('<xml/>');
+            fixedApi.request('<xml/>');
+            fixedApi.request('<xml/>');
+
+            const calls = createStub.getCalls();
+            expect(calls).to.have.length(3);
+            calls.forEach(call => {
+                expect(call.args[0].headers.VertecSessionTag).to.equal('5');
+            });
+        });
+
+        it('rotates session tag when fixedSessionTag is not set', () => {
+            const rotatingApi = new SimpleVertecApi('http://localhost', 'my-api-key', false, {});
+            createStub = mockAxiosCreate();
+
+            rotatingApi.request('<xml/>');
+            rotatingApi.request('<xml/>');
+            rotatingApi.request('<xml/>');
+
+            const tags = createStub.getCalls().map(call => call.args[0].headers.VertecSessionTag);
+            expect(new Set(tags).size).to.be.greaterThan(1);
         });
     });
 });

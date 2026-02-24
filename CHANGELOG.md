@@ -4,6 +4,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased][unreleased]
 
+## [5.1.0][2026-02-24]
+### Feature
+* Add new default request option: fixedSessionTag
+
 ## [5.0.3][2025-10-01]
 ### Chores
 * Updated dependencies due to security issues
