@@ -4,6 +4,11 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased][unreleased]
 
+## [5.3.1][2026-02-24]
+### Chores
+* Update mocha from v10 to v11 for Node.js v25+ ESM compatibility
+* Update GitHub Actions test matrix to `[20, 22, 24, latest]`, removing EOL versions
+
 ## [5.3.0][2026-02-24]
 ### Feature
 * Add slow lane: a separate concurrency pool for heavy/deprioritized requests via `maxConcurrentSlowLaneRequests` option (default: 10). Slow lane requests use an independent queue so they don't block normal requests.
