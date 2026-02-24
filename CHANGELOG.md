@@ -4,6 +4,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased][unreleased]
 
+## [5.2.0][2026-02-24]
+### Feature
+* Add concurrency limiting for Vertec API requests with new `maxConcurrentRequests` option (default: 10). Requests exceeding the limit are queued and processed as active requests complete.
+
 ## [5.1.0][2026-02-24]
 ### Feature
 * Add new default request option: fixedSessionTag

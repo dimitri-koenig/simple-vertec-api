@@ -10,6 +10,7 @@ Returns a new SimpleVertecApi object.
     * `maxAttempts`: Maximum number of retry attempts (default: `5`)
     * `retryDelay`: Delay between retries in milliseconds (default: `2000`)
     * `fixedSessionTag`: When set to a number, the `VertecSessionTag` header will use this fixed value for every request instead of rotating through sessions
+    * `maxConcurrentRequests`: Maximum number of concurrent requests to the Vertec server (default: `10`). Requests exceeding this limit are queued and processed as active requests complete.
 
 # select(select, [params], fields) -> Promise
 

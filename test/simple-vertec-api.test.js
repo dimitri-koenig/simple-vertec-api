@@ -832,6 +832,134 @@ describe('SimpleVertecApi', () => {
         });
     });
 
+    describe('concurrency limiting', () => {
+        it('defaults maxConcurrentRequests to 10', () => {
+            expect(api.maxConcurrentRequests).to.equal(10);
+        });
+
+        it('accepts custom maxConcurrentRequests option', () => {
+            const customApi = new SimpleVertecApi('http://localhost', 'my-api-key', false, { maxConcurrentRequests: 5 });
+            expect(customApi.maxConcurrentRequests).to.equal(5);
+        });
+
+        it('respects concurrency limit', () => {
+            const concurrencyApi = new SimpleVertecApi('http://localhost', 'my-api-key', false, { maxConcurrentRequests: 2 });
+            let maxActive = 0;
+            let currentActive = 0;
+
+            sinon.stub(concurrencyApi, 'doRequest').callsFake(() => {
+                currentActive++;
+                if (currentActive > maxActive) {
+                    maxActive = currentActive;
+                }
+
+                return new q((resolve) => {
+                    setTimeout(() => { // eslint-disable-line max-nested-callbacks
+                        currentActive--;
+                        resolve({ it: 'works' });
+                    }, 20);
+                });
+            });
+
+            // fire 5 requests with concurrency limit of 2
+            const promises = [];
+            for (let i = 0; i < 5; i++) {
+                promises.push(concurrencyApi.select('query-' + i));
+            }
+
+            // only 2 should be active immediately
+            expect(concurrencyApi.activeRequests).to.equal(2);
+            expect(concurrencyApi.requestQueue.length).to.equal(3);
+
+            return q.all(promises).then(() => {
+                expect(maxActive).to.equal(2);
+                // allow .finally() to settle
+                return q.delay(10);
+            }).then(() => {
+                expect(concurrencyApi.activeRequests).to.equal(0);
+                expect(concurrencyApi.requestQueue.length).to.equal(0);
+            });
+        });
+
+        it('processes all queued requests to completion', () => {
+            const concurrencyApi = new SimpleVertecApi('http://localhost', 'my-api-key', false, { maxConcurrentRequests: 2 });
+            let completedCount = 0;
+
+            sinon.stub(concurrencyApi, 'doRequest').callsFake(() => {
+                return new q((resolve) => {
+                    setTimeout(() => { // eslint-disable-line max-nested-callbacks
+                        completedCount++;
+                        resolve({ it: 'works' });
+                    }, 5);
+                });
+            });
+
+            const promises = [];
+            for (let i = 0; i < 6; i++) {
+                promises.push(concurrencyApi.select('query-' + i));
+            }
+
+            return q.all(promises).then(() => {
+                expect(completedCount).to.equal(6);
+                // allow .finally() to settle
+                return q.delay(10);
+            }).then(() => {
+                expect(concurrencyApi.activeRequests).to.equal(0);
+                expect(concurrencyApi.requestQueue.length).to.equal(0);
+            });
+        });
+
+        it('continues processing when a request fails', () => {
+            const concurrencyApi = new SimpleVertecApi('http://localhost', 'my-api-key', false, { maxConcurrentRequests: 1 });
+            let callCount = 0;
+
+            sinon.stub(concurrencyApi, 'doRequest').callsFake(() => {
+                callCount++;
+                if (callCount === 1) {
+                    return q.reject(new Error('request failed'));
+                }
+                return q.resolve({ it: 'works' });
+            });
+
+            const p1 = concurrencyApi.select('fail-query').catch(() => 'caught');
+            const p2 = concurrencyApi.select('success-query');
+
+            return q.all([p1, p2]).then(([r1, r2]) => {
+                expect(r1).to.equal('caught');
+                expect(r2).to.deep.equal({ it: 'works' });
+                expect(callCount).to.equal(2);
+                // allow .finally() to settle
+                return q.delay(10);
+            }).then(() => {
+                expect(concurrencyApi.activeRequests).to.equal(0);
+            });
+        });
+
+        it('works together with request deduplication', () => {
+            const concurrencyApi = new SimpleVertecApi('http://localhost', 'my-api-key', false, { maxConcurrentRequests: 2 });
+            let doRequestCallCount = 0;
+
+            sinon.stub(concurrencyApi, 'doRequest').callsFake(() => {
+                doRequestCallCount++;
+                return new q((resolve) => {
+                    setTimeout(() => {
+                        resolve({ it: 'works' });
+                    }, 10);
+                });
+            });
+
+            // same query should be deduplicated, different ones should go through the queue
+            const p1 = concurrencyApi.select('same-query');
+            const p2 = concurrencyApi.select('same-query');
+            const p3 = concurrencyApi.select('different-query');
+
+            return q.all([p1, p2, p3]).then(() => {
+                // only 2 actual doRequest calls (same-query deduplicated)
+                expect(doRequestCallCount).to.equal(2);
+            });
+        });
+    });
+
     describe('fixedSessionTag option', () => {
         let createStub;
 
