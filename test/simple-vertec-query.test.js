@@ -110,6 +110,7 @@ describe('SimpleVertecQuery', () => {
             expect(query.addTransformer(() => {})).to.equal(query);
             expect(query.filterProperty('p')).to.equal(query);
             expect(query.setRootKey('r')).to.equal(query);
+            expect(query.usingSlowLane()).to.equal(query);
             expect(query.zip('z')).to.equal(query);
         });
     });
@@ -630,6 +631,28 @@ describe('SimpleVertecQuery', () => {
                 .then(response => {
                     expect(response.data.start).to.equal(387);
                 });
+        });
+
+        it('does not duplicate filter properties transformer on repeated get() calls', () => {
+            let callCount = 0;
+            sinon.stub(api, 'doRequest').callsFake(() => {
+                callCount++;
+                return new q((resolve) => {
+                    resolve({myKey: {it: 'works ' + callCount}});
+                });
+            });
+
+            let query = new SimpleVertecQuery().filterProperty('myKey');
+
+            return query.get().then(response => {
+                expect(response.data).to.deep.equal({it: 'works 1'});
+
+                return query.get();
+            }).then(response => {
+                // Without the fix, the filter transformer would be applied twice,
+                // trying to access 'myKey' on the already-filtered result
+                expect(response.data).to.deep.equal({it: 'works 2'});
+            });
         });
 
         it('returns undefined when api response is falsy', () => {
@@ -1557,6 +1580,40 @@ describe('SimpleVertecQuery', () => {
                 });
             });
 
+            it('logs error when grace period background refresh fails', (done) => {
+                let cacheItem = {
+                    meta: {
+                        softExpire: newDate() - 1
+                    },
+                    data: {it: 'stale data'}
+                };
+                sinon.stub(fakeCacheInstance, 'get').resolves(cacheItem);
+
+                sinon.stub(api, 'doRequest').callsFake(() => {
+                    return new q((resolve, reject) => {
+                        reject(new Error('background refresh failed'));
+                    });
+                });
+
+                let consoleErrorStub = sinon.stub(console, 'error');
+
+                new SimpleVertecQuery().setCacheTTL(10).setCacheGraceTime(5).setCacheKey('test-grace-err').get().then(response => {
+                    // Should still resolve with stale data
+                    expect(response.meta.onGrace).to.be.true;
+                    expect(response.data.it).to.equal('stale data');
+
+                    setTimeout(() => {
+                        expect(consoleErrorStub.calledOnce).to.be.true;
+                        expect(consoleErrorStub.firstCall.args[0]).to.include('Grace period refresh error');
+                        consoleErrorStub.restore();
+                        done();
+                    }, 10);
+                }).catch(err => {
+                    consoleErrorStub.restore();
+                    done(err);
+                });
+            });
+
             it('catches cache set errors', (done) => {
                 sinon.stub(fakeCacheInstance, 'get').resolves(null);
                 sinon.stub(fakeCacheInstance, 'set').rejects({Error4: 'Cache write failed'});
@@ -1582,6 +1639,66 @@ describe('SimpleVertecQuery', () => {
                     done();
                 }).catch(err => done(err));
             });
+        });
+    });
+
+    describe('slow lane', () => {
+        it('usingSlowLane() sets slowLane option', () => {
+            let query = new SimpleVertecQuery();
+            expect(query.options.slowLane).to.be.false;
+
+            query.usingSlowLane();
+            expect(query.options.slowLane).to.be.true;
+        });
+
+        it('usingSlowLane(false) disables slow lane', () => {
+            let query = new SimpleVertecQuery().usingSlowLane();
+            expect(query.options.slowLane).to.be.true;
+
+            query.usingSlowLane(false);
+            expect(query.options.slowLane).to.be.false;
+        });
+
+        it('slowLane via constructor overwriteOptions', () => {
+            let query = new SimpleVertecQuery({ slowLane: true });
+            expect(query.options.slowLane).to.be.true;
+        });
+
+        it('slowLane flag is passed through to api.select()', () => {
+            let selectSpy = sinon.spy(api, 'select');
+
+            sinon.stub(api, 'doRequest').callsFake(() => {
+                return q.resolve({it: 'works'});
+            });
+
+            return new SimpleVertecQuery()
+                .whereOcl('Projektbearbeiter')
+                .addFields('name')
+                .usingSlowLane()
+                .get()
+                .then(() => {
+                    expect(selectSpy.calledOnce).to.be.true;
+                    let lastArg = selectSpy.firstCall.args[selectSpy.firstCall.args.length - 1];
+                    expect(lastArg).to.deep.equal({ slowLane: true });
+                });
+        });
+
+        it('does not pass slowLane option when not set', () => {
+            let selectSpy = sinon.spy(api, 'select');
+
+            sinon.stub(api, 'doRequest').callsFake(() => {
+                return q.resolve({it: 'works'});
+            });
+
+            return new SimpleVertecQuery()
+                .whereOcl('Projektbearbeiter')
+                .addFields('name')
+                .get()
+                .then(() => {
+                    expect(selectSpy.calledOnce).to.be.true;
+                    // Should only have 3 args: query, params, fields (no requestOptions)
+                    expect(selectSpy.firstCall.args.length).to.equal(3);
+                });
         });
     });
 });

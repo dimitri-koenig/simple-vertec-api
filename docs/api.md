@@ -11,6 +11,23 @@ Returns a new SimpleVertecApi object.
     * `retryDelay`: Delay between retries in milliseconds (default: `2000`)
     * `fixedSessionTag`: When set to a number, the `VertecSessionTag` header will use this fixed value for every request instead of rotating through sessions
     * `maxConcurrentRequests`: Maximum number of concurrent requests to the Vertec server (default: `10`). Requests exceeding this limit are queued and processed as active requests complete.
+    * `maxConcurrentSlowLaneRequests`: Maximum number of concurrent slow lane requests (default: `10`). Slow lane requests use a separate pool, independent of the default queue. See [Slow lane](#slow-lane) below.
+
+# destroy() -> void
+
+Cleans up resources held by this instance. Clears the internal garbage collection interval to prevent memory leaks in long-running processes.
+
+__Example__
+
+```javascript
+const api = new SimpleVertecApi('https://my-vertec-domain/xml', 'my-api-key');
+
+// ... use the api ...
+
+// Clean up when done
+api.destroy();
+```
+
 
 # select(select, [params], fields) -> Promise
 
@@ -234,6 +251,86 @@ Or:
 If in the data array the field `objref` is found, an update operation will be made. If there isn't such a field, a create operation will be made.
 
 
-__Multiple identical & simultaneous requests__
+---
+
+# Dot-key transformation
+
+When field aliases contain dots (e.g., `alias: 'Person.Kontakt'`), the response is automatically transformed so that dotted keys become nested objects. This happens transparently on every response.
+
+__Example__
+
+```javascript
+const fields = [
+    { ocl: 'kontaktperson.name', alias: 'Person.Name' },
+    { ocl: 'kontaktperson.email', alias: 'Person.Email' }
+];
+
+api.select('Projekt', fields).then(function(response) {
+    // Without dot-key transformation, response would contain:
+    // { 'Person.Name': 'John', 'Person.Email': 'john@example.com' }
+    //
+    // With dot-key transformation, it becomes:
+    // { Person: { Name: 'John', Email: 'john@example.com' } }
+    console.log(response.Person.Name);
+});
+```
+
+
+# Retry behavior
+
+Failed requests are automatically retried using exponential backoff via [axios-retry](https://github.com/softonic/axios-retry). The following `defaultRequestOptions` control retry behavior:
+
+* `maxAttempts`: Maximum number of retry attempts (default: `5`)
+* `retryDelay`: Base delay between retries in milliseconds (default: `2000`). Actual delay is `retryCount * retryDelay` (linear backoff).
+
+Each retry resets the request timeout (`shouldResetTimeout: true`), so every attempt gets a fresh timeout window.
+
+**Conditions that trigger a retry:**
+
+| Condition | Retried? |
+|---|---|
+| No response (network error, timeout) | Yes |
+| Response is not an object | Yes |
+| Response has no data | Yes |
+| HTTP 5xx (server errors) | Yes |
+| HTTP 408 (Request Timeout) | Yes |
+| HTTP 429 (Too Many Requests) | Yes |
+| HTTP 400 without "token" in body | Yes |
+| Response body contains `<html>`, `<fault>`, or "Internal Server Error" | Yes |
+| HTTP 400 with "token" in body | No |
+| HTTP 401, 403, 404 (client errors) | No |
+| Other 4xx client errors | No |
+
+
+# Request deduplication
 
 Multiple identical & simultaneous requests will be temporarily stored and thus only one promise returned. Because every query is stateless and contains every information it needs there shouldn't be any issues even with different user data.
+
+
+# Slow lane
+
+The slow lane provides a separate concurrency pool for heavy or deprioritized requests. By default, all requests use the main pool. Heavy requests can be routed to the slow lane so they don't block the default queue.
+
+The two pools are completely independent:
+
+* **Default pool**: up to `maxConcurrentRequests` (default: `10`) concurrent requests
+* **Slow lane pool**: up to `maxConcurrentSlowLaneRequests` (default: `10`) concurrent requests
+
+Total possible concurrent requests = `maxConcurrentRequests` + `maxConcurrentSlowLaneRequests`.
+
+Slow lane requests are routed via `SimpleVertecQuery.usingSlowLane()` (see [query docs](query.md#withslowlaneslowlane--true---simplevertecquery)) or by passing `{ slowLane: true }` as the last argument to `select()`.
+
+__Example__
+
+```javascript
+const api = new SimpleVertecApi('https://my-vertec-domain/xml', 'my-api-key', false, {
+    maxConcurrentRequests: 10,
+    maxConcurrentSlowLaneRequests: 5
+});
+
+// Default request — uses the main pool
+api.select('SmallLookup->select(aktiv)', ['name']);
+
+// Slow lane request — uses the separate slow lane pool
+api.select('HeavyExport->select(all)', ['name', 'data', 'history'], { slowLane: true });
+```

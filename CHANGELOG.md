@@ -4,6 +4,22 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased][unreleased]
 
+## [5.3.0][2026-02-24]
+### Feature
+* Add slow lane: a separate concurrency pool for heavy/deprioritized requests via `maxConcurrentSlowLaneRequests` option (default: 10). Slow lane requests use an independent queue so they don't block normal requests.
+* Add `usingSlowLane()` to `SimpleVertecQuery` for routing queries through the slow lane pool
+* Add `destroy()` method to `SimpleVertecApi` for cleaning up the internal GC interval
+
+### Enhancement
+* Document dot-key transformation behavior for aliased fields with dots
+* Document retry behavior with detailed conditions table
+* Document request deduplication
+* Document cache key generation format and `set()` TTL units (milliseconds)
+* Document `SimpleVertecQuery` constructor `overwriteOptions` parameter
+* Mark internal methods (`buildSelectString`, `request`, `buildXml`) as `@private`
+* Improve test coverage (144 → 155 tests)
+* Add `test` to `.npmignore`
+
 ## [5.2.0][2026-02-24]
 ### Feature
 * Add concurrency limiting for Vertec API requests with new `maxConcurrentRequests` option (default: 10). Requests exceeding the limit are queued and processed as active requests complete.

@@ -1,6 +1,35 @@
-# new SimpleVertecQuery()
+# new SimpleVertecQuery([overwriteOptions])
 
 Returns a new SimpleVertecQuery object.
+
+* `overwriteOptions` *(optional)*: An object to pre-configure any query option at construction time. Accepted keys:
+    * `query`: Object — the query selection (e.g. `{ ocl: '...' }` or `{ objref: 123 }`)
+    * `params`: Array or Object — parameters for injection into query/fields
+    * `fields`: Array — fields to return
+    * `cacheKey`: String — custom cache key
+    * `cacheName`: String — cache name segment
+    * `cacheTTL`: Number — cache duration in seconds (enables caching when > 0)
+    * `cacheGraceTime`: Number — additional grace seconds
+    * `transformer`: Array — array of transformer functions
+    * `propertyFilter`: Object — `{ key, toArray }` for property extraction
+    * `rootKey`: String — root key for response wrapping (default: `'data'`)
+    * `slowLane`: Boolean — route through slow lane pool (default: `false`)
+
+__Example__
+
+```javascript
+// Pre-configure a reusable query template
+const query = new SimpleVertecQuery({
+    query: { ocl: 'Projektbearbeiter' },
+    fields: ['name', 'kuerzel'],
+    cacheTTL: 3600,
+    rootKey: 'users'
+});
+
+query.get().then(function(response) {
+    console.log(response.users);
+});
+```
 
 
 # setApi(api) -> void
@@ -24,7 +53,7 @@ SimpleVertecQuery.setApi(api);
 
 Sets global cache instance for every instance. Accepts any cache implementation compatible with `@momsfriendlydevco/cache`.
 
-* *object* `cache`: A cache instance with `get(key)` and `set(key, value, ttl)` methods returning Promises
+* *object* `cache`: A cache instance with `get(key)` and `set(key, value, ttl)` methods returning Promises. The `ttl` passed to `set()` is in **milliseconds** (internally converted from `(cacheTTL + cacheGraceTime) * 1000`).
 
 
 __Example__
@@ -42,9 +71,17 @@ SimpleVertecQuery.setCache(cache);
 
 # setAppCacheKey(appCacheKey) -> void
 
-Sets global app cache key for every instance.
+Sets global app cache key prefix for every instance. Used as the first segment in cache key generation.
 
-* *string* `appCacheKey`: App cache key
+* *string* `appCacheKey`: App cache key prefix (default when not set: `'svq'`)
+
+Cache keys are generated in the format:
+
+```
+{appCacheKey|'svq'}-{cacheName}-{cacheKey|md5(xml)}-{cacheTTL}
+```
+
+Empty segments are omitted. For example, with `appCacheKey = 'myapp'`, `cacheName = 'team'`, `cacheKey = 'active'`, and `cacheTTL = 3600`, the generated key is `myapp-team-active-3600`. If no custom `cacheKey` is set, an md5 hash of the full request XML is used instead.
 
 
 __Example__
@@ -278,9 +315,16 @@ new SimpleVertecQuery()
 
 Additional grace seconds for item to remain in cache while it's getting renewed. Returns instance of itself for chaining.
 
-Response data will include onGrace flag.
+This implements a **stale-while-revalidate** pattern: when a cached item has expired past its TTL but is still within the grace period, the stale data is returned immediately to the caller while a background request refreshes the cache for subsequent callers.
 
 * *number* `seconds`: Seconds for item to be additionally in cache
+
+When caching is enabled, responses include a `meta` object with the following properties:
+
+* `meta.cacheDateTime`: Unix timestamp (seconds) when the item was cached
+* `meta.softExpire`: Unix timestamp (seconds) when the item's TTL expires (grace period begins)
+* `meta.onGrace`: `true` if the returned data is stale and a background refresh is in progress
+* `meta.refresh`: `true` if the request was explicitly refreshed via `get(true)`
 
 
 __Example__
@@ -293,8 +337,10 @@ new SimpleVertecQuery()
     .setCacheGraceTime(60*60*24)
     .get()
     .then(function(response) {
-        // do something with the result
-        console.log(response);
+        if (response.meta.onGrace) {
+            // data is stale but still usable, cache is being refreshed in the background
+        }
+        console.log(response.data); // the actual query result
     });
 ```
 
@@ -450,6 +496,31 @@ new SimpleVertecQuery()
 
 
 
+# usingSlowLane(slowLane = true) -> SimpleVertecQuery
+
+Routes this query through the slow lane pool for heavy or deprioritized requests. Returns instance of itself for chaining.
+
+The slow lane uses a separate concurrency pool from the default request queue, so heavy slow lane requests don't block normal requests. See [api docs](api.md#slow-lane) for pool configuration.
+
+* *boolean* `slowLane` *(optional)*: Enable or disable slow lane (default: `true`)
+
+
+__Example__
+
+```javascript
+// Heavy export that shouldn't block normal lookups
+new SimpleVertecQuery()
+    .whereOcl('Projekt')
+    .addFields('code', 'beschrieb', 'phasen', 'team')
+    .usingSlowLane()
+    .get()
+    .then(function (response) {
+        console.log(response.data);
+    });
+```
+
+
+
 # zip(path, keyToCheck = null, forceArray = true) -> SimpleVertecQuery
 
 Zips together the properties of the property at path's position. Returns instance of itself for chaining.
@@ -486,21 +557,53 @@ new SimpleVertecQuery()
 
 
 
-# get(refresh = false) -> SimpleVertecQuery
+# get(refresh = false) -> Promise
 
-Sends a request with all settings and returns response. Returns instance of itself for chaining.
+Sends a request with all settings and returns a Promise that resolves with the response.
 
-* *boolean* `refresh`: Forces a new request, even if caching is on.
+* *boolean* `refresh` *(optional)*: When `true`, bypasses any cached data and forces a fresh request to the server. The new result is stored back into the cache. Defaults to `false`.
+
+**Behavior with caching enabled** (`setCacheTTL` > 0):
+
+| Cache state | `refresh = false` (default) | `refresh = true` |
+|---|---|---|
+| **Cache miss** (no data) | Fetches from server, stores in cache, resolves with `meta.refresh: false` | Same as cache miss |
+| **Cache hit** (within TTL) | Returns cached data immediately, no server request. `meta.onGrace: false` | Ignores cached data, fetches from server, updates cache. `meta.refresh: true` |
+| **On grace** (past TTL, within grace period) | Returns stale cached data immediately with `meta.onGrace: true`, triggers background refresh | Ignores cached data, fetches from server, updates cache. `meta.refresh: true` |
+
+**Without caching** (no `setCacheTTL` or TTL = 0): Always fetches from the server. Response has no `meta` object.
 
 
-__Example__
+__Example: default get__
 
 ```javascript
 new SimpleVertecQuery()
     .findById(123)
-    .get(true)
+    .addFields('name', 'kuerzel')
+    .get()
     .then(function(response) {
-        // do something with the result
-        console.log(response);
+        console.log(response.data);
     });
+```
+
+__Example: force refresh__
+
+```javascript
+query.get(true).then(function(response) {
+    // response.meta.refresh === true
+    // fresh data from server, cache updated
+    console.log(response.data);
+});
+```
+
+__Example: handling grace period responses__
+
+```javascript
+query.get().then(function(response) {
+    if (response.meta && response.meta.onGrace) {
+        // Data is stale but usable. Cache is being refreshed in the background.
+        // Call get() again later to receive the updated data.
+    }
+    console.log(response.data);
+});
 ```

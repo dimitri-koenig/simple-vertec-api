@@ -1021,8 +1021,32 @@ describe('SimpleVertecApi', () => {
             expect(api.requestRetryStrategy({response: {status: 400, data: 'some other error'}})).to.be.true;
         });
 
-        it('retries on status 401', () => {
-            expect(api.requestRetryStrategy({response: {status: 401, data: 'unauthorized'}})).to.be.true;
+        it('does not retry on status 401', () => {
+            expect(api.requestRetryStrategy({response: {status: 401, data: 'unauthorized'}})).to.be.false;
+        });
+
+        it('does not retry on status 403', () => {
+            expect(api.requestRetryStrategy({response: {status: 403, data: 'forbidden'}})).to.be.false;
+        });
+
+        it('does not retry on status 404', () => {
+            expect(api.requestRetryStrategy({response: {status: 404, data: 'not found'}})).to.be.false;
+        });
+
+        it('retries on status 408 (request timeout)', () => {
+            expect(api.requestRetryStrategy({response: {status: 408, data: 'timeout'}})).to.be.true;
+        });
+
+        it('retries on status 429 (too many requests)', () => {
+            expect(api.requestRetryStrategy({response: {status: 429, data: 'rate limited'}})).to.be.true;
+        });
+
+        it('retries on status 502', () => {
+            expect(api.requestRetryStrategy({response: {status: 502, data: 'bad gateway'}})).to.be.true;
+        });
+
+        it('retries on status 503', () => {
+            expect(api.requestRetryStrategy({response: {status: 503, data: 'service unavailable'}})).to.be.true;
         });
 
         it('retries on status 500', () => {
@@ -1113,6 +1137,61 @@ describe('SimpleVertecApi', () => {
         });
     });
 
+    describe('destroy()', () => {
+        it('clears the gc interval', () => {
+            const testApi = new SimpleVertecApi('http://localhost', 'my-api-key');
+            expect(testApi._gcInterval).to.not.be.null;
+
+            testApi.destroy();
+            expect(testApi._gcInterval).to.be.null;
+        });
+
+        it('can be called multiple times safely', () => {
+            const testApi = new SimpleVertecApi('http://localhost', 'my-api-key');
+            testApi.destroy();
+            testApi.destroy();
+            expect(testApi._gcInterval).to.be.null;
+        });
+    });
+
+    describe('instance isolation', () => {
+        let createStub;
+
+        afterEach(() => {
+            if (createStub) {
+                createStub.restore();
+                createStub = null;
+            }
+        });
+
+        it('multiple instances maintain separate credentials', () => {
+            const api1 = new SimpleVertecApi('http://host1', 'key1');
+            const api2 = new SimpleVertecApi('http://host2', 'key2');
+
+            const mockClient = {
+                post: sinon.stub().resolves({ data: '<xml/>' }),
+                interceptors: {
+                    request: { use: sinon.stub() },
+                    response: { use: sinon.stub() },
+                },
+            };
+            createStub = sinon.stub(axios, 'create').returns(mockClient);
+
+            api1.request('<xml/>');
+            expect(mockClient.post.lastCall.args[0]).to.equal('http://host1');
+            expect(createStub.lastCall.args[0].headers.Authorization).to.equal('Bearer key1');
+
+            api2.request('<xml/>');
+            expect(mockClient.post.lastCall.args[0]).to.equal('http://host2');
+            expect(createStub.lastCall.args[0].headers.Authorization).to.equal('Bearer key2');
+
+            // Verify api1 still uses its own credentials after api2 was created
+            api1.request('<xml/>');
+            expect(mockClient.post.lastCall.args[0]).to.equal('http://host1');
+            expect(createStub.lastCall.args[0].headers.Authorization).to.equal('Bearer key1');
+        });
+    });
+
     describe('fixedSessionTag option', () => {
         let createStub;
 
@@ -1159,6 +1238,152 @@ describe('SimpleVertecApi', () => {
 
             const tags = createStub.getCalls().map(call => call.args[0].headers.VertecSessionTag);
             expect(new Set(tags).size).to.be.greaterThan(1);
+        });
+    });
+
+    describe('slow lane', () => {
+        it('defaults maxConcurrentSlowLaneRequests to 10', () => {
+            expect(api.maxConcurrentSlowLaneRequests).to.equal(10);
+        });
+
+        it('accepts custom maxConcurrentSlowLaneRequests option', () => {
+            const customApi = new SimpleVertecApi('http://localhost', 'my-api-key', false, { maxConcurrentSlowLaneRequests: 5 });
+            expect(customApi.maxConcurrentSlowLaneRequests).to.equal(5);
+        });
+
+        it('routes slow lane requests to separate queue', () => {
+            const testApi = new SimpleVertecApi('http://localhost', 'my-api-key', false, {
+                maxConcurrentRequests: 2,
+                maxConcurrentSlowLaneRequests: 2
+            });
+
+            sinon.stub(testApi, 'doRequest').callsFake(() => {
+                return new q((resolve) => {
+                    setTimeout(() => resolve({ it: 'works' }), 20);
+                });
+            });
+
+            // Fill default queue
+            testApi.select('normal-1');
+            testApi.select('normal-2');
+            testApi.select('normal-3');
+
+            expect(testApi.activeRequests).to.equal(2);
+            expect(testApi.requestQueue.length).to.equal(1);
+
+            // Slow lane requests should use their own pool
+            testApi.select('slow-1', [], { slowLane: true });
+            testApi.select('slow-2', [], { slowLane: true });
+            testApi.select('slow-3', [], { slowLane: true });
+
+            expect(testApi.activeSlowLaneRequests).to.equal(2);
+            expect(testApi.slowLaneQueue.length).to.equal(1);
+
+            // Default queue unchanged
+            expect(testApi.activeRequests).to.equal(2);
+            expect(testApi.requestQueue.length).to.equal(1);
+
+            return q.delay(50).then(() => {
+                expect(testApi.activeRequests).to.equal(0);
+                expect(testApi.activeSlowLaneRequests).to.equal(0);
+                expect(testApi.requestQueue.length).to.equal(0);
+                expect(testApi.slowLaneQueue.length).to.equal(0);
+            });
+        });
+
+        it('slow lane respects its own concurrency limit', function () {
+            const testApi = new SimpleVertecApi('http://localhost', 'my-api-key', false, {
+                maxConcurrentRequests: 2,
+                maxConcurrentSlowLaneRequests: 2
+            });
+            let maxActiveSlowLane = 0;
+            let currentActiveSlowLane = 0;
+
+            sinon.stub(testApi, 'doRequest').callsFake(() => {
+                currentActiveSlowLane++;
+                if (currentActiveSlowLane > maxActiveSlowLane) {
+                    maxActiveSlowLane = currentActiveSlowLane;
+                }
+
+                return new q((resolve) => {
+                    setTimeout(() => {
+                        currentActiveSlowLane--;
+                        resolve({ it: 'works' });
+                    }, 20);
+                });
+            });
+
+            const promises = [];
+            for (let i = 0; i < 5; i++) {
+                promises.push(testApi.select('slow-query-' + i, [], { slowLane: true }));
+            }
+
+            expect(testApi.activeSlowLaneRequests).to.equal(2);
+            expect(testApi.slowLaneQueue.length).to.equal(3);
+
+            return q.all(promises).then(() => {
+                expect(maxActiveSlowLane).to.equal(2);
+                return q.delay(10);
+            }).then(() => {
+                expect(testApi.activeSlowLaneRequests).to.equal(0);
+                expect(testApi.slowLaneQueue.length).to.equal(0);
+            });
+        });
+
+        it('default requests proceed while slow lane queue is full', function () {
+            const testApi = new SimpleVertecApi('http://localhost', 'my-api-key', false, {
+                maxConcurrentRequests: 2,
+                maxConcurrentSlowLaneRequests: 1
+            });
+
+            sinon.stub(testApi, 'doRequest').callsFake(() => {
+                return new q((resolve) => {
+                    setTimeout(() => resolve({ it: 'works' }), 30);
+                });
+            });
+
+            // Saturate slow lane queue
+            testApi.select('slow-1', [], { slowLane: true });
+            testApi.select('slow-2', [], { slowLane: true });
+
+            expect(testApi.activeSlowLaneRequests).to.equal(1);
+            expect(testApi.slowLaneQueue.length).to.equal(1);
+
+            // Default requests should still process immediately
+            testApi.select('normal-1');
+            testApi.select('normal-2');
+
+            expect(testApi.activeRequests).to.equal(2);
+            expect(testApi.requestQueue.length).to.equal(0);
+
+            return q.delay(80).then(() => {
+                expect(testApi.activeRequests).to.equal(0);
+                expect(testApi.activeSlowLaneRequests).to.equal(0);
+            });
+        });
+
+        it('slow lane and default counters are independent', () => {
+            const testApi = new SimpleVertecApi('http://localhost', 'my-api-key', false, {
+                maxConcurrentRequests: 2,
+                maxConcurrentSlowLaneRequests: 2
+            });
+
+            sinon.stub(testApi, 'doRequest').callsFake(() => {
+                return new q((resolve) => {
+                    setTimeout(() => resolve({ it: 'works' }), 20);
+                });
+            });
+
+            testApi.select('normal-1');
+            testApi.select('slow-1', [], { slowLane: true });
+
+            expect(testApi.activeRequests).to.equal(1);
+            expect(testApi.activeSlowLaneRequests).to.equal(1);
+
+            return q.delay(50).then(() => {
+                expect(testApi.activeRequests).to.equal(0);
+                expect(testApi.activeSlowLaneRequests).to.equal(0);
+            });
         });
     });
 });
