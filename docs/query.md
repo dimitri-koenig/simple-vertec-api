@@ -22,9 +22,9 @@ SimpleVertecQuery.setApi(api);
 
 # setCache(cache) -> void
 
-Sets global cache instance of memcached for every instance.
+Sets global cache instance for every instance. Accepts any cache implementation compatible with `@momsfriendlydevco/cache`.
 
-* *memcached* `cache`: An instance of memcached
+* *object* `cache`: A cache instance with `get(key)` and `set(key, value, ttl)` methods returning Promises
 
 
 __Example__
@@ -326,6 +326,32 @@ new SimpleVertecQuery()
 
 
 
+# setCacheName(value) -> SimpleVertecQuery
+
+Sets an optional cache name used in cache key generation. Returns instance of itself for chaining.
+
+The cache name is included as a segment in the generated cache key, making it easier to identify and group related cache entries.
+
+* *string* `value`: Cache name
+
+__Example__
+
+```javascript
+new SimpleVertecQuery()
+    .whereOcl('Projektbearbeiter')
+    .addFields(['name', 'kuerzel'])
+    .setCacheTTL(60*60)
+    .setCacheName('team-members')
+    .setCacheKey('active')
+    .get()
+    .then(function(response) {
+        // cache key will be: app-team-members-active-3600
+        console.log(response);
+    });
+```
+
+
+
 # addTransformer(transformer) -> SimpleVertecQuery
 
 Adds a transformer function which will be called after a request returns a response. Returns instance of itself for chaining.
@@ -451,28 +477,6 @@ new SimpleVertecQuery()
         }
     ])
     .zip('phases', 'objid')
-    .get()
-    .then(function(response) {
-        // do something with the result
-        console.log(response);
-    });
-```
-
-
-
-# inParallel(value = true) -> SimpleVertecQuery
-
-Toggles parallel fetching mode of multiple objrefs. Returns instance of itself for chaining.
-
-* *boolean* `value`: Sets parallel mode
-
-
-__Example__
-
-```javascript
-new SimpleVertecQuery()
-    .findById(123)
-    .inParallel()
     .get()
     .then(function(response) {
         // do something with the result

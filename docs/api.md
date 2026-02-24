@@ -155,6 +155,55 @@ api.select(select, params, fields).then(function(response) {
 ```
 
 
+# multiSelect(queryArray) -> Promise
+
+Executes multiple select queries in parallel. Each item in the array is passed as arguments to `select()`. Returns a [Promise](https://github.com/petkaantonov/bluebird) that resolves with an array of results.
+
+* `queryArray`: An array where each item is an array of arguments that would be passed to `select()`
+
+__Example__
+
+```javascript
+const queries = [
+    // first query: OCL with params and fields
+    [
+        'projektbearbeiter->select(boldid = ?)',
+        [12345],
+        ['name', 'kuerzel']
+    ],
+    // second query: find by IDs with fields
+    [
+        { objref: [111, 222] },
+        ['name', 'datum']
+    ]
+];
+
+api.multiSelect(queries).then(function(results) {
+    // results[0] = response from first query
+    // results[1] = response from second query
+    console.log(results);
+});
+```
+
+
+# multiFindById(ids, [...args]) -> Promise
+
+Finds multiple IDs by making parallel requests (one request per ID). Returns a [Promise](https://github.com/petkaantonov/bluebird) that resolves with an array of results.
+
+* `ids`: An array of IDs
+* `...args`: Additional arguments passed to each individual select call (params and/or fields)
+
+__Example__
+
+```javascript
+api.multiFindById([12345, 23456], ['name', 'kuerzel']).then(function(results) {
+    // results[0] = response for ID 12345
+    // results[1] = response for ID 23456
+    console.log(results);
+});
+```
+
+
 # findById(id, [params], fields) -> Promise
 
 Does a select query on the server to find some objects by their id/ids. Returns a [Promise](https://github.com/petkaantonov/bluebird).

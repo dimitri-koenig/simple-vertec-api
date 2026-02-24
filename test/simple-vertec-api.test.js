@@ -139,6 +139,8 @@ describe('SimpleVertecApi', () => {
             let originalLevel = xmlDigesterLogger.level();
             xmlDigesterLogger.level(0.5);
 
+            let consoleLogStub = sinon.stub(console, 'log');
+
             api.select('some select with fauly response').then(
                 (result) => {
                     throw new Error('Promise was unexpectedly fulfilled. Result: ' + result);
@@ -147,6 +149,7 @@ describe('SimpleVertecApi', () => {
                     done();
                 }
             ).finally(() => {
+                consoleLogStub.restore();
                 xmlDigesterLogger.level(originalLevel);
             });
         });
@@ -957,6 +960,156 @@ describe('SimpleVertecApi', () => {
                 // only 2 actual doRequest calls (same-query deduplicated)
                 expect(doRequestCallCount).to.equal(2);
             });
+        });
+    });
+
+    describe('doRequest() response handling', () => {
+        it('rejects with error when response data is not a string', () => {
+            sinon.stub(api, 'request').resolves({data: 12345});
+
+            return api.select('something').then(
+                (result) => {
+                    throw new Error('Promise was unexpectedly fulfilled. Result: ' + result);
+                },
+                (result) => {
+                    expect(result).to.eql(new Error('No valid response from Vertec'));
+                }
+            );
+        });
+
+        it('rejects with error when response data is null', () => {
+            sinon.stub(api, 'request').resolves({data: null});
+
+            return api.select('something').then(
+                (result) => {
+                    throw new Error('Promise was unexpectedly fulfilled. Result: ' + result);
+                },
+                (result) => {
+                    expect(result).to.eql(new Error('No valid response from Vertec'));
+                }
+            );
+        });
+
+        it('rejects with error when response data is an object', () => {
+            sinon.stub(api, 'request').resolves({data: {some: 'object'}});
+
+            return api.select('something').then(
+                (result) => {
+                    throw new Error('Promise was unexpectedly fulfilled. Result: ' + result);
+                },
+                (result) => {
+                    expect(result).to.eql(new Error('No valid response from Vertec'));
+                }
+            );
+        });
+    });
+
+    describe('requestRetryStrategy() edge cases', () => {
+        it('retries on status 400 with non-string response data', () => {
+            expect(api.requestRetryStrategy({response: {status: 400, data: {some: 'object'}}})).to.be.true;
+        });
+
+        it('retries on status 400 with null response data', () => {
+            expect(api.requestRetryStrategy({response: {status: 400, data: null}})).to.be.true;
+        });
+
+        it('does not retry on status 400 with string containing token', () => {
+            expect(api.requestRetryStrategy({response: {status: 400, data: 'invalid token provided'}})).to.be.false;
+        });
+
+        it('retries on status 400 with string not containing token', () => {
+            expect(api.requestRetryStrategy({response: {status: 400, data: 'some other error'}})).to.be.true;
+        });
+
+        it('retries on status 401', () => {
+            expect(api.requestRetryStrategy({response: {status: 401, data: 'unauthorized'}})).to.be.true;
+        });
+
+        it('retries on status 500', () => {
+            expect(api.requestRetryStrategy({response: {status: 500, data: 'server error'}})).to.be.true;
+        });
+
+        it('does not retry on status 200 with clean xml data', () => {
+            expect(api.requestRetryStrategy({response: {status: 200, data: '<xml><valid>data</valid></xml>'}})).to.be.false;
+        });
+
+        it('retries when response object is a string instead of object', () => {
+            expect(api.requestRetryStrategy({response: 'not an object'})).to.be.true;
+        });
+
+        it('retries when response data is undefined', () => {
+            expect(api.requestRetryStrategy({response: {status: 200}})).to.be.true;
+        });
+
+        it('deletes Authorization header from error config', () => {
+            let error = {config: {headers: {Authorization: 'Bearer secret'}}, response: {status: 200, data: '<xml/>'}};
+            api.requestRetryStrategy(error);
+            expect(error.config.headers.Authorization).to.be.undefined;
+        });
+    });
+
+    describe('multiSelect() edge cases', () => {
+        it('resolves with empty array when given empty array', () => {
+            sinon.stub(api, 'doRequest');
+
+            return api.multiSelect([]).then(result => {
+                expect(result).to.deep.equal([]);
+            });
+        });
+    });
+
+    describe('multiFindById() edge cases', () => {
+        it('resolves with empty array when given empty ids array', () => {
+            sinon.stub(api, 'doRequest');
+
+            return api.multiFindById([], ['foo']).then(result => {
+                expect(result).to.deep.equal([]);
+            });
+        });
+
+        it('propagates errors from individual requests', () => {
+            let requestStub = sinon.stub(api, 'request');
+            requestStub.onFirstCall().resolves({data: '<?xml version="1.0" encoding="UTF-8"?><Envelope><Body><QueryResponse><Item><objid>123</objid></Item></QueryResponse></Body></Envelope>'});
+            requestStub.onSecondCall().rejects(new Error('connection error'));
+
+            return api.multiFindById([123, 234], ['objid']).then(
+                () => {
+                    throw new Error('Promise was unexpectedly fulfilled');
+                },
+                (error) => {
+                    expect(error.message).to.equal('connection error');
+                }
+            );
+        });
+    });
+
+    describe('save() edge cases', () => {
+        it('throws an error when called with no arguments', () => {
+            sinon.stub(api, 'doRequest');
+            let saveSpy = sinon.spy(api, 'save');
+
+            try {
+                api.save();
+            } catch (e) {
+                // we only need the finally block
+            } finally {
+                expect(saveSpy.exceptions).to.have.length(1);
+                expect(saveSpy.exceptions.shift().message).to.have.string('1439115447');
+            }
+        });
+
+        it('throws an error when called with empty array', () => {
+            sinon.stub(api, 'doRequest');
+            let saveSpy = sinon.spy(api, 'save');
+
+            try {
+                api.save([]);
+            } catch (e) {
+                // we only need the finally block
+            } finally {
+                expect(saveSpy.exceptions).to.have.length(1);
+                expect(saveSpy.exceptions.shift().message).to.have.string('1439115447');
+            }
         });
     });
 

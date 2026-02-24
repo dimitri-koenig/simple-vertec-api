@@ -9,11 +9,9 @@ Simple Vertec Api is an simple wrapper around www.vertec.com XML webservice for 
 
 This XML wrapper will only give you a simpler way of making requests via Vertec's own XML interface. There won't be any validations done for data input (you have to do it yourself or rely on Vertec's validation as it is their responsibility on server side).
 
-Version 3 offers additional query options for further transforming response data, included caching support, parallel request mode and many more. Take a look at the [documentation](http://simple-vertec-api.readthedocs.org/en/latest/).
+It offers query options for further transforming response data, caching support, concurrency limiting, retry logic, and many more. Take a look at the [documentation](http://simple-vertec-api.readthedocs.org/en/latest/).
 
-Version 4 supports Vertec's new token based authorization.
-
-Version 5 supports Vertec's new API key based authorization.
+Version 5 uses Vertec's API key based authorization and a generic caching API (e.g. `@momsfriendlydevco/cache`).
 
 ## Installation
 

@@ -92,6 +92,28 @@ describe('SimpleVertecQuery', () => {
         });
     });
 
+    describe('method chaining', () => {
+        it('all builder methods return the query instance', () => {
+            let query = new SimpleVertecQuery();
+            expect(query.findById(1)).to.equal(query);
+            expect(query.whereOcl('x')).to.equal(query);
+            expect(query.whereSql('y')).to.equal(query);
+            expect(query.orderBy('z')).to.equal(query);
+            expect(query.addParam('a')).to.equal(query);
+            expect(query.addParams('b', 'c')).to.equal(query);
+            expect(query.addField('d')).to.equal(query);
+            expect(query.addFields('e', 'f')).to.equal(query);
+            expect(query.setCacheTTL(10)).to.equal(query);
+            expect(query.setCacheGraceTime(5)).to.equal(query);
+            expect(query.setCacheKey('k')).to.equal(query);
+            expect(query.setCacheName('n')).to.equal(query);
+            expect(query.addTransformer(() => {})).to.equal(query);
+            expect(query.filterProperty('p')).to.equal(query);
+            expect(query.setRootKey('r')).to.equal(query);
+            expect(query.zip('z')).to.equal(query);
+        });
+    });
+
     describe('query testing', () => {
         beforeEach('query setup', () => {
             apiResponse({it: 'works'});
@@ -339,7 +361,7 @@ describe('SimpleVertecQuery', () => {
             expect(query.options.cacheKey).to.equal('test1');
         });
 
-        it('setCacheName() sets cache key for cache objects', () => {
+        it('setCacheName() sets cache name for cache objects', () => {
             let query = new SimpleVertecQuery().setCacheName('test1');
             expect(query.options.cacheName).to.equal('test1');
         });
@@ -608,6 +630,22 @@ describe('SimpleVertecQuery', () => {
                 .then(response => {
                     expect(response.data.start).to.equal(387);
                 });
+        });
+
+        it('returns undefined when api response is falsy', () => {
+            apiResponse(null);
+
+            return new SimpleVertecQuery().get().then(response => {
+                expect(response).to.be.null;
+            });
+        });
+
+        it('returns undefined when api response is undefined', () => {
+            apiResponse(undefined);
+
+            return new SimpleVertecQuery().get().then(response => {
+                expect(response).to.be.undefined;
+            });
         });
 
         it('takes another root key using setRootKey', (done) => {
@@ -1517,6 +1555,32 @@ describe('SimpleVertecQuery', () => {
                     expect(error).to.include.keys('Error3');
                     done();
                 });
+            });
+
+            it('catches cache set errors', (done) => {
+                sinon.stub(fakeCacheInstance, 'get').resolves(null);
+                sinon.stub(fakeCacheInstance, 'set').rejects({Error4: 'Cache write failed'});
+
+                apiResponse({it: 'works cache-set-error'});
+
+                new SimpleVertecQuery().setCacheTTL(10).setCacheKey('test-set-err').get().then(result => {
+                    done('Promise was unexpectedly fulfilled. Result: ' + JSON.stringify(result));
+                }).catch(error => {
+                    expect(error).to.include.keys('Error4');
+                    done();
+                });
+            });
+
+            it('uses cacheName in cache key generation with cacheKey', (done) => {
+                sinon.stub(fakeCacheInstance, 'get').resolves(null);
+
+                apiResponse({it: 'works cache-name'});
+
+                new SimpleVertecQuery().setCacheTTL(20).setCacheName('mySection').setCacheKey('myKey').get().then(response => {
+                    expect(cacheSetArguments).to.have.lengthOf(1);
+                    expect(cacheSetArguments[0][0]).to.equal('app-mySection-myKey-20');
+                    done();
+                }).catch(err => done(err));
             });
         });
     });

@@ -8,7 +8,7 @@ It features solid CRUD support for dealing with Vertec's data.
 
 This XML wrapper will only give you a simpler way of making requests via Vertec's own XML interface. There won't be any validations done for data input (you have to do it or rely on Vertec's validation as it is their responsibility on server side).
 
-Version 3 offers additional query options for further transforming response data, included caching support, parallel request mode and many more.
+It offers query options for further transforming response data, caching support, concurrency limiting, retry logic, and many more.
 
 
 ## Installation
