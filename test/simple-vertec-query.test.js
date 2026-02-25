@@ -1,7 +1,6 @@
 import {SimpleVertecApi, SimpleVertecQuery} from '../lib/index.js';
 import {expect} from 'chai';
 import sinon from 'sinon';
-import q from 'bluebird';
 import _ from 'lodash';
 
 /**
@@ -28,7 +27,7 @@ describe('SimpleVertecQuery', () => {
 
     let apiResponse = obj => {
         sinon.stub(api, 'doRequest').callsFake(() => {
-            return new q((resolve) => {
+            return new Promise((resolve) => {
                 resolve(obj);
             });
         });
@@ -637,7 +636,7 @@ describe('SimpleVertecQuery', () => {
             let callCount = 0;
             sinon.stub(api, 'doRequest').callsFake(() => {
                 callCount++;
-                return new q((resolve) => {
+                return new Promise((resolve) => {
                     resolve({myKey: {it: 'works ' + callCount}});
                 });
             });
@@ -1328,7 +1327,7 @@ describe('SimpleVertecQuery', () => {
 
             it('catches request errors', (done) => {
                 sinon.stub(api, 'doRequest').callsFake(() => {
-                    return new q((resolve, reject) => {
+                    return new Promise((resolve, reject) => {
                         reject({Error1: 'Some error message'});
                     });
                 });
@@ -1355,14 +1354,14 @@ describe('SimpleVertecQuery', () => {
                 cacheSetArguments = [];
                 fakeCacheInstance = {
                     get(cacheKey) {
-                        return new q((resolve) => {
+                        return new Promise((resolve) => {
                             resolve(null);
                         });
                     },
                     set(cacheKey, cacheData, cacheDuration) {
                         cacheSetArguments.push(arguments);
 
-                        return new q((resolve) => {
+                        return new Promise((resolve) => {
                             resolve();
                         });
                     }
@@ -1567,7 +1566,7 @@ describe('SimpleVertecQuery', () => {
                 sinon.stub(fakeCacheInstance, 'get').resolves(null);
 
                 sinon.stub(api, 'doRequest').callsFake(() => {
-                    return new q((resolve, reject) => {
+                    return new Promise((resolve, reject) => {
                         reject({Error3: 'Some error message'});
                     });
                 });
@@ -1590,7 +1589,7 @@ describe('SimpleVertecQuery', () => {
                 sinon.stub(fakeCacheInstance, 'get').resolves(cacheItem);
 
                 sinon.stub(api, 'doRequest').callsFake(() => {
-                    return new q((resolve, reject) => {
+                    return new Promise((resolve, reject) => {
                         reject(new Error('background refresh failed'));
                     });
                 });
@@ -1668,7 +1667,7 @@ describe('SimpleVertecQuery', () => {
             let selectSpy = sinon.spy(api, 'select');
 
             sinon.stub(api, 'doRequest').callsFake(() => {
-                return q.resolve({it: 'works'});
+                return Promise.resolve({it: 'works'});
             });
 
             return new SimpleVertecQuery()
@@ -1687,7 +1686,7 @@ describe('SimpleVertecQuery', () => {
             let selectSpy = sinon.spy(api, 'select');
 
             sinon.stub(api, 'doRequest').callsFake(() => {
-                return q.resolve({it: 'works'});
+                return Promise.resolve({it: 'works'});
             });
 
             return new SimpleVertecQuery()

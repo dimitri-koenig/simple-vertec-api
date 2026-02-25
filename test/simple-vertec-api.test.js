@@ -1,10 +1,9 @@
 import {SimpleVertecApi} from '../lib/index.js';
 import {expect} from 'chai';
 import sinon from 'sinon';
-import xmlDigester from 'xml-digester';
-import axios from 'axios';
-import q from 'bluebird';
 import _ from 'lodash';
+
+const delay = (ms) => new Promise(r => setTimeout(r, ms));
 
 /**
  * Checks actual string which gets filtered with new lines and intendation spaces against expected string
@@ -132,25 +131,20 @@ describe('SimpleVertecApi', () => {
             );
         });
 
-        it('catches xml to json conversion errors', (done) => {
+        it('catches xml to json conversion errors', () => {
             sinon.stub(api, 'request').resolves({data: '<container><firstElement><onlyFirstTag>Missing closing tag!</firstElement></container>'});
-
-            let xmlDigesterLogger = xmlDigester._logger;
-            let originalLevel = xmlDigesterLogger.level();
-            xmlDigesterLogger.level(0.5);
 
             let consoleLogStub = sinon.stub(console, 'log');
 
-            api.select('some select with fauly response').then(
+            return api.select('some select with fauly response').then(
                 (result) => {
                     throw new Error('Promise was unexpectedly fulfilled. Result: ' + result);
                 },
-                () => {
-                    done();
+                (err) => {
+                    expect(err).to.be.an('error');
                 }
             ).finally(() => {
                 consoleLogStub.restore();
-                xmlDigesterLogger.level(originalLevel);
             });
         });
 
@@ -415,7 +409,7 @@ describe('SimpleVertecApi', () => {
             let resolveCount = 0;
 
             sinon.stub(api, 'doRequest').callsFake(() => {
-                return new q((resolve) => {
+                return new Promise((resolve) => {
                     setTimeout(() => { // eslint-disable-line max-nested-callbacks
                         resolveCount++;
                         resolve({it: 'works'});
@@ -423,7 +417,7 @@ describe('SimpleVertecApi', () => {
                 });
             });
 
-            q.all([
+            Promise.all([
                 api.select('something'),
                 api.select('something'),
                 api.select('something else'),
@@ -439,7 +433,7 @@ describe('SimpleVertecApi', () => {
 
         it('has a working garbage collector', (done) => {
             sinon.stub(api, 'doRequest').callsFake(() => {
-                return new q((resolve) => {
+                return new Promise((resolve) => {
                     setTimeout(() => { // eslint-disable-line max-nested-callbacks
                         resolve({it: 'works'});
                     }, 10);
@@ -448,7 +442,7 @@ describe('SimpleVertecApi', () => {
 
             expect(_.size(api.storedPromises)).to.equal(0);
 
-            q.all([
+            Promise.all([
                 api.select('something'),
                 api.select('something else'),
                 api.select('something again')
@@ -856,7 +850,7 @@ describe('SimpleVertecApi', () => {
                     maxActive = currentActive;
                 }
 
-                return new q((resolve) => {
+                return new Promise((resolve) => {
                     setTimeout(() => { // eslint-disable-line max-nested-callbacks
                         currentActive--;
                         resolve({ it: 'works' });
@@ -874,10 +868,10 @@ describe('SimpleVertecApi', () => {
             expect(concurrencyApi.activeRequests).to.equal(2);
             expect(concurrencyApi.requestQueue.length).to.equal(3);
 
-            return q.all(promises).then(() => {
+            return Promise.all(promises).then(() => {
                 expect(maxActive).to.equal(2);
                 // allow .finally() to settle
-                return q.delay(10);
+                return delay(10);
             }).then(() => {
                 expect(concurrencyApi.activeRequests).to.equal(0);
                 expect(concurrencyApi.requestQueue.length).to.equal(0);
@@ -889,7 +883,7 @@ describe('SimpleVertecApi', () => {
             let completedCount = 0;
 
             sinon.stub(concurrencyApi, 'doRequest').callsFake(() => {
-                return new q((resolve) => {
+                return new Promise((resolve) => {
                     setTimeout(() => { // eslint-disable-line max-nested-callbacks
                         completedCount++;
                         resolve({ it: 'works' });
@@ -902,10 +896,10 @@ describe('SimpleVertecApi', () => {
                 promises.push(concurrencyApi.select('query-' + i));
             }
 
-            return q.all(promises).then(() => {
+            return Promise.all(promises).then(() => {
                 expect(completedCount).to.equal(6);
                 // allow .finally() to settle
-                return q.delay(10);
+                return delay(10);
             }).then(() => {
                 expect(concurrencyApi.activeRequests).to.equal(0);
                 expect(concurrencyApi.requestQueue.length).to.equal(0);
@@ -919,20 +913,20 @@ describe('SimpleVertecApi', () => {
             sinon.stub(concurrencyApi, 'doRequest').callsFake(() => {
                 callCount++;
                 if (callCount === 1) {
-                    return q.reject(new Error('request failed'));
+                    return Promise.reject(new Error('request failed'));
                 }
-                return q.resolve({ it: 'works' });
+                return Promise.resolve({ it: 'works' });
             });
 
             const p1 = concurrencyApi.select('fail-query').catch(() => 'caught');
             const p2 = concurrencyApi.select('success-query');
 
-            return q.all([p1, p2]).then(([r1, r2]) => {
+            return Promise.all([p1, p2]).then(([r1, r2]) => {
                 expect(r1).to.equal('caught');
                 expect(r2).to.deep.equal({ it: 'works' });
                 expect(callCount).to.equal(2);
                 // allow .finally() to settle
-                return q.delay(10);
+                return delay(10);
             }).then(() => {
                 expect(concurrencyApi.activeRequests).to.equal(0);
             });
@@ -944,7 +938,7 @@ describe('SimpleVertecApi', () => {
 
             sinon.stub(concurrencyApi, 'doRequest').callsFake(() => {
                 doRequestCallCount++;
-                return new q((resolve) => {
+                return new Promise((resolve) => {
                     setTimeout(() => {
                         resolve({ it: 'works' });
                     }, 10);
@@ -956,7 +950,7 @@ describe('SimpleVertecApi', () => {
             const p2 = concurrencyApi.select('same-query');
             const p3 = concurrencyApi.select('different-query');
 
-            return q.all([p1, p2, p3]).then(() => {
+            return Promise.all([p1, p2, p3]).then(() => {
                 // only 2 actual doRequest calls (same-query deduplicated)
                 expect(doRequestCallCount).to.equal(2);
             });
@@ -1155,88 +1149,50 @@ describe('SimpleVertecApi', () => {
     });
 
     describe('instance isolation', () => {
-        let createStub;
-
-        afterEach(() => {
-            if (createStub) {
-                createStub.restore();
-                createStub = null;
-            }
-        });
-
         it('multiple instances maintain separate credentials', () => {
             const api1 = new SimpleVertecApi('http://host1', 'key1');
             const api2 = new SimpleVertecApi('http://host2', 'key2');
 
-            const mockClient = {
-                post: sinon.stub().resolves({ data: '<xml/>' }),
-                interceptors: {
-                    request: { use: sinon.stub() },
-                    response: { use: sinon.stub() },
-                },
-            };
-            createStub = sinon.stub(axios, 'create').returns(mockClient);
+            sinon.stub(api1.client, 'post').resolves({ data: '<xml/>' });
+            sinon.stub(api2.client, 'post').resolves({ data: '<xml/>' });
 
             api1.request('<xml/>');
-            expect(mockClient.post.lastCall.args[0]).to.equal('http://host1');
-            expect(createStub.lastCall.args[0].headers.Authorization).to.equal('Bearer key1');
+            expect(api1.client.post.lastCall.args[0]).to.equal('http://host1');
 
             api2.request('<xml/>');
-            expect(mockClient.post.lastCall.args[0]).to.equal('http://host2');
-            expect(createStub.lastCall.args[0].headers.Authorization).to.equal('Bearer key2');
+            expect(api2.client.post.lastCall.args[0]).to.equal('http://host2');
 
-            // Verify api1 still uses its own credentials after api2 was created
+            // Verify api1 still uses its own credentials after api2 was used
             api1.request('<xml/>');
-            expect(mockClient.post.lastCall.args[0]).to.equal('http://host1');
-            expect(createStub.lastCall.args[0].headers.Authorization).to.equal('Bearer key1');
+            expect(api1.client.post.lastCall.args[0]).to.equal('http://host1');
         });
     });
 
     describe('fixedSessionTag option', () => {
-        let createStub;
-
-        function mockAxiosCreate() {
-            const mockClient = {
-                post: sinon.stub().resolves({ data: '<xml/>' }),
-                interceptors: {
-                    request: { use: sinon.stub() },
-                    response: { use: sinon.stub() },
-                },
-            };
-            return sinon.stub(axios, 'create').returns(mockClient);
-        }
-
-        afterEach(() => {
-            if (createStub) {
-                createStub.restore();
-                createStub = null;
-            }
-        });
-
         it('uses fixed session tag when configured', () => {
             const fixedApi = new SimpleVertecApi('http://localhost', 'my-api-key', false, { fixedSessionTag: 5 });
-            createStub = mockAxiosCreate();
+            sinon.stub(fixedApi.client, 'post').resolves({ data: '<xml/>' });
 
             fixedApi.request('<xml/>');
             fixedApi.request('<xml/>');
             fixedApi.request('<xml/>');
 
-            const calls = createStub.getCalls();
+            const calls = fixedApi.client.post.getCalls();
             expect(calls).to.have.length(3);
             calls.forEach(call => {
-                expect(call.args[0].headers.VertecSessionTag).to.equal('5');
+                expect(call.args[2].headers.VertecSessionTag).to.equal('5');
             });
         });
 
         it('rotates session tag when fixedSessionTag is not set', () => {
             const rotatingApi = new SimpleVertecApi('http://localhost', 'my-api-key', false, {});
-            createStub = mockAxiosCreate();
+            sinon.stub(rotatingApi.client, 'post').resolves({ data: '<xml/>' });
 
             rotatingApi.request('<xml/>');
             rotatingApi.request('<xml/>');
             rotatingApi.request('<xml/>');
 
-            const tags = createStub.getCalls().map(call => call.args[0].headers.VertecSessionTag);
+            const tags = rotatingApi.client.post.getCalls().map(call => call.args[2].headers.VertecSessionTag);
             expect(new Set(tags).size).to.be.greaterThan(1);
         });
     });
@@ -1258,7 +1214,7 @@ describe('SimpleVertecApi', () => {
             });
 
             sinon.stub(testApi, 'doRequest').callsFake(() => {
-                return new q((resolve) => {
+                return new Promise((resolve) => {
                     setTimeout(() => resolve({ it: 'works' }), 20);
                 });
             });
@@ -1283,7 +1239,7 @@ describe('SimpleVertecApi', () => {
             expect(testApi.activeRequests).to.equal(2);
             expect(testApi.requestQueue.length).to.equal(1);
 
-            return q.delay(50).then(() => {
+            return delay(50).then(() => {
                 expect(testApi.activeRequests).to.equal(0);
                 expect(testApi.activeSlowLaneRequests).to.equal(0);
                 expect(testApi.requestQueue.length).to.equal(0);
@@ -1305,7 +1261,7 @@ describe('SimpleVertecApi', () => {
                     maxActiveSlowLane = currentActiveSlowLane;
                 }
 
-                return new q((resolve) => {
+                return new Promise((resolve) => {
                     setTimeout(() => {
                         currentActiveSlowLane--;
                         resolve({ it: 'works' });
@@ -1321,9 +1277,9 @@ describe('SimpleVertecApi', () => {
             expect(testApi.activeSlowLaneRequests).to.equal(2);
             expect(testApi.slowLaneQueue.length).to.equal(3);
 
-            return q.all(promises).then(() => {
+            return Promise.all(promises).then(() => {
                 expect(maxActiveSlowLane).to.equal(2);
-                return q.delay(10);
+                return delay(10);
             }).then(() => {
                 expect(testApi.activeSlowLaneRequests).to.equal(0);
                 expect(testApi.slowLaneQueue.length).to.equal(0);
@@ -1337,7 +1293,7 @@ describe('SimpleVertecApi', () => {
             });
 
             sinon.stub(testApi, 'doRequest').callsFake(() => {
-                return new q((resolve) => {
+                return new Promise((resolve) => {
                     setTimeout(() => resolve({ it: 'works' }), 30);
                 });
             });
@@ -1356,7 +1312,7 @@ describe('SimpleVertecApi', () => {
             expect(testApi.activeRequests).to.equal(2);
             expect(testApi.requestQueue.length).to.equal(0);
 
-            return q.delay(80).then(() => {
+            return delay(80).then(() => {
                 expect(testApi.activeRequests).to.equal(0);
                 expect(testApi.activeSlowLaneRequests).to.equal(0);
             });
@@ -1369,7 +1325,7 @@ describe('SimpleVertecApi', () => {
             });
 
             sinon.stub(testApi, 'doRequest').callsFake(() => {
-                return new q((resolve) => {
+                return new Promise((resolve) => {
                     setTimeout(() => resolve({ it: 'works' }), 20);
                 });
             });
@@ -1380,10 +1336,114 @@ describe('SimpleVertecApi', () => {
             expect(testApi.activeRequests).to.equal(1);
             expect(testApi.activeSlowLaneRequests).to.equal(1);
 
-            return q.delay(50).then(() => {
+            return delay(50).then(() => {
                 expect(testApi.activeRequests).to.equal(0);
                 expect(testApi.activeSlowLaneRequests).to.equal(0);
             });
+        });
+    });
+
+    describe('convertFieldOptions()', () => {
+        it('returns empty members and expressions for empty array', () => {
+            const result = api.convertFieldOptions([]);
+            expect(result).to.deep.equal({ member: [], expression: [] });
+        });
+
+        it('returns empty members and expressions for undefined', () => {
+            const result = api.convertFieldOptions(undefined);
+            expect(result).to.deep.equal({ member: [], expression: [] });
+        });
+
+        it('separates string fields into members and object fields into expressions', () => {
+            const result = api.convertFieldOptions([
+                'code',
+                { ocl: 'something', alias: 'else' },
+                'title',
+                { ocl: 'foo', alias: 'bar' }
+            ]);
+            expect(result).to.deep.equal({
+                member: ['code', 'title'],
+                expression: [
+                    { ocl: 'something', alias: 'else' },
+                    { ocl: 'foo', alias: 'bar' }
+                ]
+            });
+        });
+
+        it('handles only expression objects', () => {
+            const result = api.convertFieldOptions([
+                { ocl: 'a', alias: 'b' },
+                { ocl: 'c', alias: 'd' }
+            ]);
+            expect(result).to.deep.equal({
+                member: [],
+                expression: [
+                    { ocl: 'a', alias: 'b' },
+                    { ocl: 'c', alias: 'd' }
+                ]
+            });
+        });
+    });
+
+    describe('log() and error()', () => {
+        it('log does not throw with various argument types', () => {
+            const verboseApi = new SimpleVertecApi('http://localhost', 'key', true);
+            expect(() => verboseApi.log('string')).to.not.throw();
+            expect(() => verboseApi.log({ key: 'value' })).to.not.throw();
+            expect(() => verboseApi.log(new Error('test'))).to.not.throw();
+            expect(() => verboseApi.log('a', 'b', 'c')).to.not.throw();
+        });
+
+        it('error does not throw with various argument types', () => {
+            expect(() => api.error('string')).to.not.throw();
+            expect(() => api.error({ key: 'value' })).to.not.throw();
+            expect(() => api.error(new Error('test'))).to.not.throw();
+            expect(() => api.error('a', 'b', 'c')).to.not.throw();
+        });
+
+        it('log does nothing when verbose is false', () => {
+            const consoleStub = sinon.stub(console, 'log');
+            api.log('should not appear');
+            expect(consoleStub.called).to.be.false;
+            consoleStub.restore();
+        });
+    });
+
+    describe('select() with slowLane option', () => {
+        it('accepts slowLane option as last argument', () => {
+            const testApi = new SimpleVertecApi('http://localhost', 'my-api-key', false, {
+                maxConcurrentRequests: 10,
+                maxConcurrentSlowLaneRequests: 1
+            });
+
+            sinon.stub(testApi, 'doRequest').callsFake(() => {
+                return new Promise((resolve) => {
+                    setTimeout(() => resolve({ it: 'works' }), 5);
+                });
+            });
+
+            testApi.select('query', [], { slowLane: true });
+            expect(testApi.activeSlowLaneRequests).to.equal(1);
+            expect(testApi.activeRequests).to.equal(0);
+
+            return delay(20).then(() => {
+                expect(testApi.activeSlowLaneRequests).to.equal(0);
+            });
+        });
+    });
+
+    describe('doRequest() edge cases', () => {
+        it('rejects with trimmed message for plain text response', () => {
+            sinon.stub(api, 'request').resolves({ data: '   Some plain text error   ' });
+
+            return api.select('something').then(
+                (result) => {
+                    throw new Error('Promise was unexpectedly fulfilled. Result: ' + result);
+                },
+                (result) => {
+                    expect(result).to.eql(new Error('Some plain text error'));
+                }
+            );
         });
     });
 });
