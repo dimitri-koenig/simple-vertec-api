@@ -23,8 +23,6 @@
     "bluebird": "^3.7.2",
     "lodash": "^4.17.21",
     "md5": "^2.3.0",
-    "simple-parameter-injector": "^2.0.0",
-    "simple-xml-converter": "^2.0.0",
     "traverse": "^0.6.9",
     "xml-digester": "^0.0.5"
   },
