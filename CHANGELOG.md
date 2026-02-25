@@ -4,6 +4,24 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [unreleased][unreleased]
 
+## [5.4.0][2026-02-25]
+### Modernization
+* Replaced `bluebird` with native Promises (+ `trackPending` helper for `isPending` support)
+* Replaced `md5` with `node:crypto` (`createHash`)
+* Replaced `traverse` with recursive `transformDotKeys` implementation
+* Replaced `xml-digester` with `fast-xml-parser` (sync API, zero deps, native ESM)
+* Migrated `simple-parameter-injector` and `simple-xml-converter` packages into the main package directly
+* Runtime dependencies reduced from 7 to 4
+
+### Enhancement
+* Moved `axios.create` to constructor (single client instance per API instance)
+* Converted `doRequest` to `async/await`
+* Extracted `_drainLane` helper from `processQueue` to reduce duplication
+* Modernized `arguments` usage to ES6 rest parameters
+* Modernized `var` to `let/const` across all files
+* Simplified retry condition with consolidated regex
+* Improved test coverage (155 → 192 tests)
+
 ## [5.3.1][2026-02-24]
 ### Chores
 * Update mocha from v10 to v11 for Node.js v25+ ESM compatibility
